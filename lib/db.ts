@@ -1,0 +1,493 @@
+import fs from 'fs';
+import path from 'path';
+import {
+  User,
+  Song,
+  Album,
+  Artist,
+  Genre,
+  Playlist,
+  UserCollection,
+  LikedSong,
+  ListeningHistory,
+  NotificationItem,
+  AdminActivityLog,
+  SystemSettings
+} from './types';
+import {
+  initialUsers,
+  initialSongs,
+  initialAlbums,
+  initialArtists,
+  initialGenres,
+  initialPlaylists,
+  initialCollections,
+  initialLikedSongs,
+  initialHistory,
+  initialFollowedArtists,
+  initialNotifications,
+  initialLogs,
+  initialSettings
+} from './seedData';
+
+interface DatabaseSchema {
+  users: User[];
+  songs: Song[];
+  albums: Album[];
+  artists: Artist[];
+  genres: Genre[];
+  playlists: Playlist[];
+  collections: UserCollection[];
+  likedSongs: LikedSong[];
+  history: ListeningHistory[];
+  followedArtists: { userId: string; artistId: string }[];
+  notifications: NotificationItem[];
+  logs: AdminActivityLog[];
+  settings: SystemSettings;
+}
+
+const DATA_DIR = path.join(process.cwd(), 'data');
+const DB_FILE = path.join(DATA_DIR, 'sonora.json');
+
+function ensureDirectoryExistence(filePath: string) {
+  const dirname = path.dirname(filePath);
+  if (!fs.existsSync(dirname)) {
+    fs.mkdirSync(dirname, { recursive: true });
+  }
+}
+
+function getInitialData(): DatabaseSchema {
+  return {
+    users: initialUsers,
+    songs: initialSongs,
+    albums: initialAlbums,
+    artists: initialArtists,
+    genres: initialGenres,
+    playlists: initialPlaylists,
+    collections: initialCollections,
+    likedSongs: initialLikedSongs,
+    history: initialHistory,
+    followedArtists: initialFollowedArtists,
+    notifications: initialNotifications,
+    logs: initialLogs,
+    settings: initialSettings
+  };
+}
+
+let dbMemoryCache: DatabaseSchema | null = null;
+
+function syncMissingArtists(data: DatabaseSchema): boolean {
+  let changed = false;
+  if (!data.artists) data.artists = [];
+  const artistMap = new Map<string, Artist>();
+  data.artists.forEach((a) => {
+    artistMap.set(a.id, a);
+    artistMap.set(a.name.toLowerCase(), a);
+  });
+
+  for (const song of data.songs || []) {
+    if (!song.artistName) continue;
+    const nameKey = song.artistName.trim().toLowerCase();
+    let matchedArtist = song.artistId ? artistMap.get(song.artistId) : null;
+    if (!matchedArtist) {
+      matchedArtist = artistMap.get(nameKey) || null;
+    }
+
+    if (!matchedArtist) {
+      // Auto-create artist for this song
+      const newArtist: Artist = {
+        id: song.artistId || `artist-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+        name: song.artistName.trim(),
+        avatar: song.coverImage || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80',
+        banner: song.coverImage || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1600&auto=format&fit=crop&q=80',
+        bio: `${song.artistName.trim()} is an official artist on SONORA.`,
+        country: 'Global',
+        genreId: song.genreId || undefined,
+        genreName: song.genreName || undefined,
+        monthlyListeners: 42000,
+        followersCount: 1500,
+        isVerified: true,
+        isFeatured: song.isFeatured || false,
+        socialLinks: {},
+        createdAt: song.createdAt || new Date().toISOString(),
+        updatedAt: song.updatedAt || new Date().toISOString()
+      };
+      data.artists.push(newArtist);
+      artistMap.set(newArtist.id, newArtist);
+      artistMap.set(nameKey, newArtist);
+      song.artistId = newArtist.id;
+      changed = true;
+    } else if (song.artistId !== matchedArtist.id) {
+      song.artistId = matchedArtist.id;
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+export function readDb(): DatabaseSchema {
+  try {
+    ensureDirectoryExistence(DB_FILE);
+    if (!fs.existsSync(DB_FILE)) {
+      const initial = getInitialData();
+      syncMissingArtists(initial);
+      fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), 'utf-8');
+      dbMemoryCache = initial;
+      return initial;
+    }
+    const data = fs.readFileSync(DB_FILE, 'utf-8');
+    const parsed = JSON.parse(data) as DatabaseSchema;
+    const synced = syncMissingArtists(parsed);
+    if (synced) {
+      fs.writeFileSync(DB_FILE, JSON.stringify(parsed, null, 2), 'utf-8');
+    }
+    dbMemoryCache = parsed;
+    return parsed;
+  } catch (error) {
+    console.error('Error reading database file, using fallback in-memory store:', error);
+    if (!dbMemoryCache) {
+      dbMemoryCache = getInitialData();
+    }
+    return dbMemoryCache;
+  }
+}
+
+export function writeDb(data: DatabaseSchema): void {
+  try {
+    ensureDirectoryExistence(DB_FILE);
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    dbMemoryCache = data;
+  } catch (error) {
+    console.error('Error writing database file:', error);
+    dbMemoryCache = data;
+  }
+}
+
+// Database helper functions
+export const db = {
+  // Songs
+  getSongs: () => readDb().songs,
+  getSongById: (id: string) => readDb().songs.find((s) => s.id === id),
+  saveSong: (song: Song) => {
+    const data = readDb();
+    const index = data.songs.findIndex((s) => s.id === song.id);
+    if (index >= 0) {
+      data.songs[index] = { ...song, updatedAt: new Date().toISOString() };
+    } else {
+      data.songs.unshift(song);
+    }
+    writeDb(data);
+    return song;
+  },
+  deleteSong: (id: string) => {
+    const data = readDb();
+    data.songs = data.songs.filter((s) => s.id !== id);
+    // Also remove from albums, playlists, collections, liked songs
+    data.albums = data.albums.map((a) => ({
+      ...a,
+      songIds: a.songIds.filter((sId) => sId !== id)
+    }));
+    data.playlists = data.playlists.map((p) => ({
+      ...p,
+      songIds: p.songIds.filter((sId) => sId !== id)
+    }));
+    data.collections = data.collections.map((c) => ({
+      ...c,
+      songIds: c.songIds.filter((sId) => sId !== id)
+    }));
+    data.likedSongs = data.likedSongs.filter((ls) => ls.songId !== id);
+    writeDb(data);
+  },
+  incrementPlayCount: (songId: string, userId?: string) => {
+    const data = readDb();
+    const song = data.songs.find((s) => s.id === songId);
+    if (song) {
+      song.playCount = (song.playCount || 0) + 1;
+      if (userId) {
+        // Record listening history (avoid immediate duplicate within 30s)
+        const recent = data.history.find(
+          (h) =>
+            h.userId === userId &&
+            h.songId === songId &&
+            Date.now() - new Date(h.playedAt).getTime() < 30000
+        );
+        if (!recent) {
+          data.history.unshift({
+            id: `hist-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+            userId,
+            songId,
+            playedAt: new Date().toISOString()
+          });
+          // keep last 500 history entries
+          if (data.history.length > 500) {
+            data.history = data.history.slice(0, 500);
+          }
+        }
+      }
+      writeDb(data);
+    }
+  },
+
+  // Albums
+  getAlbums: () => readDb().albums,
+  getAlbumById: (id: string) => readDb().albums.find((a) => a.id === id),
+  saveAlbum: (album: Album) => {
+    const data = readDb();
+    const index = data.albums.findIndex((a) => a.id === album.id);
+    if (index >= 0) {
+      data.albums[index] = { ...album, updatedAt: new Date().toISOString() };
+    } else {
+      data.albums.unshift(album);
+    }
+    // Update songs associated with this album
+    data.songs = data.songs.map((s) => {
+      if (album.songIds.includes(s.id)) {
+        return { ...s, albumId: album.id, albumTitle: album.title };
+      }
+      if (s.albumId === album.id && !album.songIds.includes(s.id)) {
+        return { ...s, albumId: undefined, albumTitle: undefined };
+      }
+      return s;
+    });
+    writeDb(data);
+    return album;
+  },
+  deleteAlbum: (id: string) => {
+    const data = readDb();
+    data.albums = data.albums.filter((a) => a.id !== id);
+    // Unlink songs from this album
+    data.songs = data.songs.map((s) => (s.albumId === id ? { ...s, albumId: undefined, albumTitle: undefined } : s));
+    writeDb(data);
+  },
+
+  // Artists
+  getArtists: () => readDb().artists,
+  getArtistById: (id: string) => {
+    if (!id) return undefined;
+    const artists = readDb().artists;
+    const direct = artists.find((a) => a.id === id);
+    if (direct) return direct;
+    const decoded = decodeURIComponent(id).trim().toLowerCase();
+    return artists.find(
+      (a) => a.id.toLowerCase() === decoded || a.name.toLowerCase() === decoded
+    );
+  },
+  saveArtist: (artist: Artist) => {
+    const data = readDb();
+    const index = data.artists.findIndex((a) => a.id === artist.id || a.name.toLowerCase() === artist.name.toLowerCase());
+    if (index >= 0) {
+      data.artists[index] = { ...data.artists[index], ...artist, updatedAt: new Date().toISOString() };
+      writeDb(data);
+      return data.artists[index];
+    } else {
+      data.artists.unshift(artist);
+      writeDb(data);
+      return artist;
+    }
+  },
+  deleteArtist: (id: string) => {
+    const data = readDb();
+    data.artists = data.artists.filter((a) => a.id !== id);
+    writeDb(data);
+  },
+
+  // Genres
+  getGenres: () => readDb().genres,
+  getGenreById: (id: string) => {
+    if (!id) return undefined;
+    const genres = readDb().genres;
+    const direct = genres.find((g) => g.id === id);
+    if (direct) return direct;
+    const decoded = decodeURIComponent(id).trim().toLowerCase();
+    return genres.find((g) => g.slug?.toLowerCase() === decoded || g.name.toLowerCase() === decoded);
+  },
+  saveGenre: (genre: Genre) => {
+    const data = readDb();
+    const index = data.genres.findIndex((g) => g.id === genre.id);
+    if (index >= 0) {
+      data.genres[index] = genre;
+    } else {
+      data.genres.push(genre);
+    }
+    writeDb(data);
+    return genre;
+  },
+  deleteGenre: (id: string) => {
+    const data = readDb();
+    data.genres = data.genres.filter((g) => g.id !== id);
+    writeDb(data);
+  },
+
+  // Playlists
+  getPlaylists: () => readDb().playlists,
+  getPlaylistById: (id: string) => readDb().playlists.find((p) => p.id === id),
+  getUserPlaylists: (userId: string) => readDb().playlists.filter((p) => p.userId === userId || p.isPublic),
+  savePlaylist: (playlist: Playlist) => {
+    const data = readDb();
+    const index = data.playlists.findIndex((p) => p.id === playlist.id);
+    if (index >= 0) {
+      data.playlists[index] = { ...playlist, updatedAt: new Date().toISOString() };
+    } else {
+      data.playlists.unshift(playlist);
+    }
+    writeDb(data);
+    return playlist;
+  },
+  deletePlaylist: (id: string) => {
+    const data = readDb();
+    data.playlists = data.playlists.filter((p) => p.id !== id);
+    writeDb(data);
+  },
+
+  // Collections (Personal Albums)
+  getCollections: () => readDb().collections,
+  getCollectionById: (id: string) => readDb().collections.find((c) => c.id === id),
+  getUserCollections: (userId: string) => readDb().collections.filter((c) => c.userId === userId),
+  saveCollection: (col: UserCollection) => {
+    const data = readDb();
+    const index = data.collections.findIndex((c) => c.id === col.id);
+    if (index >= 0) {
+      data.collections[index] = { ...col, updatedAt: new Date().toISOString() };
+    } else {
+      data.collections.unshift(col);
+    }
+    writeDb(data);
+    return col;
+  },
+  deleteCollection: (id: string) => {
+    const data = readDb();
+    data.collections = data.collections.filter((c) => c.id !== id);
+    writeDb(data);
+  },
+
+  // Likes
+  getLikedSongs: (userId: string) => readDb().likedSongs.filter((ls) => ls.userId === userId),
+  isSongLiked: (userId: string, songId: string) => {
+    return readDb().likedSongs.some((ls) => ls.userId === userId && ls.songId === songId);
+  },
+  toggleLikeSong: (userId: string, songId: string) => {
+    const data = readDb();
+    const index = data.likedSongs.findIndex((ls) => ls.userId === userId && ls.songId === songId);
+    let isLiked = false;
+    const song = data.songs.find((s) => s.id === songId);
+
+    if (index >= 0) {
+      data.likedSongs.splice(index, 1);
+      if (song) song.likesCount = Math.max(0, (song.likesCount || 0) - 1);
+      isLiked = false;
+    } else {
+      data.likedSongs.unshift({
+        userId,
+        songId,
+        likedAt: new Date().toISOString()
+      });
+      if (song) song.likesCount = (song.likesCount || 0) + 1;
+      isLiked = true;
+    }
+    writeDb(data);
+    return { isLiked, likesCount: song?.likesCount || 0 };
+  },
+
+  // Following Artists
+  isArtistFollowed: (userId: string, artistId: string) => {
+    return readDb().followedArtists.some((fa) => fa.userId === userId && fa.artistId === artistId);
+  },
+  toggleFollowArtist: (userId: string, artistId: string) => {
+    const data = readDb();
+    const index = data.followedArtists.findIndex((fa) => fa.userId === userId && fa.artistId === artistId);
+    let isFollowed = false;
+    const artist = data.artists.find((a) => a.id === artistId);
+
+    if (index >= 0) {
+      data.followedArtists.splice(index, 1);
+      if (artist) artist.followersCount = Math.max(0, (artist.followersCount || 0) - 1);
+      isFollowed = false;
+    } else {
+      data.followedArtists.unshift({ userId, artistId });
+      if (artist) artist.followersCount = (artist.followersCount || 0) + 1;
+      isFollowed = true;
+    }
+    writeDb(data);
+    return { isFollowed, followersCount: artist?.followersCount || 0 };
+  },
+  getFollowedArtists: (userId: string) => {
+    const data = readDb();
+    const artistIds = data.followedArtists.filter((fa) => fa.userId === userId).map((fa) => fa.artistId);
+    return data.artists.filter((a) => artistIds.includes(a.id));
+  },
+
+  // History
+  getUserHistory: (userId: string) => {
+    const data = readDb();
+    return data.history.filter((h) => h.userId === userId);
+  },
+  clearUserHistory: (userId: string) => {
+    const data = readDb();
+    data.history = data.history.filter((h) => h.userId !== userId);
+    writeDb(data);
+  },
+
+  // Users
+  getUsers: () => readDb().users,
+  getUserById: (id: string) => readDb().users.find((u) => u.id === id),
+  getUserByEmail: (email: string) => readDb().users.find((u) => u.email.toLowerCase() === email.toLowerCase()),
+  getUserByUsername: (username: string) =>
+    readDb().users.find((u) => u.username.toLowerCase() === username.toLowerCase()),
+  saveUser: (user: User) => {
+    const data = readDb();
+    const index = data.users.findIndex((u) => u.id === user.id);
+    if (index >= 0) {
+      data.users[index] = { ...user, updatedAt: new Date().toISOString() };
+    } else {
+      data.users.push(user);
+    }
+    writeDb(data);
+    return user;
+  },
+  deleteUser: (id: string) => {
+    const data = readDb();
+    data.users = data.users.filter((u) => u.id !== id);
+    writeDb(data);
+  },
+
+  // Notifications
+  getNotificationsForUser: (userId: string) => {
+    const data = readDb();
+    return data.notifications.filter((n) => n.userId === 'all' || n.userId === userId);
+  },
+  addNotification: (notif: NotificationItem) => {
+    const data = readDb();
+    data.notifications.unshift(notif);
+    writeDb(data);
+    return notif;
+  },
+  markNotificationAsRead: (id: string) => {
+    const data = readDb();
+    const n = data.notifications.find((item) => item.id === id);
+    if (n) {
+      n.isRead = true;
+      writeDb(data);
+    }
+  },
+
+  // Activity Logs
+  getLogs: () => readDb().logs,
+  addLog: (log: AdminActivityLog) => {
+    const data = readDb();
+    data.logs.unshift(log);
+    if (data.logs.length > 300) {
+      data.logs = data.logs.slice(0, 300);
+    }
+    writeDb(data);
+    return log;
+  },
+
+  // Settings
+  getSettings: () => readDb().settings,
+  updateSettings: (settings: Partial<SystemSettings>) => {
+    const data = readDb();
+    data.settings = { ...data.settings, ...settings };
+    writeDb(data);
+    return data.settings;
+  }
+};
