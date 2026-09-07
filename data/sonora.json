@@ -61,6 +61,31 @@
         "notifySystem": true,
         "theme": "dark"
       }
+    },
+    {
+      "id": "user-1788812948829",
+      "name": "dean",
+      "username": "chsuhcsuacs",
+      "email": "xeancoral31@gmail.com",
+      "passwordHash": "$2b$10$i28coNUjPWU3ml0BwtAVS..7MTV3rXeexllZqMWBhZz8xPVH5TTxq",
+      "role": "user",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=chsuhcsuacs",
+      "bio": "New music lover on SONORA.",
+      "favoriteGenres": [
+        "genre-pop",
+        "genre-electronic"
+      ],
+      "createdAt": "2026-09-07T20:29:08.957Z",
+      "updatedAt": "2026-09-07T20:29:08.957Z",
+      "isActive": true,
+      "preferences": {
+        "autoplay": true,
+        "audioQuality": "high",
+        "crossfade": 2,
+        "normalizeVolume": true,
+        "explicitFilter": false,
+        "theme": "dark"
+      }
     }
   ],
   "songs": [
@@ -1154,7 +1179,7 @@
       "lyrics": "Just the guitar, okay, cool\n\nThis was all you, none of it me\nYou put your hands all over my body and told me, mmm\nYou told me you were ready\nFor the big one, for the big jump\nI'd be your last love, everlasting, you and me, mmm\nThat was what you told me\n\nI'm giving you up\nI've forgiven it all\nYou set me free\n\nSend my love to your new lover\nTreat her better\nWe've gotta let go of all of our ghosts\nWe both know we ain't kids no more\nSend my love to your new lover\nTreat her better\nWe've gotta let go of all of our ghosts\nWe both know we ain't kids no more\n\nI was too strong, you were trembling\nYou couldn't handle the hot heat rising (rising), mmm\nBaby, I'm still rising\nI was running, you were walking\nYou couldn't keep up, you were falling down (down), mmm\nThere's only one way down\n\nI'm giving you up\nI've forgiven it all\nYou set me free, oh\n\nSend my love to your new lover\nTreat her better\nWe gotta let go of all of our ghosts\nWe've both know we ain't kids no more\nSend my love to your new lover\nTreat her better\nWe've gotta let go of all of our ghosts\nWe both know we ain't kids no more\n\nIf you're ready, if you're ready\nIf you're ready, I am ready\nIf you're ready, if you're ready\nWe both know we ain't kids no more\nNo, we ain't kids no more\n\nI'm giving you up\nI've forgiven it all\nYou set me free\n\nSend my love to your new lover\nTreat her better\nWe've gotta let go of all of our ghosts\nWe both know we ain't kids no more\nSend my love to your new lover\nTreat her better\nWe've gotta let go of all of our ghosts\nWe both know we ain't kids no more\n\nIf you're ready, if you're ready (send my love to your new lover)\nIf you're ready, are you ready? (Treat her better)\nWe've gotta let go of all of our ghosts\nWe both know we ain't kids no more\nIf you're ready, if you're ready (send my love to your new lover)\nIf you're ready, are you ready? (Treat her better)\nWe've gotta let go of all of our ghosts\nWe both know we ain't kids no more",
       "explicit": false,
       "status": "published",
-      "playCount": 6,
+      "playCount": 7,
       "likesCount": 0,
       "uploadedBy": "user-admin",
       "uploadType": "url",
@@ -7360,6 +7385,26 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif-admin-1788812948979",
+      "userId": "admin",
+      "title": "New User Registered",
+      "message": "User dean (@chsuhcsuacs) just signed up.",
+      "type": "admin_alert",
+      "link": "/admin/users",
+      "isRead": false,
+      "createdAt": "2026-09-07T20:29:08.979Z"
+    },
+    {
+      "id": "notif-1788812948967",
+      "userId": "user-1788812948829",
+      "title": "Welcome to SONORA!",
+      "message": "Explore millions of tracks, build your playlists, and follow your favorite artists.",
+      "type": "system",
+      "link": "/browse",
+      "isRead": false,
+      "createdAt": "2026-09-07T20:29:08.967Z"
+    },
     {
       "id": "notif-1788809484290",
       "userId": "all",

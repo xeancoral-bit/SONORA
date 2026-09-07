@@ -75,6 +75,10 @@ export const Header: React.FC = () => {
     await logout();
   };
 
+  if (pathname === '/auth/login' || pathname === '/auth/register') {
+    return null;
+  }
+
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between px-6 py-3 bg-[#121212]/95 backdrop-blur-xl border-b border-white/5 gap-4">
       {/* Left: History nav & Search */}

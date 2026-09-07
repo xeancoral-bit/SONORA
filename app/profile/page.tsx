@@ -61,9 +61,12 @@ export default function ProfilePage() {
         />
 
         <div className="flex-1 text-center md:text-left min-w-0">
-          <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
-            <span className="text-xs font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
-              {user.role === 'admin' ? 'Administrator' : 'Music Listener'}
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 flex items-center gap-1">
+              {user.role === 'admin' ? 'Administrator' : 'Verified Music Listener'}
+            </span>
+            <span className="text-[11px] font-mono text-neutral-400 bg-white/5 px-2.5 py-0.5 rounded-full border border-white/5">
+              ID: #{user.id.startsWith('user-') ? user.id.replace('user-', 'SNR-') : `SNR-${user.id}`}
             </span>
           </div>
 
@@ -100,6 +103,12 @@ export default function ProfilePage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <Link
+            href={`/users/${user.username}`}
+            className="px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-white flex items-center gap-1.5 transition-colors"
+          >
+            View Public Card
+          </Link>
           <Link
             href="/settings"
             className="px-5 py-2.5 rounded-full border border-white/10 hover:bg-white/10 text-xs font-semibold text-white flex items-center gap-2 transition-colors"
