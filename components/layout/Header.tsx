@@ -236,38 +236,40 @@ export const Header: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Quick Role Switcher */}
-                  <div className="p-1.5 bg-[#1e1e1e] rounded-xl border border-white/5 mb-2 flex items-center justify-between text-xs">
-                    <span className="text-[11px] font-medium text-neutral-400 ml-2">Switch Demo Role</span>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => {
-                          switchRole('user');
-                          toast.info('Role set to User (Xean Santos)');
-                        }}
-                        className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-colors ${
-                          user.role === 'user'
-                            ? 'bg-emerald-500 text-black shadow-md'
-                            : 'text-neutral-400 hover:text-white'
-                        }`}
-                      >
-                        User
-                      </button>
-                      <button
-                        onClick={() => {
-                          switchRole('admin');
-                          toast.warning('Role set to Admin');
-                        }}
-                        className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-colors ${
-                          user.role === 'admin'
-                            ? 'bg-amber-500 text-black shadow-md'
-                            : 'text-neutral-400 hover:text-white'
-                        }`}
-                      >
-                        Admin
-                      </button>
+                  {/* Quick Role Switcher - Admin Only */}
+                  {isAdmin && (
+                    <div className="p-1.5 bg-[#1e1e1e] rounded-xl border border-white/5 mb-2 flex items-center justify-between text-xs">
+                      <span className="text-[11px] font-medium text-neutral-400 ml-2">Switch Demo Role</span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => {
+                            switchRole('user');
+                            toast.info('Role set to User (Xean Santos)');
+                          }}
+                          className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-colors ${
+                            user.role === 'user'
+                              ? 'bg-emerald-500 text-black shadow-md'
+                              : 'text-neutral-400 hover:text-white'
+                          }`}
+                        >
+                          User
+                        </button>
+                        <button
+                          onClick={() => {
+                            switchRole('admin');
+                            toast.warning('Role set to Admin');
+                          }}
+                          className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-colors ${
+                            user.role === 'admin'
+                              ? 'bg-amber-500 text-black shadow-md'
+                              : 'text-neutral-400 hover:text-white'
+                          }`}
+                        >
+                          Admin
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Menu Options */}
                   <div className="space-y-0.5">

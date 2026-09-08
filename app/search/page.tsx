@@ -206,10 +206,10 @@ function SearchContent() {
           <div className="space-y-3 pt-4">
             <h3 className="font-bold text-lg text-white">Browse All Categories</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              <GenreCard genre={{ id: 'genre-pop', name: 'Pop', slug: 'pop', color: 'from-pink-500 to-rose-700', accentColor: '#EC4899' }} />
-              <GenreCard genre={{ id: 'genre-electronic', name: 'Electronic', slug: 'electronic', color: 'from-cyan-500 to-blue-700', accentColor: '#06B6D4' }} />
-              <GenreCard genre={{ id: 'genre-chill', name: 'Lo-Fi & Chill', slug: 'chill', color: 'from-emerald-500 to-teal-800', accentColor: '#10B981' }} />
-              <GenreCard genre={{ id: 'genre-rnb', name: 'R&B & Soul', slug: 'rnb', color: 'from-purple-500 to-indigo-800', accentColor: '#8B5CF6' }} />
+              <GenreCard genre={{ id: 'genre-pop', name: 'Pop', slug: 'pop', color: 'from-pink-500 to-rose-700', accentColor: '#EC4899', coverImage: '/genres/genre-pop.jpg', description: 'Catchy hooks, upbeat rhythms, and mainstream chart-toppers.' }} />
+              <GenreCard genre={{ id: 'genre-electronic', name: 'Electronic', slug: 'electronic', color: 'from-cyan-500 to-blue-700', accentColor: '#06B6D4', coverImage: '/genres/genre-electronic.jpg', description: 'Synthesizers, driving 4/4 beats, synthwave, and club anthems.' }} />
+              <GenreCard genre={{ id: 'genre-chill', name: 'Lo-Fi & Chill', slug: 'chill', color: 'from-emerald-500 to-teal-800', accentColor: '#10B981', coverImage: '/genres/genre-lofi.jpg', description: 'Relaxing study beats, ambient textures, and peaceful vibes.' }} />
+              <GenreCard genre={{ id: 'genre-rnb', name: 'R&B & Soul', slug: 'rnb', color: 'from-purple-500 to-indigo-800', accentColor: '#8B5CF6', coverImage: '/genres/genre-rnb.jpg', description: 'Smooth vocals, deep basslines, and emotive melodies.' }} />
             </div>
           </div>
         </div>

@@ -190,49 +190,32 @@ export async function POST(
   }
 
   if (action === 'switch-role') {
-    // Convenient shortcut for pairing/testing admin vs user
     const { targetRole } = body;
     const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      // Login as demo admin or user directly
-      const targetUser = targetRole === 'admin' ? db.getUserByEmail('admin@sonora.io') : db.getUserByEmail('xean@sonora.io');
-      if (!targetUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
-      
-      const token = generateToken({
-        userId: targetUser.id,
-        email: targetUser.email,
-        role: targetUser.role,
-        username: targetUser.username
-      });
-      const response = NextResponse.json({ success: true, user: sanitizeUser(targetUser) });
-      response.cookies.set({
-        name: AUTH_COOKIE_NAME,
-        value: token,
-        httpOnly: true,
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7
-      });
-      return response;
+    
+    // Only admin accounts are permitted to switch demo roles
+    if (!currentUser || (currentUser.role !== 'admin' && currentUser.email !== 'admin@sonora.io')) {
+      return NextResponse.json({ error: 'Unauthorized: Only admin accounts can switch demo roles' }, { status: 403 });
     }
 
     const targetUser = targetRole === 'admin' ? db.getUserByEmail('admin@sonora.io') : db.getUserByEmail('xean@sonora.io');
-    if (targetUser) {
-      const token = generateToken({
-        userId: targetUser.id,
-        email: targetUser.email,
-        role: targetUser.role,
-        username: targetUser.username
-      });
-      const response = NextResponse.json({ success: true, user: sanitizeUser(targetUser) });
-      response.cookies.set({
-        name: AUTH_COOKIE_NAME,
-        value: token,
-        httpOnly: true,
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7
-      });
-      return response;
-    }
+    if (!targetUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      
+    const token = generateToken({
+      userId: targetUser.id,
+      email: targetUser.email,
+      role: targetUser.role,
+      username: targetUser.username
+    });
+    const response = NextResponse.json({ success: true, user: sanitizeUser(targetUser) });
+    response.cookies.set({
+      name: AUTH_COOKIE_NAME,
+      value: token,
+      httpOnly: true,
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7
+    });
+    return response;
   }
 
   return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

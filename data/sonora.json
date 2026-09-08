@@ -86,6 +86,31 @@
         "explicitFilter": false,
         "theme": "dark"
       }
+    },
+    {
+      "id": "user-1788840982250",
+      "name": "xian",
+      "username": "724824",
+      "email": "xeancoral@gmail.com",
+      "passwordHash": "$2b$10$kpyvm0zweBGYyAY6Q7azSOIvGCQ5dWLY2C1XygZGddfst/Xn0cOcK",
+      "role": "user",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=724824",
+      "bio": "New music lover on SONORA.",
+      "favoriteGenres": [
+        "genre-pop",
+        "genre-electronic"
+      ],
+      "createdAt": "2026-09-08T04:16:22.492Z",
+      "updatedAt": "2026-09-08T04:16:22.492Z",
+      "isActive": true,
+      "preferences": {
+        "autoplay": true,
+        "audioQuality": "high",
+        "crossfade": 2,
+        "normalizeVolume": true,
+        "explicitFilter": false,
+        "theme": "dark"
+      }
     }
   ],
   "songs": [
@@ -3353,7 +3378,7 @@
       "lyrics": "Take your eyes off of me so I can leave\nI'm far too ashamed to do it with you watching me\nThis is never ending, we have been here before\nBut I can't stay this time, 'cause I don't love you anymore\nPlease, stay where you are\nDon't come any closer\nDon't try to change my mind\nI'm being cruel to be kind\nI can't love you in the dark\nIt feels like we're oceans apart\nThere is so much space between us\nBaby, we're already defeated\nAy-yeah-yeah-yeah-yeah-yeah-yeah-yeah\nEverything changed me\nYou have given me something that I can't live without\nYou mustn't underestimate that when you are in doubt\nBut I don't want to carry on like everything is fine\nThe longer we ignore it, all the more that we will fight\nPlease, don't fall apart\nI can't face your breaking heart\nI'm trying to be brave\nStop asking me to stay\nI can't love you in the dark\nIt feels like we're oceans apart\nThere is so much space between us\nBaby, we're already defeated\nAy-yeah-yeah-yeah-yeah-yeah-yeah-yeah\nEverything changed me\nWe're not the only ones, I don't regret a thing\nEvery word I've said, you know I'll always mean\nIt is the world to me that you are in my life\nBut I want to live and not just survive\nThat's why I can't love you in the dark\nIt feels like we're oceans apart\nThere is so much space between us\nBaby, we're already defeated\n'Cause, ay-yeah-yeah-yeah-yeah-yeah-yeah\nEverything changed me\nAnd I-I-I-I-I don't think you can save me",
       "explicit": false,
       "status": "published",
-      "playCount": 8,
+      "playCount": 10,
       "likesCount": 0,
       "uploadedBy": "user-admin",
       "uploadType": "url",
@@ -4980,7 +5005,7 @@
       "description": "Gentle raindrops on glass, tape saturation, and mellow jazz piano chords.",
       "explicit": false,
       "status": "published",
-      "playCount": 312501,
+      "playCount": 312502,
       "likesCount": 45199,
       "uploadedBy": "user-admin",
       "uploadType": "file",
@@ -7097,7 +7122,7 @@
       "slug": "pop",
       "color": "from-pink-500 to-rose-700",
       "accentColor": "#EC4899",
-      "coverImage": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80",
+      "coverImage": "/genres/genre-pop.jpg",
       "description": "Catchy hooks, upbeat rhythms, and mainstream chart-toppers."
     },
     {
@@ -7106,7 +7131,7 @@
       "slug": "electronic",
       "color": "from-cyan-500 to-blue-700",
       "accentColor": "#06B6D4",
-      "coverImage": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80",
+      "coverImage": "/genres/genre-electronic.jpg",
       "description": "Synthesizers, driving 4/4 beats, synthwave, and club anthems."
     },
     {
@@ -7115,7 +7140,7 @@
       "slug": "chill",
       "color": "from-emerald-500 to-teal-800",
       "accentColor": "#10B981",
-      "coverImage": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=600&auto=format&fit=crop&q=80",
+      "coverImage": "/genres/genre-lofi.jpg",
       "description": "Relaxing study beats, ambient textures, and peaceful vibes."
     },
     {
@@ -7124,7 +7149,7 @@
       "slug": "rnb",
       "color": "from-purple-500 to-indigo-800",
       "accentColor": "#8B5CF6",
-      "coverImage": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
+      "coverImage": "/genres/genre-rnb.jpg",
       "description": "Smooth vocals, deep basslines, and emotive melodies."
     },
     {
@@ -7178,7 +7203,7 @@
       "slug": "classical",
       "color": "from-stone-500 to-stone-800",
       "accentColor": "#A8A29E",
-      "coverImage": "https://images.unsplash.com/photo-1520523839898-507127025816?w=600&auto=format&fit=crop&q=80",
+      "coverImage": "/genres/genre-classical.jpg",
       "description": "Cinematic strings, grand pianos, and orchestral elegance."
     }
   ],
@@ -7267,6 +7292,24 @@
     }
   ],
   "history": [
+    {
+      "id": "hist-1788842103961-83e0",
+      "userId": "user-1788840982250",
+      "songId": "song-tokyo-drizzle",
+      "playedAt": "2026-09-08T04:35:03.961Z"
+    },
+    {
+      "id": "hist-1788841582384-2ygg",
+      "userId": "user-1788840982250",
+      "songId": "song-1788803603766",
+      "playedAt": "2026-09-08T04:26:22.384Z"
+    },
+    {
+      "id": "hist-1788841268965-uppx",
+      "userId": "user-1788840982250",
+      "songId": "song-1788803603766",
+      "playedAt": "2026-09-08T04:21:08.965Z"
+    },
     {
       "id": "hist-1788811136300-yjsu",
       "userId": "user-admin",
@@ -7385,6 +7428,26 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif-admin-1788840982523",
+      "userId": "admin",
+      "title": "New User Registered",
+      "message": "User xian (@724824) just signed up.",
+      "type": "admin_alert",
+      "link": "/admin/users",
+      "isRead": false,
+      "createdAt": "2026-09-08T04:16:22.523Z"
+    },
+    {
+      "id": "notif-1788840982510",
+      "userId": "user-1788840982250",
+      "title": "Welcome to SONORA!",
+      "message": "Explore millions of tracks, build your playlists, and follow your favorite artists.",
+      "type": "system",
+      "link": "/browse",
+      "isRead": false,
+      "createdAt": "2026-09-08T04:16:22.510Z"
+    },
     {
       "id": "notif-admin-1788812948979",
       "userId": "admin",

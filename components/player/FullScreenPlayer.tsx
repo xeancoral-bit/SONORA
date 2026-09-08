@@ -59,7 +59,7 @@ export const FullScreenPlayer: React.FC = () => {
   } = useAudio();
 
   const isYouTube = Boolean(currentTrack?.sourcePlatform === 'youtube' || currentTrack?.externalMediaId);
-  const [activeTab, setActiveTab] = useState<'lyrics' | 'queue' | 'video'>('lyrics');
+  const [activeTab, setActiveTab] = useState<'lyrics' | 'queue' | 'video' | 'disk'>('lyrics');
   const activeLineRef = useRef<HTMLParagraphElement | null>(null);
 
   useEffect(() => {
@@ -100,11 +100,12 @@ export const FullScreenPlayer: React.FC = () => {
           Minimize
         </button>
 
-        <div className="text-center">
-          <span className="text-[11px] uppercase tracking-widest text-emerald-400 font-semibold block">
+        {/* Track info — absolutely centered so it is always in the middle of the header regardless of button widths */}
+        <div className="absolute left-1/2 -translate-x-1/2 text-center pointer-events-none select-none">
+          <span className="text-[11px] uppercase tracking-[0.18em] text-emerald-400 font-semibold block">
             Playing from {currentTrack.albumTitle || 'SONORA Masters'}
           </span>
-          <span className="text-xs font-bold text-white/90 truncate max-w-xs block">
+          <span className="text-base font-bold text-white tracking-tight block mt-0.5">
             {currentTrack.title}
           </span>
         </div>
@@ -123,6 +124,23 @@ export const FullScreenPlayer: React.FC = () => {
               Video
             </button>
           )}
+          {/* Disk view button */}
+          <button
+            onClick={() => setActiveTab('disk')}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md transition-all ${
+              activeTab === 'disk'
+                ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/30'
+                : 'bg-white/10 text-white hover:bg-white/20'
+            }`}
+          >
+            <span className="inline-block w-3.5 h-3.5 mr-1 align-middle" style={{ verticalAlign: 'middle' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                <circle cx="12" cy="12" r="10" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </span>
+            Disk
+          </button>
           <button
             onClick={() => setActiveTab('lyrics')}
             className={`px-3.5 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md transition-all ${
@@ -155,7 +173,82 @@ export const FullScreenPlayer: React.FC = () => {
         </div>
       </div>
 
-      {/* Center Body: Artwork + (Lyrics / Queue) */}
+      {/* Center Body: Disk-only mode (centered, full-area) */}
+      {activeTab === 'disk' ? (
+        <div className="relative z-10 flex-1 flex items-center justify-center overflow-hidden">
+          {/* Large centered vinyl disk */}
+          <div
+            className={`relative vinyl-spin ${isPlaying ? 'is-playing' : ''}`}
+            style={{ width: 'clamp(280px, 55vmin, 560px)', height: 'clamp(280px, 55vmin, 560px)' }}
+          >
+            {/* Disk body */}
+            <div className="absolute inset-0 rounded-full bg-[#111] shadow-2xl shadow-black/80 border border-white/10" />
+
+            {/* Album cover clipped to circle */}
+            <div className="absolute inset-[10%] rounded-full overflow-hidden shadow-inner">
+              <img
+                src={currentTrack.coverImage}
+                alt={currentTrack.title}
+                className="w-full h-full object-cover"
+                style={{ borderRadius: '50%' }}
+              />
+            </div>
+
+            {/* Vinyl groove rings overlay */}
+            <div className="absolute inset-0 rounded-full vinyl-grooves pointer-events-none" />
+
+            {/* Outer vinyl ring highlight */}
+            <div
+              className="absolute inset-0 rounded-full pointer-events-none"
+              style={{
+                background: 'radial-gradient(circle at 38% 30%, rgba(255,255,255,0.06) 0%, transparent 50%)',
+                boxShadow: 'inset 0 0 50px rgba(0,0,0,0.7), 0 0 80px rgba(0,0,0,0.9)'
+              }}
+            />
+
+            {/* Center label + spindle */}
+            <div className="vinyl-label">
+              <div
+                style={{
+                  width: '22%',
+                  height: '22%',
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle, #1c1c1c 60%, #0d0d0d 100%)',
+                  border: '2px solid rgba(255,255,255,0.1)',
+                  boxShadow: '0 0 14px rgba(0,0,0,1), inset 0 0 8px rgba(255,255,255,0.04)',
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                {/* Spindle green dot */}
+                <div
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    background: '#10B981',
+                    boxShadow: '0 0 10px #10B981, 0 0 20px rgba(16,185,129,0.6)'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Glowing emerald ring under disk when playing */}
+            {isPlaying && (
+              <div
+                className="absolute rounded-full pointer-events-none animate-ambient-pulse"
+                style={{
+                  inset: '-10px',
+                  boxShadow: '0 0 70px rgba(16,185,129,0.25), 0 0 130px rgba(16,185,129,0.10)'
+                }}
+              />
+            )}
+          </div>
+        </div>
+      ) : (
+      /* Center Body: Split layout — Artwork left + (Lyrics / Queue / Video) right */
       <div className="relative z-10 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center px-6 md:px-16 overflow-y-auto py-4">
         {/* Left: Spinning Vinyl Disk Art */}
         <div className="lg:col-span-6 flex flex-col items-center justify-center gap-6">
@@ -343,6 +436,7 @@ export const FullScreenPlayer: React.FC = () => {
           )}
         </div>
       </div>
+      )}
 
       {/* Bottom Controls Area */}
       <div className="relative z-10 p-6 md:px-16 md:pb-10 max-w-4xl mx-auto w-full flex flex-col gap-4">
