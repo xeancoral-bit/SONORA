@@ -13,10 +13,10 @@ export default function LoginPage() {
   const { login } = useAuth();
   const toast = useToast();
 
-  const [email, setEmail] = useState('admin@sonora.io');
-  const [password, setPassword] = useState('Admin123!');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -112,13 +112,12 @@ export default function LoginPage() {
               <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
                 Password
               </label>
-              <button
-                type="button"
-                onClick={() => toast.info('Password Reset', 'Use Admin123! or User123! for demo accounts.')}
+              <Link
+                href="/auth/forgot-password"
                 className="text-[11px] text-emerald-400 hover:underline"
               >
                 Forgot?
-              </button>
+              </Link>
             </div>
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />

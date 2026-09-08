@@ -13,10 +13,23 @@ export async function GET(
   }
 
   const allSongs = db.getSongs();
-  // Get songs in specific order of album.songIds
-  const songs = album.songIds
-    .map((songId) => allSongs.find((s) => s.id === songId))
-    .filter(Boolean);
+  const seenSongIds = new Set<string>();
+  const songs: any[] = [];
+
+  (album.songIds || []).forEach((songId) => {
+    const s = allSongs.find((item) => item.id === songId);
+    if (s && !seenSongIds.has(s.id)) {
+      seenSongIds.add(s.id);
+      songs.push(s);
+    }
+  });
+
+  allSongs.forEach((s) => {
+    if (s.albumId === album.id && !seenSongIds.has(s.id)) {
+      seenSongIds.add(s.id);
+      songs.push(s);
+    }
+  });
 
   const totalDuration = songs.reduce((acc, s) => acc + (s?.duration || 0), 0);
 

@@ -24,11 +24,13 @@ export async function GET(request: NextRequest) {
   // Populate song count and total duration
   const allSongs = db.getSongs();
   const enhancedAlbums = albums.map((album) => {
-    const albumSongs = allSongs.filter((s) => album.songIds.includes(s.id));
+    const albumSongs = allSongs.filter(
+      (s) => (album.songIds && album.songIds.includes(s.id)) || s.albumId === album.id
+    );
     const totalDuration = albumSongs.reduce((acc, s) => acc + (s.duration || 0), 0);
     return {
       ...album,
-      songCount: album.songIds.length,
+      songCount: albumSongs.length,
       totalDuration
     };
   });
@@ -46,7 +48,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { title, artistId, artistName, coverImage, description, genreId, genreName, releaseDate, copyrightInfo, songIds, isFeatured, status } = body;
 
-    if (!title || !artistId) {
+    if (!title || !title.trim() || !artistId) {
       return NextResponse.json({ error: 'Album title and artist are required' }, { status: 400 });
     }
 

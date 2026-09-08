@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import {
@@ -14,7 +14,9 @@ import {
   Check,
   Volume2,
   Sparkles,
-  LogOut
+  LogOut,
+  Upload,
+  X
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -26,6 +28,31 @@ export default function SettingsPage() {
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
   const [avatar, setAvatar] = useState('');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string>('');
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  // Cleanup object URLs when component unmounts or preview changes
+  const prevPreviewRef = useRef<string>('');
+
+  const processImageFile = useCallback((file: File): boolean => {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      toast.error('Unsupported file type', 'Please upload a JPG, PNG, or WEBP image.');
+      return false;
+    }
+    const maxBytes = 5 * 1024 * 1024; // 5 MB
+    if (file.size > maxBytes) {
+      toast.error('File too large', 'Maximum allowed size is 5 MB.');
+      return false;
+    }
+    const url = URL.createObjectURL(file);
+    if (prevPreviewRef.current) URL.revokeObjectURL(prevPreviewRef.current);
+    prevPreviewRef.current = url;
+    setAvatarFile(file);
+    setAvatarPreview(url);
+    return true;
+  }, [toast]);
 
   // Playback state
   const [autoplay, setAutoplay] = useState(true);
@@ -160,25 +187,80 @@ export default function SettingsPage() {
             <div className="p-6 rounded-2xl bg-[#141414] border border-white/5 space-y-5">
               <h3 className="text-lg font-bold text-white border-b border-white/5 pb-3">Account Profile</h3>
 
-              <div className="flex items-center gap-4">
-                <img
-                  src={avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200'}
-                  alt="Avatar preview"
-                  className="w-16 h-16 rounded-full object-cover border border-white/10"
+              {/* Profile Picture */}
+              <div className="pb-5 border-b border-white/5">
+                <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-4">
+                  Profile Picture
+                </label>
+
+                {/* Hidden file input */}
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) processImageFile(file);
+                  }}
                 />
-                <div className="flex-1 min-w-0">
-                  <label className="block text-xs font-semibold text-neutral-300 uppercase mb-1">
-                    Profile Picture URL
-                  </label>
-                  <input
-                    type="url"
-                    value={avatar}
-                    onChange={(e) => setAvatar(e.target.value)}
-                    placeholder="https://..."
-                    className="w-full bg-neutral-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                  />
+
+                <div className="flex items-center gap-5">
+                  {/* Clickable circular avatar preview */}
+                  <div
+                    className="relative flex-shrink-0 group cursor-pointer"
+                    onClick={() => avatarInputRef.current?.click()}
+                    title="Click to change photo"
+                  >
+                    <img
+                      src={avatarPreview || avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200'}
+                      alt="Avatar preview"
+                      className="w-[72px] h-[72px] rounded-full object-cover border border-white/10 shadow-md group-hover:border-emerald-500/40 transition-colors duration-200"
+                    />
+                    <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-200">
+                      <Upload className="w-4 h-4 text-white" />
+                    </div>
+                  </div>
+
+                  {/* Info + action buttons */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white leading-snug mb-0.5">
+                      {avatarFile ? avatarFile.name : 'Upload a profile photo'}
+                    </p>
+                    <p className="text-[11px] text-neutral-500 mb-3">
+                      JPG, PNG, or WEBP &middot; Max 5 MB
+                    </p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => avatarInputRef.current?.click()}
+                        className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-white/10 hover:border-emerald-500/30 text-xs font-semibold text-white transition-all"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        {avatarFile ? 'Change Photo' : 'Upload Photo'}
+                      </button>
+                      {(avatarPreview || avatar) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (prevPreviewRef.current) URL.revokeObjectURL(prevPreviewRef.current);
+                            prevPreviewRef.current = '';
+                            setAvatarFile(null);
+                            setAvatarPreview('');
+                            setAvatar('');
+                            if (avatarInputRef.current) avatarInputRef.current.value = '';
+                          }}
+                          className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg border border-white/10 hover:border-red-500/30 hover:bg-red-500/10 text-xs font-semibold text-neutral-400 hover:text-red-400 transition-all"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                          Remove Photo
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
+
 
               <div>
                 <label className="block text-xs font-semibold text-neutral-300 uppercase mb-1.5">

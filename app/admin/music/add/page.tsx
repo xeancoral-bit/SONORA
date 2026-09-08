@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Genre, SongStatus, Artist } from '@/lib/types';
+import { Genre, SongStatus, Artist, Album } from '@/lib/types';
 import { useToast } from '@/context/ToastContext';
 import { parseMediaUrl, fetchYouTubeOEmbed } from '@/lib/urlUtils';
 import {
@@ -13,7 +13,6 @@ import {
   CheckCircle2,
   AlertCircle,
   ArrowLeft,
-  ShieldCheck,
   Loader2,
   ExternalLink,
   RefreshCw,
@@ -76,12 +75,12 @@ export default function AdminAddMusicPage() {
   const [isFeatured, setIsFeatured] = useState(false);
   const [synthPreset, setSynthPreset] = useState('chill');
 
-  // ── Copyright Confirmation ──
-  const [copyrightConfirmed, setCopyrightConfirmed] = useState(false);
+
 
   // ── Reference data ──
   const [genres, setGenres] = useState<Genre[]>([]);
   const [existingArtists, setExistingArtists] = useState<Artist[]>([]);
+  const [existingAlbums, setExistingAlbums] = useState<Album[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -96,6 +95,13 @@ export default function AdminAddMusicPage() {
       .then((r) => r.json())
       .then((data) => {
         setExistingArtists(data.artists || []);
+      })
+      .catch(() => {});
+
+    fetch('/api/albums')
+      .then((r) => r.json())
+      .then((data) => {
+        setExistingAlbums(data.albums || []);
       })
       .catch(() => {});
   }, []);
@@ -247,10 +253,6 @@ export default function AdminAddMusicPage() {
       toast.error('Artist name is required.');
       return;
     }
-    if (!copyrightConfirmed) {
-      toast.error('Copyright Confirmation Required');
-      return;
-    }
 
     if (audioSourceMode === 'url') {
       if (!sourceUrl.trim()) {
@@ -273,12 +275,19 @@ export default function AdminAddMusicPage() {
         (a) => a.name.toLowerCase() === artistName.trim().toLowerCase()
       );
 
+      const trimmedAlbumTitle = albumTitle.trim();
+      const matchedAlbum = trimmedAlbumTitle
+        ? existingAlbums.find(
+            (a) => a.title.trim().toLowerCase() === trimmedAlbumTitle.toLowerCase()
+          )
+        : null;
+
       const payload = {
         title: title.trim(),
         artistId: matchedArtist ? matchedArtist.id : undefined,
         artistName: artistName.trim(),
-        albumId: albumTitle.trim() ? `album-custom-${Date.now()}` : undefined,
-        albumTitle: albumTitle.trim() || undefined,
+        albumId: matchedAlbum ? matchedAlbum.id : undefined,
+        albumTitle: trimmedAlbumTitle || undefined,
         genreId,
         genreName: selectedGenre?.name || 'Pop',
         duration: fileDuration || 180,
@@ -717,14 +726,86 @@ export default function AdminAddMusicPage() {
 
             <div>
               <label className={labelClass}>Album (Optional)</label>
-              <input
-                type="text"
-                placeholder="e.g. Midnight Memories"
-                value={albumTitle}
-                onChange={(e) => setAlbumTitle(e.target.value)}
-                className={inputClass}
-              />
-              <p className="text-[11px] text-neutral-600 mt-1">Leave empty to treat as a Single.</p>
+              <div className="relative">
+                <input
+                  type="text"
+                  list="existing-albums-datalist"
+                  placeholder="e.g. Midnight Memories"
+                  value={albumTitle}
+                  onChange={(e) => setAlbumTitle(e.target.value)}
+                  className={inputClass}
+                />
+                <datalist id="existing-albums-datalist">
+                  {existingAlbums.map((alb) => (
+                    <option key={alb.id} value={alb.title}>
+                      {alb.artistName ? `${alb.title} (${alb.artistName})` : alb.title}
+                    </option>
+                  ))}
+                </datalist>
+              </div>
+
+              {/* Dynamic Album Feedback */}
+              {albumTitle.trim() ? (() => {
+                const matched = existingAlbums.find(
+                  (a) => a.title.trim().toLowerCase() === albumTitle.trim().toLowerCase()
+                );
+                if (matched) {
+                  return (
+                    <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-emerald-400">
+                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                      <span>
+                        Connects to existing album <strong>{matched.title}</strong> by {matched.artistName} ({matched.songIds?.length || 0} tracks) — appears on Albums page
+                      </span>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-amber-400">
+                      <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                      <span>
+                        New album — will automatically create <strong>{albumTitle.trim()}</strong> and publish to Albums page
+                      </span>
+                    </div>
+                  );
+                }
+              })() : (
+                <p className="text-[11px] text-neutral-500 mt-1">
+                  Leave empty to treat as a Single (standalone track — no album created).
+                </p>
+              )}
+
+              {/* Quick Suggestions for existing albums */}
+              {existingAlbums.length > 0 && !albumTitle.trim() && (
+                <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                  <span className="text-[10px] text-neutral-500 uppercase tracking-wider font-semibold">Existing:</span>
+                  {existingAlbums
+                    .filter((a) => !artistName.trim() || a.artistName.toLowerCase() === artistName.trim().toLowerCase())
+                    .concat(
+                      existingAlbums.filter(
+                        (a) => artistName.trim() && a.artistName.toLowerCase() !== artistName.trim().toLowerCase()
+                      )
+                    )
+                    .slice(0, 6)
+                    .map((a) => (
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() => {
+                          setAlbumTitle(a.title);
+                          if (a.artistName && !artistName.trim()) {
+                            setArtistName(a.artistName);
+                          }
+                          if (a.genreId && genres.some((g) => g.id === a.genreId)) {
+                            setGenreId(a.genreId);
+                          }
+                        }}
+                        className="px-2 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white text-[10px] transition-colors border border-white/5"
+                      >
+                        {a.title}
+                      </button>
+                    ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -887,35 +968,6 @@ export default function AdminAddMusicPage() {
         </div>
 
         {/* ═══════════════════════════════════════════
-            SECTION 3 — COPYRIGHT CONFIRMATION
-        ═══════════════════════════════════════════ */}
-        <div className="p-6 rounded-2xl bg-neutral-900/90 border border-amber-500/20 space-y-3">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-amber-400" />
-            <h4 className="font-bold text-sm text-white">Copyright & Licensing Confirmation</h4>
-          </div>
-          <p className="text-xs text-neutral-400 leading-relaxed">
-            SONORA requires administrators to respect intellectual property rights. For URL-based tracks,
-            content is played via the provider's official authorized embed — SONORA does not download or
-            redistribute copyrighted material. By publishing, you confirm you have permission to reference
-            this content within SONORA.
-          </p>
-          <label className="flex items-start gap-3 p-4 rounded-2xl bg-black/40 border border-white/10 cursor-pointer">
-            <input
-              type="checkbox"
-              required
-              checked={copyrightConfirmed}
-              onChange={(e) => setCopyrightConfirmed(e.target.checked)}
-              className="accent-amber-500 w-4 h-4 mt-0.5 rounded cursor-pointer shrink-0"
-            />
-            <span className="text-xs font-semibold text-white leading-relaxed">
-              I confirm that I own this content, have distribution rights, or am linking an authorized
-              source. I will not use SONORA to infringe on intellectual property rights.
-            </span>
-          </label>
-        </div>
-
-        {/* ═══════════════════════════════════════════
             ACTION BUTTONS
         ═══════════════════════════════════════════ */}
         <div className="flex items-center justify-between gap-3 pt-2">
@@ -938,7 +990,7 @@ export default function AdminAddMusicPage() {
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || !copyrightConfirmed}
+              disabled={isSubmitting}
               className="px-8 py-3 rounded-full bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm transition-all shadow-xl shadow-amber-500/25 disabled:opacity-40 flex items-center gap-2"
             >
               {isSubmitting ? (

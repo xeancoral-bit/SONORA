@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, isInvalidAlbumTitle } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
-import { Song, Artist, SyncedLyricLine } from '@/lib/types';
+import { Song, Artist, Album, SyncedLyricLine } from '@/lib/types';
 import { autoGenerateSyncedLyrics, getSyncedLyricsForSong, SUPPORTED_LYRIC_LANGUAGES } from '@/lib/lyricsService';
 
 export async function GET(request: NextRequest) {
@@ -128,6 +128,77 @@ export async function POST(request: NextRequest) {
     const resolvedArtistId = artist ? artist.id : (artistId || `artist-${Date.now()}`);
     const resolvedArtistName = artist ? artist.name : (artistName || 'Unknown Artist');
 
+    // ── Album handling ──
+    const cleanAlbumTitle = typeof albumTitle === 'string' ? albumTitle.trim() : '';
+    const cleanAlbumId = typeof albumId === 'string' ? albumId.trim() : '';
+
+    let resolvedAlbumId: string | undefined = undefined;
+    let resolvedAlbumTitle: string | undefined = undefined;
+    let targetAlbum: Album | null = null;
+    let isNewAlbum = false;
+
+    if (!isInvalidAlbumTitle(cleanAlbumTitle)) {
+      const allAlbums = db.getAlbums();
+
+      // 1. Check if an existing album matches by ID or title
+      if (cleanAlbumId) {
+        targetAlbum = allAlbums.find((a) => a.id === cleanAlbumId) || null;
+      }
+      if (!targetAlbum && cleanAlbumTitle) {
+        // Match by artist and title first
+        targetAlbum =
+          allAlbums.find(
+            (a) =>
+              a.title.trim().toLowerCase() === cleanAlbumTitle.toLowerCase() &&
+              (a.artistId === resolvedArtistId ||
+                a.artistName.trim().toLowerCase() === resolvedArtistName.trim().toLowerCase())
+          ) || null;
+
+        // If not found, match by title alone
+        if (!targetAlbum) {
+          targetAlbum =
+            allAlbums.find(
+              (a) => a.title.trim().toLowerCase() === cleanAlbumTitle.toLowerCase()
+            ) || null;
+        }
+      }
+
+      if (targetAlbum) {
+        // Connect to existing album
+        resolvedAlbumId = targetAlbum.id;
+        resolvedAlbumTitle = targetAlbum.title;
+      } else {
+        // Create new album
+        isNewAlbum = true;
+        const newAlbumId =
+          cleanAlbumId && !cleanAlbumId.startsWith('album-custom-')
+            ? cleanAlbumId
+            : `album-${cleanAlbumTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || Date.now()}`;
+
+        targetAlbum = {
+          id: newAlbumId,
+          title: cleanAlbumTitle,
+          artistId: resolvedArtistId,
+          artistName: resolvedArtistName,
+          coverImage:
+            coverImage ||
+            'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80',
+          description: description ? description.trim() : `${cleanAlbumTitle} by ${resolvedArtistName}.`,
+          genreId: resolvedGenreId,
+          genreName: resolvedGenreName,
+          releaseDate: releaseDate || new Date().toISOString().split('T')[0],
+          copyrightInfo: copyrightOwner || `© ${new Date().getFullYear()} ${resolvedArtistName}`,
+          status: status || 'published',
+          isFeatured: Boolean(isFeatured),
+          songIds: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        resolvedAlbumId = targetAlbum.id;
+        resolvedAlbumTitle = targetAlbum.title;
+      }
+    }
+
     const newSong: Song = {
       id: `song-${Date.now()}`,
       title: title.trim(),
@@ -137,8 +208,8 @@ export async function POST(request: NextRequest) {
       coverImage: coverImage || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80',
       artistId: resolvedArtistId,
       artistName: resolvedArtistName,
-      albumId: albumId || undefined,
-      albumTitle: albumTitle || undefined,
+      albumId: resolvedAlbumId,
+      albumTitle: resolvedAlbumTitle,
       genreId: resolvedGenreId,
       genreName: resolvedGenreName,
       duration: duration || 180,
@@ -177,12 +248,24 @@ export async function POST(request: NextRequest) {
 
     db.saveSong(newSong);
 
-    // If album was specified, add song to album
-    if (albumId) {
-      const album = db.getAlbumById(albumId);
-      if (album && !album.songIds.includes(newSong.id)) {
-        album.songIds.push(newSong.id);
-        db.saveAlbum(album);
+    // If album was specified, add song to album and save
+    if (targetAlbum) {
+      if (!targetAlbum.songIds.includes(newSong.id)) {
+        targetAlbum.songIds.push(newSong.id);
+      }
+      db.saveAlbum(targetAlbum);
+
+      if (isNewAlbum) {
+        db.addLog({
+          id: `log-${Date.now()}-album`,
+          adminId: user.id,
+          adminName: user.name,
+          action: 'Created Album',
+          details: `Created new album "${targetAlbum.title}" for ${targetAlbum.artistName}`,
+          targetType: 'album',
+          targetId: targetAlbum.id,
+          createdAt: new Date().toISOString()
+        });
       }
     }
 

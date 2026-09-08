@@ -125,20 +125,135 @@ function syncMissingArtists(data: DatabaseSchema): boolean {
   return changed;
 }
 
+const INVALID_ALBUM_TITLES = new Set([
+  'unnamed album',
+  'unknown album',
+  'unknown',
+  'null',
+  'undefined',
+  'placeholder',
+  'none',
+  'single'
+]);
+
+export function isInvalidAlbumTitle(title: string | null | undefined): boolean {
+  if (!title || typeof title !== 'string') return true;
+  const trimmed = title.trim();
+  if (!trimmed) return true;
+  return INVALID_ALBUM_TITLES.has(trimmed.toLowerCase());
+}
+
+function syncMissingAlbums(data: DatabaseSchema): boolean {
+  let changed = false;
+  if (!data.albums) data.albums = [];
+
+  // Filter out any invalid / empty / placeholder albums
+  const beforeCount = data.albums.length;
+  data.albums = data.albums.filter((a) => a && !isInvalidAlbumTitle(a.title));
+  if (data.albums.length !== beforeCount) {
+    changed = true;
+  }
+
+  const albumIdMap = new Map<string, Album>();
+  const albumTitleMap = new Map<string, Album>();
+  const artistTitleMap = new Map<string, Album>();
+
+  data.albums.forEach((a) => {
+    a.title = a.title.trim();
+    albumIdMap.set(a.id, a);
+    const tLower = a.title.toLowerCase();
+    albumTitleMap.set(tLower, a);
+    const aLower = (a.artistName || '').trim().toLowerCase();
+    if (aLower) {
+      artistTitleMap.set(`${aLower}::${tLower}`, a);
+    }
+  });
+
+  for (const song of data.songs || []) {
+    const rawTitle = song.albumTitle;
+    const cleanAlbumTitle = typeof rawTitle === 'string' ? rawTitle.trim() : '';
+    const cleanAlbumId = typeof song.albumId === 'string' ? song.albumId.trim() : '';
+
+    if (isInvalidAlbumTitle(cleanAlbumTitle)) {
+      // If the song has an albumId that does not map to a valid album, clear it so it's a standalone single
+      if (cleanAlbumId && !albumIdMap.has(cleanAlbumId)) {
+        song.albumId = undefined;
+        song.albumTitle = undefined;
+        changed = true;
+      }
+      continue;
+    }
+
+    const tLower = cleanAlbumTitle.toLowerCase();
+    const aLower = (song.artistName || '').trim().toLowerCase();
+    const artistTitleKey = `${aLower}::${tLower}`;
+
+    let matched =
+      (aLower ? artistTitleMap.get(artistTitleKey) : null) ||
+      (cleanAlbumId ? albumIdMap.get(cleanAlbumId) : null) ||
+      albumTitleMap.get(tLower) ||
+      null;
+
+    if (matched) {
+      if (song.albumId !== matched.id || song.albumTitle !== matched.title) {
+        song.albumId = matched.id;
+        song.albumTitle = matched.title;
+        changed = true;
+      }
+      if (!matched.songIds.includes(song.id)) {
+        matched.songIds.push(song.id);
+        changed = true;
+      }
+    } else {
+      // Auto-create album for this song and any others sharing this title
+      const newAlbum: Album = {
+        id: cleanAlbumId && !cleanAlbumId.startsWith('album-custom-')
+          ? cleanAlbumId
+          : `album-${cleanAlbumTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || Date.now()}`,
+        title: cleanAlbumTitle,
+        artistId: song.artistId || 'artist-unknown',
+        artistName: song.artistName || 'Unknown Artist',
+        coverImage: song.coverImage || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80',
+        description: `${cleanAlbumTitle} by ${song.artistName || 'Unknown Artist'}.`,
+        genreId: song.genreId || 'genre-pop',
+        genreName: song.genreName || 'Pop',
+        releaseDate: song.releaseDate || new Date().toISOString().split('T')[0],
+        copyrightInfo: song.copyrightOwner || `© ${new Date().getFullYear()} ${song.artistName || 'Artist'}`,
+        status: 'published',
+        isFeatured: Boolean(song.isFeatured),
+        songIds: [song.id],
+        createdAt: song.createdAt || new Date().toISOString(),
+        updatedAt: song.updatedAt || new Date().toISOString()
+      };
+      data.albums.push(newAlbum);
+      albumIdMap.set(newAlbum.id, newAlbum);
+      albumTitleMap.set(tLower, newAlbum);
+      if (aLower) artistTitleMap.set(artistTitleKey, newAlbum);
+      song.albumId = newAlbum.id;
+      song.albumTitle = newAlbum.title;
+      changed = true;
+    }
+  }
+
+  return changed;
+}
+
 export function readDb(): DatabaseSchema {
   try {
     ensureDirectoryExistence(DB_FILE);
     if (!fs.existsSync(DB_FILE)) {
       const initial = getInitialData();
       syncMissingArtists(initial);
+      syncMissingAlbums(initial);
       fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), 'utf-8');
       dbMemoryCache = initial;
       return initial;
     }
     const data = fs.readFileSync(DB_FILE, 'utf-8');
     const parsed = JSON.parse(data) as DatabaseSchema;
-    const synced = syncMissingArtists(parsed);
-    if (synced) {
+    const syncedArtists = syncMissingArtists(parsed);
+    const syncedAlbums = syncMissingAlbums(parsed);
+    if (syncedArtists || syncedAlbums) {
       fs.writeFileSync(DB_FILE, JSON.stringify(parsed, null, 2), 'utf-8');
     }
     dbMemoryCache = parsed;
@@ -229,20 +344,28 @@ export const db = {
   },
 
   // Albums
-  getAlbums: () => readDb().albums,
+  getAlbums: () => {
+    const albums = readDb().albums || [];
+    return albums.filter((a) => a && !isInvalidAlbumTitle(a.title));
+  },
   getAlbumById: (id: string) => readDb().albums.find((a) => a.id === id),
   saveAlbum: (album: Album) => {
+    if (!album || isInvalidAlbumTitle(album.title)) {
+      return album;
+    }
+    const cleanTitle = album.title.trim();
     const data = readDb();
     const index = data.albums.findIndex((a) => a.id === album.id);
+    const updatedAlbum: Album = { ...album, title: cleanTitle };
     if (index >= 0) {
-      data.albums[index] = { ...album, updatedAt: new Date().toISOString() };
+      data.albums[index] = { ...updatedAlbum, updatedAt: new Date().toISOString() };
     } else {
-      data.albums.unshift(album);
+      data.albums.unshift(updatedAlbum);
     }
     // Update songs associated with this album
     data.songs = data.songs.map((s) => {
       if (album.songIds.includes(s.id)) {
-        return { ...s, albumId: album.id, albumTitle: album.title };
+        return { ...s, albumId: album.id, albumTitle: cleanTitle };
       }
       if (s.albumId === album.id && !album.songIds.includes(s.id)) {
         return { ...s, albumId: undefined, albumTitle: undefined };
@@ -250,7 +373,7 @@ export const db = {
       return s;
     });
     writeDb(data);
-    return album;
+    return updatedAlbum;
   },
   deleteAlbum: (id: string) => {
     const data = readDb();

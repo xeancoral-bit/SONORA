@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { SonoraLogo } from '@/components/layout/SonoraLogo';
-import { Lock, Mail, User, ArrowRight, Image as ImageIcon, Eye, EyeOff } from 'lucide-react';
+import { Lock, Mail, User, ArrowRight, Upload, X, Eye, EyeOff } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -21,6 +21,8 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [avatar, setAvatar] = useState('');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -173,17 +175,50 @@ export default function RegisterPage() {
 
           <div>
             <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
-              Profile Picture URL (Optional)
+              Profile Picture (Optional)
             </label>
-            <div className="relative">
-              <ImageIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-              <input
-                type="url"
-                placeholder="https://..."
-                value={avatar}
-                onChange={(e) => setAvatar(e.target.value)}
-                className="w-full bg-neutral-900 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors"
-              />
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setAvatarFile(file);
+                  setAvatar(URL.createObjectURL(file));
+                }
+              }}
+            />
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 bg-neutral-900 hover:border-emerald-500/50 hover:bg-neutral-800 text-xs text-neutral-300 hover:text-white transition-all"
+              >
+                <Upload className="w-4 h-4" />
+                {avatarFile ? 'Change photo' : 'Upload photo'}
+              </button>
+              {avatar && (
+                <div className="relative flex-shrink-0">
+                  <img
+                    src={avatar}
+                    alt="Avatar preview"
+                    className="w-9 h-9 rounded-full object-cover border border-white/10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => { setAvatar(''); setAvatarFile(null); if (avatarInputRef.current) avatarInputRef.current.value = ''; }}
+                    className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-neutral-700 hover:bg-red-500 flex items-center justify-center transition-colors"
+                    aria-label="Remove photo"
+                  >
+                    <X className="w-2.5 h-2.5 text-white" />
+                  </button>
+                </div>
+              )}
+              {avatarFile && (
+                <span className="text-xs text-neutral-500 truncate max-w-[120px]">{avatarFile.name}</span>
+              )}
             </div>
           </div>
 
