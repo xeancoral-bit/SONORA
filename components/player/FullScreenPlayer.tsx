@@ -91,87 +91,158 @@ export const FullScreenPlayer: React.FC = () => {
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/85 to-black/60 pointer-events-none" />
 
       {/* Top Header Bar */}
-      <div className="relative z-10 flex items-center justify-between p-6 md:p-8">
-        <button
-          onClick={() => setIsFullScreen(false)}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold backdrop-blur-md transition-colors"
-        >
-          <ChevronDown className="w-4 h-4" />
-          Minimize
-        </button>
+      <header className="relative z-20 w-full pt-4 px-4 sm:px-6 md:pt-6 md:px-8 shrink-0">
+        <div className="max-w-7xl mx-auto flex flex-col gap-2.5">
+          {/* Main Top Row */}
+          <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2 sm:gap-4 w-full">
+            {/* Left: Minimize button */}
+            <div className="flex items-center justify-start">
+              <button
+                onClick={() => setIsFullScreen(false)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white text-xs font-semibold backdrop-blur-md border border-white/10 transition-all shadow-sm group"
+                title="Minimize player"
+                aria-label="Minimize player"
+              >
+                <ChevronDown className="w-4 h-4 transition-transform group-hover:translate-y-0.5" />
+                <span className="hidden sm:inline">Minimize</span>
+              </button>
+            </div>
 
-        {/* Track info — absolutely centered so it is always in the middle of the header regardless of button widths */}
-        <div className="absolute left-1/2 -translate-x-1/2 text-center pointer-events-none select-none">
-          <span className="text-[11px] uppercase tracking-[0.18em] text-emerald-400 font-semibold block">
-            Playing from {currentTrack.albumTitle || 'SONORA Masters'}
-          </span>
-          <span className="text-base font-bold text-white tracking-tight block mt-0.5">
-            {currentTrack.title}
-          </span>
-        </div>
+            {/* Center: Track info & Album context — ALWAYS 100% VISIBLE & CLEANLY CENTERED */}
+            <div className="flex flex-col items-center justify-center min-w-0 text-center px-2 select-none">
+              <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-emerald-400 font-bold block truncate max-w-[200px] xs:max-w-[240px] sm:max-w-md md:max-w-lg">
+                Playing from {currentTrack.albumTitle || 'SONORA Masters'}
+              </span>
+              <span className="text-sm sm:text-base md:text-lg font-black text-white tracking-tight block truncate max-w-[200px] xs:max-w-[240px] sm:max-w-md md:max-w-lg mt-0.5 drop-shadow-sm">
+                {currentTrack.title}
+              </span>
+            </div>
 
-        <div className="flex items-center gap-2">
-          {isYouTube && currentTrack.externalMediaId && (
-            <button
-              onClick={() => setActiveTab('video')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md transition-all ${
-                activeTab === 'video'
-                  ? 'bg-red-500 text-white shadow-lg shadow-red-500/30'
-                  : 'bg-white/10 text-white hover:bg-white/20'
-              }`}
-            >
-              <Youtube className="w-3.5 h-3.5 inline mr-1 text-current" />
-              Video
-            </button>
-          )}
-          {/* Disk view button */}
-          <button
-            onClick={() => setActiveTab('disk')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md transition-all ${
-              activeTab === 'disk'
-                ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/30'
-                : 'bg-white/10 text-white hover:bg-white/20'
-            }`}
-          >
-            <span className="inline-block w-3.5 h-3.5 mr-1 align-middle" style={{ verticalAlign: 'middle' }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-                <circle cx="12" cy="12" r="10" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-            </span>
-            Disk
-          </button>
-          <button
-            onClick={() => setActiveTab('lyrics')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md transition-all ${
-              activeTab === 'lyrics'
-                ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/30'
-                : 'bg-white/10 text-white hover:bg-white/20'
-            }`}
-          >
-            <Mic2 className="w-3.5 h-3.5 inline mr-1" />
-            Lyrics
-          </button>
-          <button
-            onClick={() => setActiveTab('queue')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md transition-all ${
-              activeTab === 'queue'
-                ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/30'
-                : 'bg-white/10 text-white hover:bg-white/20'
-            }`}
-          >
-            <ListMusic className="w-3.5 h-3.5 inline mr-1" />
-            Queue ({queue.length})
-          </button>
-          <button
-            onClick={() => setIsFullScreen(false)}
-            className="p-2 rounded-full bg-white/10 hover:bg-white/20 hover:text-white text-neutral-400 backdrop-blur-md transition-colors ml-1"
-            title="Close Fullscreen"
-          >
-            <X className="w-4 h-4" />
-          </button>
+            {/* Right: Desktop tab controls + Close */}
+            <div className="flex items-center justify-end gap-2">
+              {/* Desktop Segmented Tab Switcher (Visible on md and up) */}
+              <div className="hidden md:flex items-center p-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 shadow-sm gap-1">
+                {isYouTube && currentTrack.externalMediaId && (
+                  <button
+                    onClick={() => setActiveTab('video')}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                      activeTab === 'video'
+                        ? 'bg-red-500 text-white shadow-md shadow-red-500/30'
+                        : 'text-white/80 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    <Youtube className="w-3.5 h-3.5 inline mr-1 text-current" />
+                    Video
+                  </button>
+                )}
+                <button
+                  onClick={() => setActiveTab('disk')}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                    activeTab === 'disk'
+                      ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/30'
+                      : 'text-white/80 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <span className="inline-block w-3.5 h-3.5 mr-1 align-middle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                      <circle cx="12" cy="12" r="10" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </span>
+                  Disk
+                </button>
+                <button
+                  onClick={() => setActiveTab('lyrics')}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                    activeTab === 'lyrics'
+                      ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/30'
+                      : 'text-white/80 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <Mic2 className="w-3.5 h-3.5 inline mr-1" />
+                  Lyrics
+                </button>
+                <button
+                  onClick={() => setActiveTab('queue')}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                    activeTab === 'queue'
+                      ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/30'
+                      : 'text-white/80 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <ListMusic className="w-3.5 h-3.5 inline mr-1" />
+                  Queue ({queue.length})
+                </button>
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={() => setIsFullScreen(false)}
+                className="p-1.5 sm:p-2 rounded-full bg-white/10 hover:bg-white/20 hover:text-white text-neutral-300 backdrop-blur-md border border-white/10 transition-colors"
+                title="Close Fullscreen"
+                aria-label="Close Fullscreen"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Segmented Tab Capsule Bar (Visible only on < md) */}
+          <div className="flex md:hidden items-center justify-center w-full pb-0.5">
+            <div className="inline-flex items-center p-1 rounded-full bg-black/60 backdrop-blur-xl border border-white/15 shadow-xl gap-1 max-w-full overflow-x-auto">
+              {isYouTube && currentTrack.externalMediaId && (
+                <button
+                  onClick={() => setActiveTab('video')}
+                  className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                    activeTab === 'video'
+                      ? 'bg-red-500 text-white shadow-md shadow-red-500/30'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <Youtube className="w-3.5 h-3.5 text-current" />
+                  <span>Video</span>
+                </button>
+              )}
+              <button
+                onClick={() => setActiveTab('disk')}
+                className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                  activeTab === 'disk'
+                    ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/30'
+                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                  <circle cx="12" cy="12" r="10" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                <span>Disk</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('lyrics')}
+                className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                  activeTab === 'lyrics'
+                    ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/30'
+                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <Mic2 className="w-3.5 h-3.5" />
+                <span>Lyrics</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('queue')}
+                className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                  activeTab === 'queue'
+                    ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/30'
+                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <ListMusic className="w-3.5 h-3.5" />
+                <span>Queue {queue.length > 0 ? `(${queue.length})` : ''}</span>
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      </header>
 
       {/* Center Body: Disk-only mode (centered, full-area) */}
       {activeTab === 'disk' ? (

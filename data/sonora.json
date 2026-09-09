@@ -1145,7 +1145,7 @@
       },
       "explicit": false,
       "status": "published",
-      "playCount": 0,
+      "playCount": 2,
       "likesCount": 0,
       "uploadedBy": "user-admin",
       "uploadType": "url",
@@ -9702,7 +9702,7 @@
       },
       "explicit": true,
       "status": "published",
-      "playCount": 0,
+      "playCount": 1,
       "likesCount": 0,
       "uploadedBy": "user-admin",
       "uploadType": "url",
@@ -13721,7 +13721,7 @@
       },
       "explicit": false,
       "status": "published",
-      "playCount": 0,
+      "playCount": 3,
       "likesCount": 0,
       "uploadedBy": "user-admin",
       "uploadType": "url",
@@ -26244,7 +26244,7 @@
       },
       "explicit": false,
       "status": "published",
-      "playCount": 2,
+      "playCount": 3,
       "likesCount": 0,
       "uploadedBy": "user-admin",
       "uploadType": "url",
@@ -34840,7 +34840,7 @@
       "description": "The definitive synthwave journey through city lights and open highways.",
       "explicit": false,
       "status": "published",
-      "playCount": 142380,
+      "playCount": 142381,
       "likesCount": 18420,
       "uploadedBy": "user-admin",
       "uploadType": "file",
@@ -36236,7 +36236,7 @@
       "description": "Golden hour synth leads backed by retro gated reverb snares.",
       "explicit": false,
       "status": "published",
-      "playCount": 162100,
+      "playCount": 162101,
       "likesCount": 22100,
       "uploadedBy": "user-admin",
       "uploadType": "file",
@@ -39281,6 +39281,60 @@
     }
   ],
   "history": [
+    {
+      "id": "hist-1788964177029-7wdo",
+      "userId": "user-admin",
+      "songId": "song-1788896485158",
+      "playedAt": "2026-09-09T14:29:37.029Z"
+    },
+    {
+      "id": "hist-1788964163389-bd8e",
+      "userId": "user-admin",
+      "songId": "song-1788895254830",
+      "playedAt": "2026-09-09T14:29:23.389Z"
+    },
+    {
+      "id": "hist-1788964156605-8wsg",
+      "userId": "user-admin",
+      "songId": "song-cyber-sunset",
+      "playedAt": "2026-09-09T14:29:16.605Z"
+    },
+    {
+      "id": "hist-1788964127008-zhfu",
+      "userId": "user-admin",
+      "songId": "song-night-drive",
+      "playedAt": "2026-09-09T14:28:47.008Z"
+    },
+    {
+      "id": "hist-1788963876748-3rmj",
+      "userId": "user-admin",
+      "songId": "song-1788895254830",
+      "playedAt": "2026-09-09T14:24:36.748Z"
+    },
+    {
+      "id": "hist-1788963637660-lcbz",
+      "userId": "user-admin",
+      "songId": "song-1788895254830",
+      "playedAt": "2026-09-09T14:20:37.660Z"
+    },
+    {
+      "id": "hist-1788963399325-wwd4",
+      "userId": "user-admin",
+      "songId": "song-1788889272275",
+      "playedAt": "2026-09-09T14:16:39.325Z"
+    },
+    {
+      "id": "hist-1788963234015-mku4",
+      "userId": "user-admin",
+      "songId": "song-1788899682641",
+      "playedAt": "2026-09-09T14:13:54.015Z"
+    },
+    {
+      "id": "hist-1788963084628-cu3o",
+      "userId": "user-admin",
+      "songId": "song-1788899682641",
+      "playedAt": "2026-09-09T14:11:24.628Z"
+    },
     {
       "id": "hist-1788889611782-9muw",
       "userId": "user-admin",

@@ -57,6 +57,8 @@ const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
 export function AudioProvider({ children }: { children: React.ReactNode }) {
   const [currentTrack, setCurrentTrack] = useState<Song | null>(null);
+  // Memoized identifier for lyric fetching: prefer externalMediaId (e.g., YouTube ID) else track.id
+  const lyricId = useMemo(() => currentTrack?.id || '', [currentTrack]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -70,7 +72,6 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const [isLyricsOpen, setIsLyricsOpen] = useState(false);
   const [isQueueOpen, setIsQueueOpen] = useState(false);
   const [isCurrentLiked, setIsCurrentLiked] = useState(false);
-  const [currentLyricIndex, setCurrentLyricIndex] = useState(-1);
   const [lyricsLanguage, setLyricsLanguageState] = useState('en');
   const [lyricsFontSize, setLyricsFontSizeState] = useState<'sm' | 'md' | 'lg' | 'xl'>('md');
 
@@ -124,15 +125,25 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  // Compute active synchronized lyrics based on currentTrack and selected language
-  const activeSyncedLyrics: SyncedLyricLine[] = useMemo(() => {
-    if (!currentTrack) return [];
-    return getSyncedLyricsForSong(currentTrack, lyricsLanguage);
-  }, [currentTrack, lyricsLanguage]);
+
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const playLoggedRef = useRef<boolean>(false);
   const synthTimerRef = useRef<any>(null);
+    const handleTrackEndedRef = useRef<() => void>(() => {});
+    // Helper to stop synth playback and clear timer
+    const stopSynth = useCallback(() => {
+      if (synthTimerRef.current) {
+        clearInterval(synthTimerRef.current as any);
+        synthTimerRef.current = null;
+      }
+      // If synthEngine provides a stop method, call it
+      if (synthEngine && typeof (synthEngine as any).stop === 'function') {
+        (synthEngine as any).stop();
+      }
+    }, []);
+  
+
 
   // YouTube Player Refs
   const ytPlayerRef = useRef<any>(null);
@@ -191,7 +202,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
                 onStateChange: (event: any) => {
                   if (event.data === 0) {
                     // Ended
-                    handleTrackEnded();
+                    handleTrackEndedRef.current();
                   } else if (event.data === 1) {
                     // Playing
                     setIsPlaying(true);
@@ -239,9 +250,10 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       audioRef.current = audio;
 
       audio.addEventListener('timeupdate', () => {
-        setCurrentTime(audio.currentTime);
+        const cur = audio.currentTime;
+        setCurrentTime((prev) => (Math.abs(prev - cur) >= 0.25 ? cur : prev));
         if (audio.duration && !isNaN(audio.duration)) {
-          setDuration(audio.duration);
+          setDuration((prev) => (Math.abs(prev - audio.duration) >= 1 ? audio.duration : prev));
         }
       });
 
@@ -252,7 +264,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       });
 
       audio.addEventListener('ended', () => {
-        handleTrackEnded();
+        handleTrackEndedRef.current();
       });
 
       audio.addEventListener('play', () => setIsPlaying(true));
@@ -300,24 +312,6 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       .catch(() => {});
   }, [currentTrack]);
 
-  // Calculate synchronized lyrics index based on currentTime
-  useEffect(() => {
-    if (!activeSyncedLyrics || activeSyncedLyrics.length === 0) {
-      setCurrentLyricIndex(-1);
-      return;
-    }
-
-    let idx = -1;
-    for (let i = 0; i < activeSyncedLyrics.length; i++) {
-      if (currentTime >= activeSyncedLyrics[i].time) {
-        idx = i;
-      } else {
-        break;
-      }
-    }
-    setCurrentLyricIndex(idx);
-  }, [currentTime, activeSyncedLyrics]);
-
   // Log play count after 5 seconds of playback
   useEffect(() => {
     if (isPlaying && currentTrack && currentTime > 5 && !playLoggedRef.current) {
@@ -326,16 +320,76 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isPlaying, currentTrack, currentTime]);
 
-  const stopSynth = () => {
-    if (synthTimerRef.current) {
-      clearInterval(synthTimerRef.current);
-      synthTimerRef.current = null;
-    }
-    if (synthEngine) {
-      synthEngine.stop();
-    }
-  };
+  const [activeSyncedLyrics, setActiveSyncedLyrics] = useState<SyncedLyricLine[]>([]);
+  const [currentLyricIndex, setCurrentLyricIndex] = useState(0);
+  const lyricsFetchAbortRef = useRef<AbortController | null>(null);
 
+  // Ref to track latest lyrics fetch request to avoid race conditions
+  const lyricsFetchIdRef = useRef<number>(0);
+  // Ref to hold the identifier used for fetching (trackId or externalMediaId)
+  const currentLyricsIdRef = useRef<string>('');
+
+  // Fetch synced lyrics when track identifier or language changes
+  useEffect(() => {
+    // Clear any existing lyrics immediately when track or language changes
+    setActiveSyncedLyrics([]);
+    setCurrentLyricIndex(0);
+
+    // If no valid lyric identifier, nothing to fetch
+    if (!lyricId) {
+      return;
+    }
+
+    // Increment request id to invalidate previous fetches
+    const requestId = ++lyricsFetchIdRef.current;
+    const controller = new AbortController();
+    lyricsFetchAbortRef.current = controller;
+
+    const fetchLyrics = async () => {
+      try {
+        // Build query: always include the primary song id; also include externalMediaId for YouTube tracks
+        const params = new URLSearchParams({
+          trackId: lyricId,
+          lang: lyricsLanguage,
+        });
+        if (currentTrack?.externalMediaId) {
+          params.set('externalId', currentTrack.externalMediaId);
+        }
+        const res = await fetch(`/api/lyrics?${params.toString()}`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error(`Lyrics fetch failed: ${res.status}`);
+        const data = await res.json();
+        // Apply only if this is still the latest request (race-condition guard)
+        if (lyricsFetchIdRef.current === requestId) {
+          setActiveSyncedLyrics(data.lyrics ?? []);
+          setCurrentLyricIndex(0);
+        }
+      } catch (err: any) {
+        // Ignore AbortError — it means the request was intentionally cancelled
+        if (err?.name === 'AbortError') return;
+        if (lyricsFetchIdRef.current === requestId) {
+          setActiveSyncedLyrics([]);
+          setCurrentLyricIndex(0);
+        }
+      }
+    };
+    fetchLyrics();
+    return () => {
+      controller.abort();
+    };
+  }, [lyricId, lyricsLanguage]);
+
+  // Update current lyric index based on playback time
+  useEffect(() => {
+    if (!activeSyncedLyrics.length) {
+      setCurrentLyricIndex(0);
+      return;
+    }
+    const idx = activeSyncedLyrics.findIndex((line) => currentTime < line.time);
+    const newIndex = idx === -1 ? activeSyncedLyrics.length - 1 : idx - 1;
+    setCurrentLyricIndex(newIndex);
+  }, [currentTime, activeSyncedLyrics]);
   const getYouTubeId = (track: Song): string | null => {
     if (track.externalMediaId) return track.externalMediaId;
     if (track.sourcePlatform === 'youtube') {
@@ -350,15 +404,15 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const startYouTubePolling = () => {
     if (ytPollTimerRef.current) clearInterval(ytPollTimerRef.current);
     ytPollTimerRef.current = setInterval(() => {
-      if (ytPlayerRef.current && ytReadyRef.current) {
+      if (ytPlayerRef.current && ytReadyRef.current && isPlaying) {
         try {
           const cur = ytPlayerRef.current.getCurrentTime();
           const dur = ytPlayerRef.current.getDuration();
           if (typeof cur === 'number' && !isNaN(cur)) {
-            setCurrentTime(cur);
+            setCurrentTime((prev) => (Math.abs(prev - cur) >= 0.25 ? cur : prev));
           }
           if (typeof dur === 'number' && !isNaN(dur) && dur > 0) {
-            setDuration(dur);
+            setDuration((prev) => (Math.abs(prev - dur) >= 1 ? dur : prev));
           }
         } catch {}
       }
@@ -444,7 +498,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       time += 0.5;
       setCurrentTime(time);
       if (time >= targetDuration) {
-        handleTrackEnded();
+        handleTrackEndedRef.current();
       }
     }, 500);
   };
@@ -544,16 +598,18 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     } else {
       seek(0);
     }
-  }, [currentTime, history, currentTrack, playTrack]);
+  }, [history, currentTrack, playTrack]);
 
-  const handleTrackEnded = () => {
+  const handleTrackEnded = useCallback(() => {
     if (repeatMode === 'one') {
       seek(0);
       if (currentTrack) playTrack(currentTrack);
     } else {
       nextTrack();
     }
-  };
+  }, [repeatMode, currentTrack, playTrack, nextTrack]);
+
+  handleTrackEndedRef.current = handleTrackEnded;
 
   const setVolume = (vol: number) => {
     const clamped = Math.max(0, Math.min(1, vol));
@@ -684,7 +740,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         setIsQueueOpen,
         closePlayer,
         toggleLikeCurrentTrack,
-        isCurrentLiked
+        isCurrentLiked,
       }}
     >
       {children}
