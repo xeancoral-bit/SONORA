@@ -23,7 +23,8 @@ import {
   ChevronRight,
   ShieldAlert,
   Sparkles,
-  Menu
+  Menu,
+  MessageSquare
 } from 'lucide-react';
 import { SonoraLogo } from './SonoraLogo';
 import { useAuth } from '@/context/AuthContext';
@@ -68,7 +69,8 @@ export const Sidebar: React.FC = () => {
   const mainNav = [
     { name: 'Home', href: '/', icon: Home },
     { name: 'Search', href: '/search', icon: Search },
-    { name: 'Discover', href: '/browse', icon: Compass }
+    { name: 'Discover', href: '/browse', icon: Compass },
+    { name: 'Messages', href: '/messages', icon: MessageSquare }
   ];
 
   const libraryNav = [

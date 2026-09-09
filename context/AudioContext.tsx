@@ -5,6 +5,7 @@ import { Song, SyncedLyricLine } from '@/lib/types';
 import { synthEngine } from '@/lib/audioSynth';
 import { extractYouTubeId } from '@/lib/urlUtils';
 import { getSyncedLyricsForSong } from '@/lib/lyricsService';
+import { findActiveLyricIndex } from '@/hooks/useSyncedLyrics';
 
 export type RepeatMode = 'off' | 'one' | 'all';
 
@@ -30,6 +31,7 @@ interface AudioContextType {
   increaseLyricsFontSize: () => void;
   decreaseLyricsFontSize: () => void;
   activeSyncedLyrics: SyncedLyricLine[];
+  isLyricsLoading: boolean;
   
   // Actions
   playTrack: (track: Song, newQueue?: Song[]) => void;
@@ -60,6 +62,10 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   // Memoized identifier for lyric fetching: prefer externalMediaId (e.g., YouTube ID) else track.id
   const lyricId = useMemo(() => currentTrack?.id || '', [currentTrack]);
   const [isPlaying, setIsPlaying] = useState(false);
+  const isPlayingRef = useRef<boolean>(false);
+  useEffect(() => {
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolumeState] = useState(0.8);
@@ -158,26 +164,27 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     const initYouTubePlayer = () => {
       if ((window as any).YT && (window as any).YT.Player) {
         if (!ytPlayerRef.current) {
-          // Ensure hidden container exists in DOM
+          // Ensure non-throttled container exists in DOM (Chromium suspends 1x1 or offscreen iframes)
           let container = document.getElementById('sonora-youtube-hidden-player');
           if (!container) {
             container = document.createElement('div');
             container.id = 'sonora-youtube-hidden-player';
             container.style.position = 'fixed';
-            container.style.bottom = '-9999px';
-            container.style.left = '-9999px';
-            container.style.width = '1px';
-            container.style.height = '1px';
-            container.style.opacity = '0.01';
+            container.style.bottom = '0px';
+            container.style.right = '0px';
+            container.style.width = '200px';
+            container.style.height = '200px';
+            container.style.opacity = '0.001';
             container.style.pointerEvents = 'none';
-            container.style.zIndex = '-999';
+            container.style.zIndex = '-1';
+            container.style.overflow = 'hidden';
             document.body.appendChild(container);
           }
 
           try {
             ytPlayerRef.current = new (window as any).YT.Player('sonora-youtube-hidden-player', {
-              height: '1',
-              width: '1',
+              height: '200',
+              width: '200',
               videoId: '',
               playerVars: {
                 autoplay: 0,
@@ -196,19 +203,29 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
                   if (pendingYtVideoIdRef.current) {
                     event.target.loadVideoById(pendingYtVideoIdRef.current);
                     event.target.playVideo();
+                    isPlayingRef.current = true;
+                    setIsPlaying(true);
+                    startYouTubePolling();
                     pendingYtVideoIdRef.current = null;
                   }
                 },
                 onStateChange: (event: any) => {
                   if (event.data === 0) {
                     // Ended
+                    isPlayingRef.current = false;
+                    setIsPlaying(false);
+                    stopYouTubePolling();
                     handleTrackEndedRef.current();
                   } else if (event.data === 1) {
                     // Playing
+                    isPlayingRef.current = true;
                     setIsPlaying(true);
+                    startYouTubePolling();
                   } else if (event.data === 2) {
                     // Paused
+                    isPlayingRef.current = false;
                     setIsPlaying(false);
+                    stopYouTubePolling();
                   }
                 },
                 onError: (err: any) => {
@@ -249,11 +266,20 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       const audio = new Audio();
       audioRef.current = audio;
 
+      let rafId: number | null = null;
+      const trackAudioTime = () => {
+        if (audioRef.current && !audioRef.current.paused) {
+          const cur = audioRef.current.currentTime;
+          setCurrentTime((prev) => (Math.abs(prev - cur) >= 0.03 ? cur : prev));
+          rafId = requestAnimationFrame(trackAudioTime);
+        }
+      };
+
       audio.addEventListener('timeupdate', () => {
         const cur = audio.currentTime;
-        setCurrentTime((prev) => (Math.abs(prev - cur) >= 0.25 ? cur : prev));
+        setCurrentTime((prev) => (Math.abs(prev - cur) >= 0.03 ? cur : prev));
         if (audio.duration && !isNaN(audio.duration)) {
-          setDuration((prev) => (Math.abs(prev - audio.duration) >= 1 ? audio.duration : prev));
+          setDuration((prev) => (Math.abs(prev - audio.duration) >= 0.5 ? audio.duration : prev));
         }
       });
 
@@ -264,13 +290,28 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       });
 
       audio.addEventListener('ended', () => {
+        if (rafId) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
         handleTrackEndedRef.current();
       });
 
-      audio.addEventListener('play', () => setIsPlaying(true));
-      audio.addEventListener('pause', () => setIsPlaying(false));
+      audio.addEventListener('play', () => {
+        setIsPlaying(true);
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(trackAudioTime);
+      });
+      audio.addEventListener('pause', () => {
+        setIsPlaying(false);
+        if (rafId) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
+      });
 
       return () => {
+        if (rafId) cancelAnimationFrame(rafId);
         audio.pause();
         audio.src = '';
       };
@@ -321,6 +362,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   }, [isPlaying, currentTrack, currentTime]);
 
   const [activeSyncedLyrics, setActiveSyncedLyrics] = useState<SyncedLyricLine[]>([]);
+  const [isLyricsLoading, setIsLyricsLoading] = useState(false);
   const [currentLyricIndex, setCurrentLyricIndex] = useState(0);
   const lyricsFetchAbortRef = useRef<AbortController | null>(null);
 
@@ -337,6 +379,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
 
     // If no valid lyric identifier, nothing to fetch
     if (!lyricId) {
+      setIsLyricsLoading(false);
       return;
     }
 
@@ -344,6 +387,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     const requestId = ++lyricsFetchIdRef.current;
     const controller = new AbortController();
     lyricsFetchAbortRef.current = controller;
+    setIsLyricsLoading(true);
 
     const fetchLyrics = async () => {
       try {
@@ -364,6 +408,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         if (lyricsFetchIdRef.current === requestId) {
           setActiveSyncedLyrics(data.lyrics ?? []);
           setCurrentLyricIndex(0);
+          setIsLyricsLoading(false);
         }
       } catch (err: any) {
         // Ignore AbortError — it means the request was intentionally cancelled
@@ -371,6 +416,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         if (lyricsFetchIdRef.current === requestId) {
           setActiveSyncedLyrics([]);
           setCurrentLyricIndex(0);
+          setIsLyricsLoading(false);
         }
       }
     };
@@ -380,16 +426,11 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     };
   }, [lyricId, lyricsLanguage]);
 
-  // Update current lyric index based on playback time
+  // Update current lyric index based on real-time audio playback
   useEffect(() => {
-    if (!activeSyncedLyrics.length) {
-      setCurrentLyricIndex(0);
-      return;
-    }
-    const idx = activeSyncedLyrics.findIndex((line) => currentTime < line.time);
-    const newIndex = idx === -1 ? activeSyncedLyrics.length - 1 : idx - 1;
-    setCurrentLyricIndex(newIndex);
+    setCurrentLyricIndex(findActiveLyricIndex(activeSyncedLyrics, currentTime));
   }, [currentTime, activeSyncedLyrics]);
+
   const getYouTubeId = (track: Song): string | null => {
     if (track.externalMediaId) return track.externalMediaId;
     if (track.sourcePlatform === 'youtube') {
@@ -404,19 +445,22 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const startYouTubePolling = () => {
     if (ytPollTimerRef.current) clearInterval(ytPollTimerRef.current);
     ytPollTimerRef.current = setInterval(() => {
-      if (ytPlayerRef.current && ytReadyRef.current && isPlaying) {
+      if (ytPlayerRef.current && ytReadyRef.current) {
         try {
-          const cur = ytPlayerRef.current.getCurrentTime();
-          const dur = ytPlayerRef.current.getDuration();
-          if (typeof cur === 'number' && !isNaN(cur)) {
-            setCurrentTime((prev) => (Math.abs(prev - cur) >= 0.25 ? cur : prev));
-          }
-          if (typeof dur === 'number' && !isNaN(dur) && dur > 0) {
-            setDuration((prev) => (Math.abs(prev - dur) >= 1 ? dur : prev));
+          const state = typeof ytPlayerRef.current.getPlayerState === 'function' ? ytPlayerRef.current.getPlayerState() : -1;
+          if (state === 1 || state === 3 || isPlayingRef.current) {
+            const cur = ytPlayerRef.current.getCurrentTime();
+            const dur = ytPlayerRef.current.getDuration();
+            if (typeof cur === 'number' && !isNaN(cur)) {
+              setCurrentTime((prev) => (Math.abs(prev - cur) >= 0.03 ? cur : prev));
+            }
+            if (typeof dur === 'number' && !isNaN(dur) && dur > 0) {
+              setDuration((prev) => (Math.abs(prev - dur) >= 0.5 ? dur : prev));
+            }
           }
         } catch {}
       }
-    }, 250);
+    }, 50);
   };
 
   const stopYouTubePolling = () => {
@@ -432,6 +476,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     playLoggedRef.current = false;
     setCurrentTrack(track);
     setCurrentTime(0);
+    setActiveSyncedLyrics([]);
+    setCurrentLyricIndex(0);
     setDuration(track.duration || 180);
 
     if (newQueue) {
@@ -542,6 +588,9 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const seek = (seconds: number) => {
     const clamped = Math.max(0, Math.min(duration || 1000, seconds));
     setCurrentTime(clamped);
+    if (activeSyncedLyrics && activeSyncedLyrics.length > 0) {
+      setCurrentLyricIndex(findActiveLyricIndex(activeSyncedLyrics, clamped));
+    }
 
     if (currentTrack) {
       const ytId = getYouTubeId(currentTrack);
@@ -722,6 +771,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         increaseLyricsFontSize,
         decreaseLyricsFontSize,
         activeSyncedLyrics,
+        isLyricsLoading,
         playTrack,
         togglePlayPause,
         seek,

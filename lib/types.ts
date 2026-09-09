@@ -225,3 +225,80 @@ export interface AnalyticsSummary {
   popularGenres: { name: string; value: number; color: string }[];
   topArtists: { name: string; plays: number; followers: number; avatar: string }[];
 }
+
+// Support Messaging & AI Assistance Types
+export type SupportCategory = 
+  | 'music_request' 
+  | 'issue_report' 
+  | 'account_support' 
+  | 'feedback' 
+  | 'general';
+
+export type ConversationStatus = 
+  | 'new' 
+  | 'unread' 
+  | 'ai_assisted' 
+  | 'waiting_admin' 
+  | 'replied' 
+  | 'resolved';
+
+export type MessageSenderRole = 'user' | 'admin';
+export type MessageSenderType = 'user' | 'admin' | 'ai';
+
+export interface SupportMessage {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  senderName: string;
+  senderRole: MessageSenderRole;
+  senderType: MessageSenderType;
+  message: string;
+  category?: SupportCategory;
+  attachmentUrl?: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface SupportConversation {
+  id: string;
+  userId: string;
+  userName: string;
+  userAvatar: string;
+  userEmail: string;
+  adminId?: string;
+  category: SupportCategory;
+  subject?: string;
+  status: ConversationStatus;
+  unreadByUserCount: number;
+  unreadByAdminCount: number;
+  latestMessage?: string;
+  latestMessageAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SupportRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  conversationId: string;
+  requestType: 'music_request' | 'issue_report';
+  title: string;
+  description: string;
+  metadata?: {
+    artist?: string;
+    album?: string;
+    issueType?: 'player' | 'lyrics' | 'search' | 'playlist' | 'account' | 'other';
+    screenshotUrl?: string;
+  };
+  status: 'pending' | 'in_review' | 'completed' | 'declined';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminOnlineStatus {
+  isOnline: boolean;
+  lastSeen: string;
+  statusMessage?: string;
+}
+

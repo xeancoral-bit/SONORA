@@ -46,6 +46,8 @@ export default function SongDetailPage({ params }: { params: Promise<{ id: strin
     isPlaying,
     playTrack,
     togglePlayPause,
+    seek,
+    currentLyricIndex,
     addToQueue,
     lyricsLanguage,
     setLyricsLanguage,
@@ -304,19 +306,41 @@ export default function SongDetailPage({ params }: { params: Promise<{ id: strin
             </div>
 
             {displayedLyrics && displayedLyrics.length > 0 ? (
-              <div className="space-y-3 font-sans pt-1">
-                {displayedLyrics.map((line, idx) => (
-                  <p key={idx} className={`${detailPageFontSizeMap[lyricsFontSize]} text-neutral-300 font-medium transition-all`}>
-                    {line.text}
-                  </p>
-                ))}
+              <div className="space-y-2 font-sans pt-1">
+                {displayedLyrics.map((line, idx) => {
+                  const isLineActive = isCurrent && idx === currentLyricIndex;
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => {
+                        if (isCurrent) {
+                          seek(line.time);
+                        } else if (song) {
+                          playTrack(song);
+                        }
+                      }}
+                      className={`group flex items-baseline justify-between gap-3 px-3 py-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                        isLineActive
+                          ? 'bg-emerald-500/15 text-emerald-300 font-bold border border-emerald-500/20 shadow-sm'
+                          : 'text-neutral-300 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      <p className={`${detailPageFontSizeMap[lyricsFontSize]} transition-all leading-relaxed`}>
+                        {line.text}
+                      </p>
+                      <span className="opacity-0 group-hover:opacity-100 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded shrink-0 transition-opacity select-none">
+                        {formatTime(line.time)}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             ) : song.lyrics ? (
-              <div className="text-sm text-neutral-300 whitespace-pre-line leading-relaxed font-sans">
+              <div className="text-sm text-neutral-300 whitespace-pre-line leading-relaxed font-sans px-2">
                 {song.lyrics}
               </div>
             ) : (
-              <p className="text-sm text-neutral-500 italic">No lyrics provided for this track.</p>
+              <p className="text-sm text-neutral-500 italic px-2">No lyrics provided for this track.</p>
             )}
           </div>
 

@@ -16,7 +16,9 @@ import {
   Mic2,
   ListMusic,
   Sparkles,
-  ChevronDown
+  ChevronDown,
+  Loader2,
+  Music
 } from 'lucide-react';
 import { formatTime } from '@/lib/utils';
 import { EqualizerAnimation } from './EqualizerAnimation';
@@ -24,6 +26,7 @@ import { YouTubePlayer } from './YouTubePlayer';
 import { Youtube } from '@/components/ui/icons';
 import { LikeButton } from '@/components/ui/LikeButton';
 import { LyricsControls } from './LyricsControls';
+import { useSyncedLyrics } from '@/hooks/useSyncedLyrics';
 
 export const FullScreenPlayer: React.FC = () => {
   const {
@@ -56,20 +59,68 @@ export const FullScreenPlayer: React.FC = () => {
     increaseLyricsFontSize,
     decreaseLyricsFontSize,
     activeSyncedLyrics,
+    isLyricsLoading,
   } = useAudio();
+
+  const {
+    activeIndex,
+    currentLineNumber,
+    totalLines,
+    isIntro,
+    getLineState,
+  } = useSyncedLyrics(activeSyncedLyrics, currentTime);
 
   const isYouTube = Boolean(currentTrack?.sourcePlatform === 'youtube' || currentTrack?.externalMediaId);
   const [activeTab, setActiveTab] = useState<'lyrics' | 'queue' | 'video' | 'disk'>('lyrics');
-  const activeLineRef = useRef<HTMLParagraphElement | null>(null);
+  const lyricsContainerRef = useRef<HTMLDivElement | null>(null);
+  const activeLineRef = useRef<HTMLDivElement | null>(null);
+  const isUserScrollingRef = useRef<boolean>(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Smooth auto-centering on active lyric line
   useEffect(() => {
-    if (activeTab === 'lyrics' && activeLineRef.current) {
-      activeLineRef.current.scrollIntoView({
+    if (activeTab !== 'lyrics' || isUserScrollingRef.current) return;
+    const container = lyricsContainerRef.current;
+    if (!container) return;
+
+    if (activeIndex === -1) {
+      container.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    const activeEl = activeLineRef.current;
+    if (activeEl) {
+      const containerRect = container.getBoundingClientRect();
+      const lineRect = activeEl.getBoundingClientRect();
+      const relativeTop = lineRect.top - containerRect.top;
+      const targetScroll = container.scrollTop + relativeTop - (containerRect.height / 2) + (lineRect.height / 2);
+      
+      container.scrollTo({
+        top: Math.max(0, targetScroll),
         behavior: 'smooth',
-        block: 'center',
       });
     }
-  }, [currentLyricIndex, activeTab]);
+  }, [activeIndex, activeTab, isPlaying]);
+
+  const handleContainerScroll = () => {
+    isUserScrollingRef.current = true;
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    scrollTimeoutRef.current = setTimeout(() => {
+      isUserScrollingRef.current = false;
+      if (lyricsContainerRef.current && activeLineRef.current) {
+        const container = lyricsContainerRef.current;
+        const activeEl = activeLineRef.current;
+        const containerRect = container.getBoundingClientRect();
+        const lineRect = activeEl.getBoundingClientRect();
+        const relativeTop = lineRect.top - containerRect.top;
+        const targetScroll = container.scrollTop + relativeTop - (containerRect.height / 2) + (lineRect.height / 2);
+        container.scrollTo({
+          top: Math.max(0, targetScroll),
+          behavior: 'smooth',
+        });
+      }
+    }, 4000);
+  };
 
   const fullScreenFontSizeMap: Record<'sm' | 'md' | 'lg' | 'xl', string> = {
     sm: 'text-xl md:text-2xl font-bold',
@@ -413,7 +464,7 @@ export const FullScreenPlayer: React.FC = () => {
         </div>
 
         {/* Right: Synced Lyrics, Queue, or Video */}
-        <div className="lg:col-span-6 h-full max-h-[440px] flex flex-col justify-center">
+        <div className="lg:col-span-6 h-full max-h-[580px] flex flex-col justify-center">
           {activeTab === 'video' && isYouTube && currentTrack.externalMediaId ? (
             <div className="h-full flex flex-col justify-center items-center p-2">
               <div className="w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-black">
@@ -427,49 +478,150 @@ export const FullScreenPlayer: React.FC = () => {
               </div>
             </div>
           ) : activeTab === 'lyrics' ? (
-            <div className="h-full flex flex-col justify-between pr-2">
-              {/* Lyrics Toolbar */}
-              <div className="pb-3 mb-1 border-b border-white/10 shrink-0">
-                <LyricsControls
-                  language={lyricsLanguage}
-                  onLanguageChange={setLyricsLanguage}
-                  fontSize={lyricsFontSize}
-                  onIncreaseFontSize={increaseLyricsFontSize}
-                  onDecreaseFontSize={decreaseLyricsFontSize}
-                  variant="fullscreen"
-                  className="w-full"
-                />
+            <div className="h-full flex flex-col rounded-3xl bg-black/45 backdrop-blur-2xl border border-white/10 p-5 md:p-7 shadow-2xl overflow-hidden relative">
+              {/* Lyrics Top Header Toolbar */}
+              <div className="flex items-center justify-between gap-3 pb-4 mb-2 border-b border-white/10 shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                  </span>
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-white tracking-wider uppercase font-mono">
+                    <Mic2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-neutral-200">Live Lyrics</span>
+                  </div>
+                  {totalLines > 0 && (
+                    <span className="hidden sm:inline-block text-[10px] font-semibold text-neutral-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
+                      {activeIndex >= 0 ? `Line ${currentLineNumber} of ${totalLines}` : `Intro • 1 of ${totalLines}`}
+                    </span>
+                  )}
+                </div>
+
+                <div className="shrink-0">
+                  <LyricsControls
+                    language={lyricsLanguage}
+                    onLanguageChange={setLyricsLanguage}
+                    fontSize={lyricsFontSize}
+                    onIncreaseFontSize={increaseLyricsFontSize}
+                    onDecreaseFontSize={decreaseLyricsFontSize}
+                    variant="fullscreen"
+                  />
+                </div>
               </div>
 
-              {/* Lyrics Scroll Container */}
-              <div className="flex-1 overflow-y-auto space-y-6 select-none py-4 pr-3 scrollbar-thin scrollbar-thumb-white/15">
-                {activeSyncedLyrics && activeSyncedLyrics.length > 0 ? (
+              {/* Lyrics Scroll Container with Smooth Gradient Mask */}
+              <div 
+                ref={lyricsContainerRef}
+                onWheel={handleContainerScroll}
+                onTouchMove={handleContainerScroll}
+                className="flex-1 overflow-y-auto space-y-3.5 select-none py-2 pr-3 scrollbar-none scroll-smooth"
+                style={{
+                  maskImage: 'linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%)',
+                }}
+              >
+                {/* Top spacer to allow first lines to vertically center */}
+                <div className="h-36 shrink-0 pointer-events-none" />
+
+                {/* Instrumental Intro indicator when vocals haven't started yet */}
+                {isIntro && activeSyncedLyrics && activeSyncedLyrics.length > 0 && (
+                  <div className="flex items-center justify-center py-2.5 px-4 text-xs font-mono text-emerald-400/90 gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-3 animate-in fade-in duration-300 select-none">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span>♪ Instrumental Intro</span>
+                    <span>•</span>
+                    <span>Vocals start at {formatTime(activeSyncedLyrics[0].time)}</span>
+                  </div>
+                )}
+
+                {isLyricsLoading ? (
+                  <div className="py-24 flex flex-col items-center justify-center gap-3 text-neutral-400 animate-in fade-in duration-200">
+                    <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
+                    <p className="text-sm font-medium tracking-wide">Syncing lyrics with audio...</p>
+                  </div>
+                ) : activeSyncedLyrics && activeSyncedLyrics.length > 0 ? (
                   activeSyncedLyrics.map((line, idx) => {
-                    const isCurrent = idx === currentLyricIndex;
+                    const state = getLineState(idx);
+                    const isCurrent = state === 'active';
+                    const isPast = state === 'past';
                     return (
-                      <p
+                      <div
                         key={`${idx}-${line.time}`}
                         ref={isCurrent ? activeLineRef : null}
-                        onClick={() => seek(line.time)}
-                        className={`${fsFontSizeClass} transition-all duration-300 cursor-pointer ${
+                        onClick={() => {
+                          isUserScrollingRef.current = false;
+                          seek(line.time);
+                        }}
+                        className={`group/line relative flex items-center justify-between gap-4 p-3 rounded-2xl cursor-pointer transition-all duration-500 ease-out ${
                           isCurrent
-                            ? 'text-emerald-400 scale-[1.03] origin-left drop-shadow-[0_4px_25px_rgba(16,185,129,0.4)]'
-                            : 'text-white/30 hover:text-white/75'
+                            ? 'bg-gradient-to-r from-emerald-500/15 via-emerald-500/5 to-transparent border border-emerald-500/30 shadow-lg shadow-emerald-500/5 scale-[1.03] origin-left'
+                            : isPast
+                            ? 'opacity-35 hover:opacity-80 hover:bg-white/5'
+                            : 'opacity-55 hover:opacity-90 hover:bg-white/5'
                         }`}
                       >
-                        {line.text}
-                      </p>
+                        <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                          {/* Glowing active indicator bar */}
+                          <div
+                            className={`w-1.5 h-6 rounded-full transition-all duration-500 shrink-0 ${
+                              isCurrent
+                                ? 'bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.9)] opacity-100 scale-y-100'
+                                : 'opacity-0 scale-y-0'
+                            }`}
+                          />
+
+                          <p
+                            className={`${fsFontSizeClass} transition-all duration-500 leading-snug tracking-tight ${
+                              isCurrent
+                                ? 'text-white font-black drop-shadow-[0_2px_24px_rgba(52,211,153,0.45)]'
+                                : isPast
+                                ? 'text-neutral-400 font-semibold'
+                                : 'text-neutral-200 font-bold'
+                            }`}
+                          >
+                            {line.text}
+                          </p>
+                        </div>
+
+                        {/* Timestamp indicator */}
+                        {isCurrent ? (
+                          <span className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold text-emerald-300 bg-emerald-500/20 border border-emerald-500/40 px-2.5 py-1 rounded-full shrink-0 shadow-sm animate-in fade-in zoom-in-95 duration-200 select-none">
+                            <span className="relative flex h-1.5 w-1.5">
+                              <span className={`${isPlaying ? 'animate-ping' : ''} absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75`}></span>
+                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400"></span>
+                            </span>
+                            {formatTime(line.time)}
+                          </span>
+                        ) : (
+                          <span className="opacity-0 group-hover/line:opacity-100 text-[10px] font-mono text-neutral-400 bg-white/10 px-2 py-0.5 rounded-full transition-opacity duration-150 shrink-0 select-none">
+                            {formatTime(line.time)}
+                          </span>
+                        )}
+                      </div>
                     );
                   })
                 ) : currentTrack.lyrics ? (
-                  <div className="text-base text-neutral-300 whitespace-pre-line leading-relaxed">
+                  <div className="text-lg text-neutral-200 whitespace-pre-line leading-relaxed font-sans px-2">
                     {currentTrack.lyrics}
                   </div>
                 ) : (
-                  <div className="text-center py-20 text-neutral-500 font-medium">
-                    No lyrics available for this song.
+                  <div className="py-24 flex flex-col items-center justify-center text-center gap-3">
+                    <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-neutral-500">
+                      <Music className="w-7 h-7" />
+                    </div>
+                    <div>
+                      <h4 className="text-base font-bold text-white">Lyrics unavailable</h4>
+                      <p className="text-xs text-neutral-400 mt-1 max-w-xs">
+                        No synchronized lyrics were found for this track.
+                      </p>
+                    </div>
                   </div>
                 )}
+
+                {/* Bottom spacer to allow last lines to vertically center */}
+                <div className="h-36 shrink-0 pointer-events-none" />
               </div>
             </div>
           ) : (

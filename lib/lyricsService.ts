@@ -441,14 +441,7 @@ export function autoGenerateSyncedLyrics(
   durationSeconds: number = 180
 ): SyncedLyricLine[] {
   if (!plainLyrics || !plainLyrics.trim()) {
-    const step = Math.max(15, Math.floor(durationSeconds / 5));
-    return [
-      { time: 0, text: '♪ (Instrumental Melody) ♪' },
-      { time: step, text: '♪ (Harmonic Progression) ♪' },
-      { time: step * 2, text: '♪ (Rhythmic Groove) ♪' },
-      { time: step * 3, text: '♪ (Bridge Resolution) ♪' },
-      { time: step * 4, text: '♪ (Gentle Outro Fade) ♪' },
-    ];
+    return [];
   }
 
   const rawLines = plainLyrics
@@ -548,9 +541,19 @@ export function getSyncedLyricsForSong(
   let baseEnglishLyrics: SyncedLyricLine[] = [];
   if (song.syncedLyrics && song.syncedLyrics.length > 0) {
     baseEnglishLyrics = song.syncedLyrics;
-  } else {
+  } else if (song.lyrics) {
     baseEnglishLyrics = autoGenerateSyncedLyrics(song.lyrics, song.duration || 180);
   }
+
+  // Filter out any fake instrumental placeholder lines
+  baseEnglishLyrics = baseEnglishLyrics.filter(
+    (line) =>
+      !line.text.includes('Instrumental Melody') &&
+      !line.text.includes('Harmonic Progression') &&
+      !line.text.includes('Rhythmic Groove') &&
+      !line.text.includes('Bridge Resolution') &&
+      !line.text.includes('Gentle Outro Fade')
+  );
 
   if (lang === 'en') {
     return baseEnglishLyrics;

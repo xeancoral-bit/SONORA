@@ -17,7 +17,8 @@ import {
   ArrowLeft,
   ShieldAlert,
   Menu,
-  X
+  X,
+  MessageSquare
 } from 'lucide-react';
 import { SonoraLogo } from '../layout/SonoraLogo';
 
@@ -27,6 +28,7 @@ export const AdminSidebar: React.FC = () => {
 
   const navItems = [
     { name: 'Overview', href: '/admin', icon: LayoutDashboard },
+    { name: 'Support Messages', href: '/admin/messages', icon: MessageSquare, badge: true },
     { name: 'Music Catalog', href: '/admin/music', icon: Music },
     { name: '+ Add Music', href: '/admin/music/add', icon: PlusCircle, highlight: true },
     { name: 'Albums', href: '/admin/albums', icon: Disc },

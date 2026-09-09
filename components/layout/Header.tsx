@@ -16,7 +16,8 @@ import {
   Check,
   Settings,
   LogOut,
-  LayoutDashboard
+  LayoutDashboard,
+  MessageSquare
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { NotificationItem } from '@/lib/types';
@@ -27,6 +28,7 @@ export const Header: React.FC = () => {
   const pathname = usePathname();
   const { user, isAdmin, switchRole, logout } = useAuth();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [unreadMessages, setUnreadMessages] = useState<number>(0);
   const [showNotifs, setShowNotifs] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,18 +36,27 @@ export const Header: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
-    async function loadNotifs() {
+    async function loadUserData() {
       if (!user) return;
       try {
-        const res = await fetch('/api/notifications');
-        if (!res.ok) return;
-        const data = await res.json();
-        if (isMounted) setNotifications(data.notifications || []);
+        const [notifRes, supportRes] = await Promise.all([
+          fetch('/api/notifications').then((r) => (r.ok ? r.json() : null)).catch(() => null),
+          fetch('/api/support/conversations').then((r) => (r.ok ? r.json() : null)).catch(() => null)
+        ]);
+        if (!isMounted) return;
+        if (notifRes?.notifications) setNotifications(notifRes.notifications);
+        if (supportRes) {
+          if (user.role === 'admin' && supportRes.counts) {
+            setUnreadMessages(supportRes.counts.new + supportRes.counts.waiting_admin);
+          } else if (supportRes.conversation) {
+            setUnreadMessages(supportRes.conversation.unreadCountUser || 0);
+          }
+        }
       } catch {
         // Safe catch
       }
     }
-    loadNotifs();
+    loadUserData();
     return () => {
       isMounted = false;
     };
@@ -115,6 +126,22 @@ export const Header: React.FC = () => {
 
       {/* Right: Notifications & Profile Menu / Auth Buttons */}
       <div className="flex items-center gap-3 shrink-0">
+        {/* Support Messages Link */}
+        {user && (
+          <Link
+            href={isAdmin ? '/admin/messages' : '/messages'}
+            className="relative w-9 h-9 rounded-full bg-[#1e1e1e] hover:bg-[#2a2a2a] border border-white/5 flex items-center justify-center text-neutral-300 hover:text-white transition-colors"
+            title={isAdmin ? 'Support Messages (Admin Console)' : 'Messages & Support'}
+          >
+            <MessageSquare className="w-4 h-4" />
+            {unreadMessages > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-emerald-500 text-[10px] font-bold text-black flex items-center justify-center shadow-lg shadow-emerald-500/50">
+                {unreadMessages > 9 ? '9+' : unreadMessages}
+              </span>
+            )}
+          </Link>
+        )}
+
         {/* Notifications Dropdown */}
         <div className="relative">
           <button

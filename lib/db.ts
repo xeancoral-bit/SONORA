@@ -12,7 +12,13 @@ import {
   ListeningHistory,
   NotificationItem,
   AdminActivityLog,
-  SystemSettings
+  SystemSettings,
+  SupportConversation,
+  SupportMessage,
+  SupportRequest,
+  AdminOnlineStatus,
+  SupportCategory,
+  ConversationStatus
 } from './types';
 import {
   initialUsers,
@@ -44,6 +50,10 @@ interface DatabaseSchema {
   notifications: NotificationItem[];
   logs: AdminActivityLog[];
   settings: SystemSettings;
+  conversations?: SupportConversation[];
+  supportMessages?: SupportMessage[];
+  supportRequests?: SupportRequest[];
+  adminStatus?: AdminOnlineStatus;
 }
 
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -70,7 +80,14 @@ function getInitialData(): DatabaseSchema {
     followedArtists: initialFollowedArtists,
     notifications: initialNotifications,
     logs: initialLogs,
-    settings: initialSettings
+    settings: initialSettings,
+    conversations: [],
+    supportMessages: [],
+    supportRequests: [],
+    adminStatus: {
+      isOnline: true,
+      lastSeen: new Date().toISOString()
+    }
   };
 }
 
@@ -251,6 +268,12 @@ export function readDb(): DatabaseSchema {
     }
     const data = fs.readFileSync(DB_FILE, 'utf-8');
     const parsed = JSON.parse(data) as DatabaseSchema;
+    if (!parsed.conversations) parsed.conversations = [];
+    if (!parsed.supportMessages) parsed.supportMessages = [];
+    if (!parsed.supportRequests) parsed.supportRequests = [];
+    if (!parsed.adminStatus) {
+      parsed.adminStatus = { isOnline: true, lastSeen: new Date().toISOString() };
+    }
     const syncedArtists = syncMissingArtists(parsed);
     const syncedAlbums = syncMissingAlbums(parsed);
     if (syncedArtists || syncedAlbums) {
@@ -612,5 +635,175 @@ export const db = {
     data.settings = { ...data.settings, ...settings };
     writeDb(data);
     return data.settings;
+  },
+
+  // Support & Messaging
+  getConversationsForUser: (userId: string) => {
+    const data = readDb();
+    return (data.conversations || [])
+      .filter((c) => c.userId === userId)
+      .sort((a, b) => new Date(b.latestMessageAt || b.createdAt).getTime() - new Date(a.latestMessageAt || a.createdAt).getTime());
+  },
+
+  getAllConversations: () => {
+    const data = readDb();
+    return (data.conversations || [])
+      .sort((a, b) => new Date(b.latestMessageAt || b.createdAt).getTime() - new Date(a.latestMessageAt || a.createdAt).getTime());
+  },
+
+  getConversationById: (id: string) => {
+    const data = readDb();
+    return (data.conversations || []).find((c) => c.id === id);
+  },
+
+  getOrCreateConversationForUser: (user: { id: string; name: string; avatar: string; email: string }, category: SupportCategory = 'general') => {
+    const data = readDb();
+    if (!data.conversations) data.conversations = [];
+    let conv = data.conversations.find((c) => c.userId === user.id);
+    if (!conv) {
+      conv = {
+        id: `conv-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+        userId: user.id,
+        userName: user.name,
+        userAvatar: user.avatar,
+        userEmail: user.email,
+        category: category,
+        status: 'new',
+        unreadByUserCount: 0,
+        unreadByAdminCount: 0,
+        latestMessage: '',
+        latestMessageAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      data.conversations.unshift(conv);
+      writeDb(data);
+    }
+    return conv;
+  },
+
+  getMessagesForConversation: (conversationId: string) => {
+    const data = readDb();
+    return (data.supportMessages || [])
+      .filter((m) => m.conversationId === conversationId)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  },
+
+  addSupportMessage: (message: SupportMessage) => {
+    const data = readDb();
+    if (!data.supportMessages) data.supportMessages = [];
+    if (!data.conversations) data.conversations = [];
+    data.supportMessages.push(message);
+
+    const convIndex = data.conversations.findIndex((c) => c.id === message.conversationId);
+    if (convIndex >= 0) {
+      const conv = data.conversations[convIndex];
+      conv.latestMessage = message.message;
+      conv.latestMessageAt = message.createdAt;
+      conv.updatedAt = message.createdAt;
+      if (message.category) conv.category = message.category;
+
+      if (message.senderRole === 'user') {
+        conv.unreadByAdminCount = (conv.unreadByAdminCount || 0) + 1;
+        if (conv.status === 'replied' || conv.status === 'resolved') {
+          conv.status = 'unread';
+        }
+      } else if (message.senderRole === 'admin') {
+        conv.unreadByUserCount = (conv.unreadByUserCount || 0) + 1;
+        conv.status = 'replied';
+      }
+      data.conversations[convIndex] = conv;
+    }
+    writeDb(data);
+    return message;
+  },
+
+  updateConversationStatus: (id: string, status: ConversationStatus) => {
+    const data = readDb();
+    if (!data.conversations) data.conversations = [];
+    const conv = data.conversations.find((c) => c.id === id);
+    if (conv) {
+      conv.status = status;
+      conv.updatedAt = new Date().toISOString();
+      if (status === 'resolved') {
+        conv.unreadByAdminCount = 0;
+      }
+      writeDb(data);
+      return conv;
+    }
+    return null;
+  },
+
+  markConversationReadBy: (conversationId: string, readerRole: 'user' | 'admin') => {
+    const data = readDb();
+    if (!data.conversations) data.conversations = [];
+    if (!data.supportMessages) data.supportMessages = [];
+
+    const conv = data.conversations.find((c) => c.id === conversationId);
+    if (conv) {
+      if (readerRole === 'user') {
+        conv.unreadByUserCount = 0;
+      } else {
+        conv.unreadByAdminCount = 0;
+      }
+    }
+
+    // Mark messages as read
+    data.supportMessages.forEach((m) => {
+      if (m.conversationId === conversationId) {
+        if (readerRole === 'user' && (m.senderRole === 'admin' || m.senderType === 'ai')) {
+          m.isRead = true;
+        } else if (readerRole === 'admin' && m.senderRole === 'user') {
+          m.isRead = true;
+        }
+      }
+    });
+
+    writeDb(data);
+  },
+
+  createSupportRequest: (req: SupportRequest) => {
+    const data = readDb();
+    if (!data.supportRequests) data.supportRequests = [];
+    data.supportRequests.unshift(req);
+    writeDb(data);
+    return req;
+  },
+
+  getSupportRequests: () => {
+    const data = readDb();
+    return data.supportRequests || [];
+  },
+
+  getAdminOnlineStatus: (): AdminOnlineStatus => {
+    const data = readDb();
+    if (!data.adminStatus) {
+      data.adminStatus = { isOnline: true, lastSeen: new Date().toISOString() };
+    }
+    return data.adminStatus;
+  },
+
+  setAdminOnlineStatus: (isOnline: boolean, statusMessage?: string) => {
+    const data = readDb();
+    data.adminStatus = {
+      isOnline,
+      lastSeen: new Date().toISOString(),
+      statusMessage
+    };
+    writeDb(data);
+    return data.adminStatus;
+  },
+
+  getUnreadSupportCount: (userId?: string, isAdmin?: boolean) => {
+    const data = readDb();
+    const convs = data.conversations || [];
+    if (isAdmin) {
+      return convs.reduce((acc, c) => acc + (c.unreadByAdminCount || 0), 0);
+    }
+    if (userId) {
+      const userConv = convs.find((c) => c.userId === userId);
+      return userConv ? (userConv.unreadByUserCount || 0) : 0;
+    }
+    return 0;
   }
 };
