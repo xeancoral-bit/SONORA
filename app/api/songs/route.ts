@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, isInvalidAlbumTitle } from '@/lib/db';
+import { db, initDb, isInvalidAlbumTitle } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { Song, Artist, Album, SyncedLyricLine } from '@/lib/types';
 import { autoGenerateSyncedLyrics, getSyncedLyricsForSong, SUPPORTED_LYRIC_LANGUAGES } from '@/lib/lyricsService';
 
 export async function GET(request: NextRequest) {
+  await initDb();
   const { searchParams } = new URL(request.url);
   const artistId = searchParams.get('artistId');
   const albumId = searchParams.get('albumId');
@@ -51,6 +52,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  await initDb();
   const user = await getCurrentUser();
   if (!user || user.role !== 'admin') {
     return NextResponse.json({ error: 'Unauthorized: Admin permission required to upload official music' }, { status: 403 });

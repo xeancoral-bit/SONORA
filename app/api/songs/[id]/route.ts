@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, initDb } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  await initDb();
   const { id } = await params;
   const song = db.getSongById(id);
   if (!song) {
@@ -31,6 +32,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  await initDb();
   const { id } = await params;
   const user = await getCurrentUser();
   if (!user || user.role !== 'admin') {

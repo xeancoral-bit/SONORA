@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, initDb } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { Genre } from '@/lib/types';
 
 export async function GET() {
+  await initDb();
   const genres = db.getGenres();
   const allSongs = db.getSongs().filter((s) => s.status === 'published');
 
@@ -16,6 +17,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  await initDb();
   const user = await getCurrentUser();
   if (!user || user.role !== 'admin') {
     return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });

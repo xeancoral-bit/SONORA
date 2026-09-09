@@ -58,6 +58,7 @@ interface DatabaseSchema {
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'sonora.json');
+const USE_SUPABASE = process.env.USE_SUPABASE_DB === 'true' || process.env.NODE_ENV === 'production';
 
 function ensureDirectoryExistence(filePath: string) {
   const dirname = path.dirname(filePath);
@@ -256,13 +257,17 @@ function syncMissingAlbums(data: DatabaseSchema): boolean {
 }
 
 export function readDb(): DatabaseSchema {
+  if (dbMemoryCache) return dbMemoryCache;
+  // Synchronous fallback for local dev / first access before initDb()
   try {
     ensureDirectoryExistence(DB_FILE);
     if (!fs.existsSync(DB_FILE)) {
       const initial = getInitialData();
       syncMissingArtists(initial);
       syncMissingAlbums(initial);
-      fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), 'utf-8');
+      if (!USE_SUPABASE) {
+        fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), 'utf-8');
+      }
       dbMemoryCache = initial;
       return initial;
     }
@@ -274,11 +279,8 @@ export function readDb(): DatabaseSchema {
     if (!parsed.adminStatus) {
       parsed.adminStatus = { isOnline: true, lastSeen: new Date().toISOString() };
     }
-    const syncedArtists = syncMissingArtists(parsed);
-    const syncedAlbums = syncMissingAlbums(parsed);
-    if (syncedArtists || syncedAlbums) {
-      fs.writeFileSync(DB_FILE, JSON.stringify(parsed, null, 2), 'utf-8');
-    }
+    syncMissingArtists(parsed);
+    syncMissingAlbums(parsed);
     dbMemoryCache = parsed;
     return parsed;
   } catch (error) {
@@ -290,14 +292,114 @@ export function readDb(): DatabaseSchema {
   }
 }
 
+// --- Supabase-backed persistence ---
+
+let _dbInitPromise: Promise<void> | null = null;
+
+/**
+ * initDb() MUST be called at the top of every API route handler.
+ * On a serverless cold start it fetches data from Supabase; subsequent
+ * calls within the same container lifetime are instant (memory cache hit).
+ */
+export async function initDb(): Promise<void> {
+  if (dbMemoryCache) return; // already loaded
+  if (_dbInitPromise) return _dbInitPromise; // another request is initializing
+
+  _dbInitPromise = (async () => {
+    if (!USE_SUPABASE) {
+      // Local development: read from JSON file
+      readDb();
+      return;
+    }
+
+    try {
+      const { createAdminClient } = await import('./supabase/admin');
+      const supabase = createAdminClient();
+
+      // Ensure the table exists (idempotent DDL)
+      try {
+        await supabase.rpc('exec_sql_void', {
+          sql: `CREATE TABLE IF NOT EXISTS app_state (
+            id SMALLINT PRIMARY KEY DEFAULT 1,
+            payload JSONB NOT NULL,
+            updated_at TIMESTAMPTZ DEFAULT NOW(),
+            CONSTRAINT single_row CHECK (id = 1)
+          );`
+        });
+      } catch {
+        // ignore if rpc doesn't exist yet
+      }
+
+      const { data, error } = await supabase
+        .from('app_state')
+        .select('payload')
+        .eq('id', 1)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('[initDb] Supabase read error:', error.message);
+      }
+
+      if (data?.payload) {
+        const parsed = data.payload as DatabaseSchema;
+        if (!parsed.conversations) parsed.conversations = [];
+        if (!parsed.supportMessages) parsed.supportMessages = [];
+        if (!parsed.supportRequests) parsed.supportRequests = [];
+        if (!parsed.adminStatus) {
+          parsed.adminStatus = { isOnline: true, lastSeen: new Date().toISOString() };
+        }
+        syncMissingArtists(parsed);
+        syncMissingAlbums(parsed);
+        dbMemoryCache = parsed;
+        console.log('[initDb] Loaded database from Supabase app_state.');
+      } else {
+        // First boot: seed Supabase with initial data
+        console.log('[initDb] No app_state row found. Seeding Supabase with initial data...');
+        const initial = getInitialData();
+        syncMissingArtists(initial);
+        syncMissingAlbums(initial);
+        await supabase
+          .from('app_state')
+          .upsert({ id: 1, payload: initial, updated_at: new Date().toISOString() });
+        dbMemoryCache = initial;
+        console.log('[initDb] Supabase seeded successfully.');
+      }
+    } catch (err) {
+      console.error('[initDb] Failed to load from Supabase, using in-memory fallback:', err);
+      if (!dbMemoryCache) dbMemoryCache = getInitialData();
+    } finally {
+      _dbInitPromise = null;
+    }
+  })();
+
+  return _dbInitPromise;
+}
+
 export function writeDb(data: DatabaseSchema): void {
-  try {
-    ensureDirectoryExistence(DB_FILE);
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
-    dbMemoryCache = data;
-  } catch (error) {
-    console.error('Error writing database file:', error);
-    dbMemoryCache = data;
+  // Always update the in-memory cache immediately (synchronous reads still work)
+  dbMemoryCache = data;
+
+  if (USE_SUPABASE) {
+    // Fire-and-forget async persistence to Supabase
+    import('./supabase/admin')
+      .then(({ createAdminClient }) => {
+        const supabase = createAdminClient();
+        return supabase
+          .from('app_state')
+          .upsert({ id: 1, payload: data, updated_at: new Date().toISOString() });
+      })
+      .then(({ error }) => {
+        if (error) console.error('[writeDb] Supabase write error:', error.message);
+      })
+      .catch((err) => console.error('[writeDb] Failed to persist to Supabase:', err));
+  } else {
+    // Local development: write to JSON file
+    try {
+      ensureDirectoryExistence(DB_FILE);
+      fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    } catch (error) {
+      console.error('Error writing database file:', error);
+    }
   }
 }
 
