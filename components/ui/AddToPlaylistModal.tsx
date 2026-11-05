@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Modal } from './Modal';
 import { Song, Playlist } from '@/lib/types';
+import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
-import { ListMusic, Plus, Check } from 'lucide-react';
+import { ListMusic, Plus, Check, Lock, LogIn, UserPlus } from 'lucide-react';
 
 interface AddToPlaylistModalProps {
   isOpen: boolean;
@@ -19,6 +21,7 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
   song,
   onPlaylistCreated
 }) => {
+  const { user } = useAuth();
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [newTitle, setNewTitle] = useState('');
@@ -26,10 +29,10 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
   const toast = useToast();
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && user) {
       fetchPlaylists();
     }
-  }, [isOpen]);
+  }, [isOpen, user]);
 
   const fetchPlaylists = async () => {
     try {
@@ -99,6 +102,49 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
   };
 
   if (!song) return null;
+
+  if (!user) {
+    return (
+      <Modal isOpen={isOpen} onClose={onClose} title="Account Required">
+        <div className="flex flex-col items-center text-center py-5 px-3">
+          <div className="relative mb-4">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shadow-xl shadow-emerald-500/10">
+              <Lock className="w-7 h-7" />
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 text-black flex items-center justify-center font-bold text-xs shadow-md">
+              <UserPlus className="w-3 h-3" />
+            </div>
+          </div>
+
+          <h3 className="text-lg font-bold text-white mb-2">
+            Sign In to Save to Playlists
+          </h3>
+
+          <p className="text-xs text-neutral-400 max-w-sm mb-5 leading-relaxed">
+            Dili ka maka-save o maka-create og playlist kung wala pa kay account. Sign in or register to add &quot;{song.title}&quot; to your playlists.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-2.5 w-full">
+            <Link
+              href="/auth/login"
+              onClick={onClose}
+              className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs text-center transition-all flex items-center justify-center gap-1.5"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              Sign In or Register
+            </Link>
+            <button
+              type="button"
+              onClick={onClose}
+              className="py-2.5 px-4 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-white/10 text-neutral-300 font-semibold text-xs transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Add to Playlist">

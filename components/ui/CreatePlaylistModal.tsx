@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Modal } from './Modal';
+import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
-import { Image, Lock, Globe } from 'lucide-react';
+import { Lock, Globe, LogIn, UserPlus } from 'lucide-react';
 
 interface CreatePlaylistModalProps {
   isOpen: boolean;
@@ -16,6 +18,7 @@ export const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
   onClose,
   onSuccess
 }) => {
+  const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [coverImage, setCoverImage] = useState('');
@@ -25,6 +28,11 @@ export const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      toast.error('Account Required', 'Please sign in or create an account to make a playlist.');
+      return;
+    }
+
     if (!title.trim()) {
       toast.error('Playlist name is required');
       return;
@@ -60,6 +68,50 @@ export const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
       setIsSubmitting(false);
     }
   };
+
+  // If user is not signed in / has no account yet, show Account Required screen
+  if (!user) {
+    return (
+      <Modal isOpen={isOpen} onClose={onClose} title="Account Required">
+        <div className="flex flex-col items-center text-center py-5 px-3">
+          <div className="relative mb-4">
+            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shadow-xl shadow-emerald-500/10">
+              <Lock className="w-8 h-8" />
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 text-black flex items-center justify-center font-bold text-xs shadow-md">
+              <UserPlus className="w-3.5 h-3.5" />
+            </div>
+          </div>
+
+          <h3 className="text-xl font-bold text-white mb-2">
+            Create an Account to Make Playlists
+          </h3>
+
+          <p className="text-sm text-neutral-400 max-w-sm mb-6 leading-relaxed">
+            Dili ka maka-create og playlist kung wala pa kay account. Sign in or register for free to create, customize, and save your own playlists on Sonora.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3 w-full">
+            <Link
+              href="/auth/login?redirect=/playlists"
+              onClick={onClose}
+              className="flex-1 py-3 px-5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm transition-all duration-200 shadow-lg shadow-emerald-500/25 hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2"
+            >
+              <LogIn className="w-4 h-4" />
+              Sign In or Register
+            </Link>
+            <button
+              type="button"
+              onClick={onClose}
+              className="py-3 px-5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-white/10 text-neutral-300 font-semibold text-sm transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Create New Playlist">

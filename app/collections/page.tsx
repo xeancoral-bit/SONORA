@@ -3,11 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { UserCollection } from '@/lib/types';
-import { FolderHeart, Plus, Lock } from 'lucide-react';
+import { FolderHeart, Plus, Lock, LogIn, UserPlus } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
+import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 
 export default function CollectionsPage() {
+  const { user } = useAuth();
   const [collections, setCollections] = useState<UserCollection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -25,6 +27,10 @@ export default function CollectionsPage() {
 
   const handleCreateCollection = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      toast.error('Account Required', 'Please sign in or create an account to make personal collections.');
+      return;
+    }
     if (!newTitle.trim()) return;
 
     try {
@@ -115,51 +121,94 @@ export default function CollectionsPage() {
       )}
 
       {/* Create Modal */}
-      <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Create Personal Collection">
-        <form onSubmit={handleCreateCollection} className="flex flex-col gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
-              Collection Title *
-            </label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. Study Music, Midnight Drive..."
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500"
-            />
-          </div>
+      <Modal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        title={user ? 'Create Personal Collection' : 'Account Required'}
+      >
+        {!user ? (
+          <div className="flex flex-col items-center text-center py-5 px-3">
+            <div className="relative mb-4">
+              <div className="w-16 h-16 rounded-2xl bg-purple-500/10 border border-purple-500/25 flex items-center justify-center text-purple-400 shadow-xl shadow-purple-500/10">
+                <Lock className="w-8 h-8" />
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-xs shadow-md">
+                <UserPlus className="w-3.5 h-3.5" />
+              </div>
+            </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
-              Description
-            </label>
-            <textarea
-              rows={2}
-              placeholder="What makes this personal collection special..."
-              value={newDescription}
-              onChange={(e) => setNewDescription(e.target.value)}
-              className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500 resize-none"
-            />
-          </div>
+            <h3 className="text-xl font-bold text-white mb-2">
+              Create an Account to Make Collections
+            </h3>
 
-          <div className="flex justify-end gap-3 mt-4">
-            <button
-              type="button"
-              onClick={() => setIsCreateOpen(false)}
-              className="px-4 py-2 rounded-xl bg-neutral-900 border border-white/10 text-xs font-semibold text-neutral-300"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs"
-            >
-              Create Collection
-            </button>
+            <p className="text-sm text-neutral-400 max-w-sm mb-6 leading-relaxed">
+              Dili ka maka-create og collection kung wala pa kay account. Sign in or register for free to organize your favorite Sonora tracks into personal collections.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 w-full">
+              <Link
+                href="/auth/login?redirect=/collections"
+                onClick={() => setIsCreateOpen(false)}
+                className="flex-1 py-3 px-5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-sm transition-all duration-200 shadow-lg shadow-purple-600/25 hover:scale-[1.02] flex items-center justify-center gap-2"
+              >
+                <LogIn className="w-4 h-4" />
+                Sign In or Register
+              </Link>
+              <button
+                type="button"
+                onClick={() => setIsCreateOpen(false)}
+                className="py-3 px-5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-white/10 text-neutral-300 font-semibold text-sm transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
-        </form>
+        ) : (
+          <form onSubmit={handleCreateCollection} className="flex flex-col gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
+                Collection Title *
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Study Music, Midnight Drive..."
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
+                Description
+              </label>
+              <textarea
+                rows={2}
+                placeholder="What makes this personal collection special..."
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500 resize-none"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                type="button"
+                onClick={() => setIsCreateOpen(false)}
+                className="px-4 py-2 rounded-xl bg-neutral-900 border border-white/10 text-xs font-semibold text-neutral-300"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs"
+              >
+                Create Collection
+              </button>
+            </div>
+          </form>
+        )}
       </Modal>
     </div>
   );
