@@ -22,6 +22,7 @@ export const LyricsPanel: React.FC = () => {
     decreaseLyricsFontSize,
     activeSyncedLyrics,
     isLyricsLoading,
+    refetchLyrics,
   } = useAudio();
 
   const {
@@ -236,21 +237,36 @@ export const LyricsPanel: React.FC = () => {
               </div>
             );
           })
-        ) : currentTrack.lyrics ? (
+        ) : typeof currentTrack.lyrics === 'string' && currentTrack.lyrics.trim() ? (
           <div className="text-sm text-neutral-300 whitespace-pre-line leading-relaxed font-sans px-1">
             {currentTrack.lyrics}
           </div>
+        ) : Array.isArray(currentTrack.lyrics) && currentTrack.lyrics.length > 0 ? (
+          <div className="space-y-3 px-1">
+            {currentTrack.lyrics.map((line: any, idx: number) => (
+              <p key={idx} className="text-sm font-semibold text-neutral-300">
+                {typeof line === 'string' ? line : line.text}
+              </p>
+            ))}
+          </div>
         ) : (
-          <div className="py-20 flex flex-col items-center justify-center text-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-neutral-500">
-              <Music className="w-6 h-6" />
+          <div className="py-16 flex flex-col items-center justify-center text-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-emerald-400">
+              <Mic2 className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-white">Lyrics unavailable</h4>
-              <p className="text-xs text-neutral-400 mt-1 max-w-[200px]">
-                No synchronized lyrics were found for this track.
+              <h4 className="text-sm font-bold text-white">Live Lyrics Ready</h4>
+              <p className="text-xs text-neutral-400 mt-1 max-w-[220px]">
+                Fetch and match verified lyrics for &quot;{currentTrack.title}&quot;.
               </p>
             </div>
+            <button
+              onClick={() => refetchLyrics()}
+              className="mt-2 px-4 py-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-md active:scale-95 flex items-center gap-2 cursor-pointer"
+            >
+              <Mic2 className="w-3.5 h-3.5" />
+              Sync Lyrics Now
+            </button>
           </div>
         )}
 

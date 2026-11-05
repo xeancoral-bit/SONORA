@@ -10,6 +10,9 @@ import { formatTime, formatNumber, formatDate } from '@/lib/utils';
 import { getPlatformMeta } from '@/lib/urlUtils';
 import {
   Music,
+  Loader2,
+  Sparkles,
+  Mic2,
   PlusCircle,
   Search,
   Filter,
@@ -44,6 +47,7 @@ export default function AdminMusicManagementPage() {
   const [editingSong, setEditingSong] = useState<Song | null>(null);
   const [deletingSong, setDeletingSong] = useState<Song | null>(null);
   const [activeActionMenu, setActiveActionMenu] = useState<string | null>(null);
+  const [isEnriching, setIsEnriching] = useState(false);
 
   const toast = useToast();
 
@@ -87,6 +91,29 @@ export default function AdminMusicManagementPage() {
     window.addEventListener('click', handle);
     return () => window.removeEventListener('click', handle);
   }, []);
+
+    const handleAutoEnrich = async () => {
+    try {
+      setIsEnriching(true);
+      toast.info('Scanning tracks and fetching missing lyrics from LRCLIB & iTunes...');
+      const res = await fetch('/api/admin/auto-enrich', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (data.enrichedCount > 0) {
+          toast.success(`Successfully enriched ${data.enrichedCount} tracks with synchronized lyrics!`);
+        } else {
+          toast.info('All candidate tracks already have verified synced lyrics.');
+        }
+        await fetchSongs();
+      } else {
+        toast.error(data.error || 'Auto-enrich failed');
+      }
+    } catch {
+      toast.error('Network error during auto-enrich');
+    } finally {
+      setIsEnriching(false);
+    }
+  };
 
   const handleToggleArchive = async (song: Song) => {
     const newStatus = song.status === 'archived' ? 'published' : 'archived';
@@ -213,13 +240,29 @@ export default function AdminMusicManagementPage() {
           </p>
         </div>
 
-        <Link
-          href="/admin/music/add"
-          className="px-5 py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-black font-semibold text-xs flex items-center gap-2 shadow-lg shadow-amber-500/25 transition-all hover:scale-105 active:scale-95 shrink-0"
-        >
-          <PlusCircle className="w-4 h-4" />
-          + Add New Track
-        </Link>
+        <div className="flex items-center gap-2.5 shrink-0">
+          <button
+            onClick={handleAutoEnrich}
+            disabled={isEnriching}
+            className="px-4 py-2.5 rounded-full bg-neutral-900 hover:bg-neutral-800 border border-amber-500/30 text-amber-300 font-semibold text-xs flex items-center gap-2 shadow-md transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+            title="Auto-scan all tracks and fetch missing synced lyrics & HD covers from LRCLIB"
+          >
+            {isEnriching ? (
+              <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+            ) : (
+              <Sparkles className="w-4 h-4 text-amber-400" />
+            )}
+            {isEnriching ? 'Enriching...' : '✨ Auto-Enrich Lyrics'}
+          </button>
+
+          <Link
+            href="/admin/music/add"
+            className="px-5 py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-black font-semibold text-xs flex items-center gap-2 shadow-lg shadow-amber-500/25 transition-all hover:scale-105 active:scale-95"
+          >
+            <PlusCircle className="w-4 h-4" />
+            + Add New Track
+          </Link>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
@@ -344,9 +387,20 @@ export default function AdminMusicManagementPage() {
                           )}
                         </div>
                         <div className="min-w-0">
-                          <span className="font-bold text-white text-xs block truncate max-w-[160px]">
-                            {song.title}
-                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-bold text-white text-xs block truncate max-w-[150px]">
+                              {song.title}
+                            </span>
+                            {song.syncedLyrics && song.syncedLyrics.length > 0 && (
+                              <span
+                                className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-emerald-500/15 text-emerald-400 text-[8px] font-bold border border-emerald-500/25 tracking-wide shrink-0"
+                                title="Timed Synchronized Lyrics available"
+                              >
+                                <Mic2 className="w-2 h-2" />
+                                LYRICS
+                              </span>
+                            )}
+                          </div>
                           <span className="text-[10px] text-neutral-500 truncate block max-w-[160px]">
                             {song.originalFilename || (song.sourceUrl ? 'URL source' : 'audio.mp3')}
                           </span>

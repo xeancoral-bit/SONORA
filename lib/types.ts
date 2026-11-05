@@ -68,6 +68,12 @@ export interface Song {
   sourceUrl?: string;             // Original pasted URL (YouTube, SoundCloud, etc.)
   sourcePlatform?: SourcePlatform; // Detected platform
   externalMediaId?: string;       // e.g. YouTube video ID
+  isrc?: string;                  // International Standard Recording Code
+  providerTrackId?: string;       // Music provider track identifier
+  trackNumber?: number;           // Original album track number
+  discNumber?: number;            // Disc number
+  isUnavailable?: boolean;        // Marked unavailable if full recording not provided
+  unavailabilityReason?: string;
   copyrightOwner?: string;
   source?: string;
   tags?: string[];
@@ -88,6 +94,11 @@ export interface Album {
   genreName: string;
   releaseDate: string;
   copyrightInfo?: string;
+  recordLabel?: string;
+  providerAlbumId?: string;
+  totalTracks?: number;
+  tracksCount?: number;
+  releaseYear?: number;
   status: 'published' | 'draft' | 'archived';
   isFeatured?: boolean;
   songIds: string[];

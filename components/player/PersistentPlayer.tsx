@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAudio } from '@/context/AudioContext';
 import {
@@ -17,20 +17,23 @@ import {
   ListMusic,
   Maximize2,
   ChevronUp,
-  X
+  X,
+  Sliders
 } from 'lucide-react';
-import { Youtube } from '@/components/ui/icons';
 import { formatTime } from '@/lib/utils';
 import { FullScreenPlayer } from './FullScreenPlayer';
 import { LyricsPanel } from './LyricsPanel';
 import { QueueDrawer } from './QueueDrawer';
 import { LikeButton } from '@/components/ui/LikeButton';
 import { EqualizerAnimation } from './EqualizerAnimation';
+import { EqualizerModal } from './EqualizerModal';
+import { useAlbumColor } from '@/hooks/useAlbumColor';
 
 export const PersistentPlayer: React.FC = () => {
   const {
     currentTrack,
     isPlaying,
+    isResolving,
     currentTime,
     duration,
     volume,
@@ -56,12 +59,20 @@ export const PersistentPlayer: React.FC = () => {
     isCurrentLiked
   } = useAudio();
 
+  const [isEqOpen, setIsEqOpen] = useState(false);
+  const { glowStyle } = useAlbumColor(currentTrack?.coverImage);
+
   if (!currentTrack) return null;
 
   return (
     <>
       {/* Persistent Bottom Bar */}
-      <footer className="fixed bottom-0 left-0 right-0 z-30 mb-[56px] md:mb-0 bg-[#181818] border-t border-white/10 px-4 py-2 shadow-2xl transition-all select-none">
+      <footer className="fixed bottom-0 left-0 right-0 z-30 mb-[56px] md:mb-0 bg-[#181818] border-t border-white/10 px-4 py-2 shadow-2xl transition-all select-none overflow-hidden">
+        {/* Dynamic Ambient Album Backlight Glow */}
+        <div
+          className="absolute inset-0 -top-12 -z-10 pointer-events-none transition-all duration-700 blur-2xl opacity-60"
+          style={glowStyle}
+        />
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 md:gap-6">
           {/* LEFT: Artwork, Title, Artist, Like */}
           <div className="flex items-center gap-3 min-w-0 md:w-1/4">
@@ -96,19 +107,6 @@ export const PersistentPlayer: React.FC = () => {
                 >
                   {currentTrack.artistName}
                 </Link>
-                {/* YouTube source badge */}
-                {currentTrack.sourcePlatform === 'youtube' && currentTrack.externalMediaId && (
-                  <a
-                    href={`https://www.youtube.com/watch?v=${currentTrack.externalMediaId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-red-500/15 border border-red-500/25 text-red-400 text-[9px] font-bold hover:bg-red-500/25 transition-colors shrink-0"
-                    title="Listening via YouTube embed"
-                  >
-                    <Youtube className="w-2.5 h-2.5" />
-                    YT
-                  </a>
-                )}
               </div>
             </div>
 
@@ -218,6 +216,17 @@ export const PersistentPlayer: React.FC = () => {
               <Mic2 className="w-4 h-4" />
             </button>
 
+            {/* Sonora Sound Studio EQ */}
+            <button
+              onClick={() => setIsEqOpen(true)}
+              className={`p-2 rounded-lg transition-colors hidden md:block ${
+                isEqOpen ? 'text-amber-400 bg-amber-500/10' : 'text-neutral-400 hover:text-amber-400 hover:bg-white/5'
+              }`}
+              title="Sonora Sound Studio (Equalizer & Presets)"
+            >
+              <Sliders className="w-4 h-4" />
+            </button>
+
             <button
               onClick={() => setIsQueueOpen(!isQueueOpen)}
               className={`p-2 rounded-lg transition-colors hidden md:block ${
@@ -282,6 +291,7 @@ export const PersistentPlayer: React.FC = () => {
       <FullScreenPlayer />
       <LyricsPanel />
       <QueueDrawer />
+      <EqualizerModal isOpen={isEqOpen} onClose={() => setIsEqOpen(false)} isPlaying={isPlaying} />
     </>
   );
 };

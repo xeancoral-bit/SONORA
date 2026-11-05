@@ -67,24 +67,24 @@ export default function AdminOverviewPage() {
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <AdminStatsCard
           title="Total Songs"
-          value={summary.totalSongs}
+          value={summary.synchronizedSongs || summary.totalSongs}
           icon={Music}
           color="text-emerald-400"
-          subtitle="+4 this week"
+          subtitle="Full tracks synchronized"
         />
         <AdminStatsCard
           title="Total Albums"
-          value={summary.totalAlbums}
+          value={summary.synchronizedAlbums || summary.totalAlbums}
           icon={Disc}
           color="text-cyan-400"
-          subtitle="5 verified albums"
+          subtitle="Official studio discographies"
         />
         <AdminStatsCard
-          title="Artists"
-          value={summary.totalArtists}
+          title="Imported Artists"
+          value={summary.importedArtists || summary.totalArtists}
           icon={Users}
           color="text-purple-400"
-          subtitle="6 verified artists"
+          subtitle={`${summary.incompleteArtists || 0} incomplete profiles`}
         />
         <AdminStatsCard
           title="Registered Users"

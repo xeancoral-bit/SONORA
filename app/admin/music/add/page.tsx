@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { Youtube } from '@/components/ui/icons';
 
-type AudioSourceMode = 'file' | 'url';
+type AudioSourceMode = 'file' | 'url' | 'auto';
 
 interface UrlPreviewMeta {
   title: string;
@@ -74,6 +74,18 @@ export default function AdminAddMusicPage() {
   const [status, setStatus] = useState<SongStatus>('published');
   const [isFeatured, setIsFeatured] = useState(false);
   const [synthPreset, setSynthPreset] = useState('chill');
+
+  // ── 1-Click Auto-Discography State ──
+  const [autoArtistName, setAutoArtistName] = useState('');
+  const [autoMaxAlbums, setAutoMaxAlbums] = useState(4);
+  const [isAutoImporting, setIsAutoImporting] = useState(false);
+  const [autoImportStep, setAutoImportStep] = useState('');
+  const [autoImportResult, setAutoImportResult] = useState<{
+    artist: { id: string; name: string; avatar: string };
+    albumsCount: number;
+    songsCount: number;
+    albums: { id: string; title: string; coverImage: string; tracksCount: number; releaseDate: string }[];
+  } | null>(null);
 
 
 
@@ -241,6 +253,46 @@ export default function AdminAddMusicPage() {
     setUrlPreview(null);
   };
 
+  // ── Auto-Discography Import Handler ──
+  const handleAutoImport = async () => {
+    const trimmed = autoArtistName.trim();
+    if (!trimmed) {
+      toast.error('Artist name required', 'Please type the name of the singer or band.');
+      return;
+    }
+
+    try {
+      setIsAutoImporting(true);
+      setAutoImportStep('Searching official iTunes catalog for studio albums...');
+      setAutoImportResult(null);
+
+      const res = await fetch('/api/admin/auto-import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          artistName: trimmed,
+          maxAlbums: autoMaxAlbums,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setAutoImportResult(data);
+        toast.success(
+          'Discography Imported!',
+          `Successfully loaded ${data.albumsCount} albums and ${data.songsCount} soundtracks with lyrics for ${data.artist.name}!`
+        );
+      } else {
+        toast.error('Import failed', data.error || 'Failed to auto-import discography.');
+      }
+    } catch {
+      toast.error('Network error', 'Could not communicate with auto-importer service.');
+    } finally {
+      setIsAutoImporting(false);
+      setAutoImportStep('');
+    }
+  };
+
   // ── Form Submission ──
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -363,8 +415,9 @@ export default function AdminAddMusicPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
 
-        {/* ═══════════════════════════════════════════
-            SECTION 1 — AUDIO SOURCE
+
+            {/* ═══════════════════════════════════════════
+            SECTION 1: AUDIO SOURCE SELECTION
         ═══════════════════════════════════════════ */}
         <div className="p-6 rounded-2xl bg-[#141414] border border-white/5 space-y-5">
           <div>
@@ -376,7 +429,37 @@ export default function AdminAddMusicPage() {
           </div>
 
           {/* Source Mode Selector */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <button
+              type="button"
+              onClick={() => setAudioSourceMode('auto')}
+              className={`relative p-5 rounded-2xl border text-left transition-all duration-200 ${
+                audioSourceMode === 'auto'
+                  ? 'bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-transparent border-amber-500/40 shadow-lg shadow-amber-500/15'
+                  : 'bg-neutral-900/60 border-white/[0.06] hover:border-white/20 hover:bg-white/[0.02]'
+              }`}
+            >
+              {audioSourceMode === 'auto' && (
+                <div className="absolute top-3 right-3 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center">
+                  <CheckCircle2 className="w-3 h-3 text-black" />
+                </div>
+              )}
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-white flex items-center gap-1.5">
+                    ⚡ Auto Discography
+                    <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-extrabold uppercase">
+                      Instant
+                    </span>
+                  </h4>
+                  <span className="text-[11px] text-amber-400/90">All Albums &amp; Tracks</span>
+                </div>
+              </div>
+              <p className="text-xs text-neutral-400">Type any singer name — auto-imports all studio albums, songs, and lyrics with 1 click!</p>
+            </button>
             <button
               type="button"
               onClick={() => setAudioSourceMode('file')}
@@ -429,6 +512,151 @@ export default function AdminAddMusicPage() {
               <p className="text-xs text-neutral-500">Paste a YouTube or supported URL. Content plays via authorized embed.</p>
             </button>
           </div>
+
+          {/* ─── 1-CLICK AUTO DISCOGRAPHY UI ─── */}
+          {audioSourceMode === 'auto' && (
+            <div className="mt-4 p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-amber-500/10 via-neutral-900/80 to-neutral-900/40 border border-amber-500/30 space-y-6">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider">
+                  <Sparkles className="w-4 h-4" />
+                  Automatic Full Discography Importer
+                </div>
+                <h3 className="text-xl font-extrabold text-white">
+                  Instant Singer &amp; Album Catalog Sync
+                </h3>
+                <p className="text-xs text-neutral-400 max-w-2xl leading-relaxed">
+                  Type any singer or band name below. The system automatically fetches their studio albums, full soundtrack lists, high-res 1000x1000 cover art, and synchronized lyrics — <strong>without needing to enter songs manually</strong>.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2">
+                <div className="sm:col-span-8 relative">
+                  <input
+                    type="text"
+                    placeholder="Enter singer name, e.g. Taylor Swift, Bruno Mars, Billie Eilish, Post Malone..."
+                    value={autoArtistName}
+                    onChange={(e) => setAutoArtistName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAutoImport();
+                      }
+                    }}
+                    disabled={isAutoImporting}
+                    className="w-full bg-neutral-950/80 border border-amber-500/30 focus:border-amber-400 rounded-xl px-4 py-3.5 text-sm text-white placeholder-neutral-500 focus:outline-none transition-all shadow-inner"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <select
+                    value={autoMaxAlbums}
+                    onChange={(e) => setAutoMaxAlbums(Number(e.target.value))}
+                    disabled={isAutoImporting}
+                    className="w-full h-full min-h-[46px] bg-neutral-950/80 border border-white/10 rounded-xl px-3 py-2 text-xs text-neutral-200 focus:outline-none focus:border-amber-400 cursor-pointer"
+                  >
+                    <option value={2}>2 Albums</option>
+                    <option value={3}>3 Albums</option>
+                    <option value={5}>5 Albums</option>
+                    <option value={8}>8 Albums</option>
+                    <option value={10}>10 Albums</option>
+                  </select>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <button
+                    type="button"
+                    onClick={handleAutoImport}
+                    disabled={isAutoImporting || !autoArtistName.trim()}
+                    className="w-full h-full min-h-[46px] rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 disabled:opacity-40 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                  >
+                    {isAutoImporting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Fetching...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4" />
+                        <span>Auto-Import</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Progress Feedback */}
+              {isAutoImporting && (
+                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3 text-xs text-amber-300 animate-pulse">
+                  <Loader2 className="w-4 h-4 animate-spin shrink-0 text-amber-400" />
+                  <div>
+                    <span className="font-bold">Syncing discography: </span>
+                    <span>{autoImportStep || 'Fetching albums, songs, and karaoke lyrics...'}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Import Results Banner & Album Grid */}
+              {autoImportResult && (
+                <div className="space-y-4 pt-3 border-t border-white/10">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30">
+                    <div className="flex items-center gap-3.5">
+                      <img
+                        src={autoImportResult.artist.avatar}
+                        alt={autoImportResult.artist.name}
+                        className="w-12 h-12 rounded-full object-cover ring-2 ring-emerald-400/50"
+                      />
+                      <div>
+                        <h4 className="font-extrabold text-white text-base">
+                          {autoImportResult.artist.name}
+                        </h4>
+                        <p className="text-xs text-emerald-400 font-semibold">
+                          ✓ Successfully imported {autoImportResult.albumsCount} studio albums &amp; {autoImportResult.songsCount} soundtracks with lyrics!
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/artists/${autoImportResult.artist.id}`}
+                        className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        View Artist Page
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Album Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {autoImportResult.albums.map((alb) => (
+                      <div
+                        key={alb.id}
+                        className="p-3 rounded-xl bg-neutral-950/60 border border-white/5 flex items-center gap-3 hover:border-white/20 transition-colors"
+                      >
+                        <img
+                          src={alb.coverImage}
+                          alt={alb.title}
+                          className="w-12 h-12 rounded-lg object-cover shrink-0"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <h5 className="font-bold text-xs text-white truncate">{alb.title}</h5>
+                          <p className="text-[11px] text-neutral-400">
+                            {alb.tracksCount} tracks • {alb.releaseDate.slice(0, 4)}
+                          </p>
+                          <Link
+                            href={`/albums/${alb.id}`}
+                            className="text-[11px] text-amber-400 hover:underline flex items-center gap-1 mt-0.5"
+                          >
+                            <span>Open Album</span>
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* ─── FILE UPLOAD UI ─── */}
           {audioSourceMode === 'file' && (
@@ -632,10 +860,13 @@ export default function AdminAddMusicPage() {
           )}
         </div>
 
-        {/* ═══════════════════════════════════════════
+
+            {/* ═══════════════════════════════════════════
             SECTION 2 — TRACK INFORMATION
         ═══════════════════════════════════════════ */}
-        <div className="p-6 rounded-2xl bg-[#141414] border border-white/5 space-y-5">
+        {audioSourceMode !== 'auto' && (
+          <>
+            <div className="p-6 rounded-2xl bg-[#141414] border border-white/5 space-y-5">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
             <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 text-xs flex items-center justify-center font-mono font-bold">2</span>
             Track Information
@@ -967,7 +1198,8 @@ export default function AdminAddMusicPage() {
           </div>
         </div>
 
-        {/* ═══════════════════════════════════════════
+
+            {/* ═══════════════════════════════════════════
             ACTION BUTTONS
         ═══════════════════════════════════════════ */}
         <div className="flex items-center justify-between gap-3 pt-2">
@@ -1001,6 +1233,8 @@ export default function AdminAddMusicPage() {
             </button>
           </div>
         </div>
+        </>
+        )}
       </form>
     </div>
   );

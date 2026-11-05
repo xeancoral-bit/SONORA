@@ -112,7 +112,22 @@ function syncMissingArtists(data: DatabaseSchema): boolean {
     }
 
     if (!matchedArtist) {
-      // Auto-create artist for this song
+      for (const a of data.artists) {
+        const aLower = a.name.toLowerCase();
+        if (nameKey.includes(aLower) || aLower.includes(nameKey)) {
+          matchedArtist = a;
+          break;
+        }
+      }
+    }
+
+    if (matchedArtist) {
+      if (song.artistId !== matchedArtist.id) {
+        song.artistId = matchedArtist.id;
+        changed = true;
+      }
+    } else if (data.artists.length < 300) {
+      // Auto-create artist for this song only if below the 300 master artist threshold
       const newArtist: Artist = {
         id: song.artistId || `artist-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
         name: song.artistName.trim(),
@@ -134,9 +149,6 @@ function syncMissingArtists(data: DatabaseSchema): boolean {
       artistMap.set(newArtist.id, newArtist);
       artistMap.set(nameKey, newArtist);
       song.artistId = newArtist.id;
-      changed = true;
-    } else if (song.artistId !== matchedArtist.id) {
-      song.artistId = matchedArtist.id;
       changed = true;
     }
   }
@@ -256,8 +268,22 @@ function syncMissingAlbums(data: DatabaseSchema): boolean {
   return changed;
 }
 
+let lastDbFileMtime = 0;
+
 export function readDb(): DatabaseSchema {
-  if (dbMemoryCache) return dbMemoryCache;
+  if (!USE_SUPABASE) {
+    try {
+      if (fs.existsSync(DB_FILE)) {
+        const stat = fs.statSync(DB_FILE);
+        if (dbMemoryCache && stat.mtimeMs <= lastDbFileMtime) {
+          return dbMemoryCache;
+        }
+        lastDbFileMtime = stat.mtimeMs;
+      }
+    } catch {}
+  } else if (dbMemoryCache) {
+    return dbMemoryCache;
+  }
   // Synchronous fallback for local dev / first access before initDb()
   try {
     ensureDirectoryExistence(DB_FILE);
@@ -302,6 +328,10 @@ let _dbInitPromise: Promise<void> | null = null;
  * calls within the same container lifetime are instant (memory cache hit).
  */
 export async function initDb(): Promise<void> {
+  if (!USE_SUPABASE) {
+    readDb();
+    return;
+  }
   if (dbMemoryCache) return; // already loaded
   if (_dbInitPromise) return _dbInitPromise; // another request is initializing
 
@@ -353,15 +383,24 @@ export async function initDb(): Promise<void> {
         dbMemoryCache = parsed;
         console.log('[initDb] Loaded database from Supabase app_state.');
       } else {
-        // First boot: seed Supabase with initial data
-        console.log('[initDb] No app_state row found. Seeding Supabase with initial data...');
-        const initial = getInitialData();
-        syncMissingArtists(initial);
-        syncMissingAlbums(initial);
+        // First boot: seed Supabase with database from sonora.json
+        console.log('[initDb] No app_state row found. Seeding Supabase from local database...');
+        let seedData: DatabaseSchema;
+        try {
+          if (fs.existsSync(DB_FILE)) {
+            seedData = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+          } else {
+            seedData = getInitialData();
+          }
+        } catch {
+          seedData = getInitialData();
+        }
+        syncMissingArtists(seedData);
+        syncMissingAlbums(seedData);
         await supabase
           .from('app_state')
-          .upsert({ id: 1, payload: initial, updated_at: new Date().toISOString() });
-        dbMemoryCache = initial;
+          .upsert({ id: 1, payload: seedData, updated_at: new Date().toISOString() });
+        dbMemoryCache = seedData;
         console.log('[initDb] Supabase seeded successfully.');
       }
     } catch (err) {

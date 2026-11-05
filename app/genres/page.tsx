@@ -2,52 +2,63 @@
 
 import React, { useState, useEffect } from 'react';
 import { GenreCard } from '@/components/ui/GenreCard';
-import { Genre, Song } from '@/lib/types';
-import { Layers, Sparkles } from 'lucide-react';
+import { Genre } from '@/lib/types';
+import { Layers, Search } from 'lucide-react';
 
 export default function GenresPage() {
   const [genres, setGenres] = useState<Genre[]>([]);
-  const [songs, setSongs] = useState<Song[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      fetch('/api/genres').then((r) => r.json()).catch(() => ({ genres: [] })),
-      fetch('/api/songs').then((r) => r.json()).catch(() => ({ songs: [] }))
-    ])
-      .then(([genresData, songsData]) => {
+    fetch('/api/genres')
+      .then((r) => r.json())
+      .then((genresData) => {
         setGenres(genresData.genres || []);
-        setSongs(songsData.songs || []);
       })
+      .catch(() => {})
       .finally(() => setIsLoading(false));
   }, []);
 
-  // Compute live song counts per genre
-  const genreSongCounts: Record<string, number> = {};
-  songs.forEach((s) => {
-    if (s.genreId) {
-      genreSongCounts[s.genreId] = (genreSongCounts[s.genreId] || 0) + 1;
-    }
-  });
+  const displayedGenres = genres.filter((g) =>
+    g.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (g.description && g.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
-      <div>
-        <div className="flex items-center gap-2.5 text-emerald-400 mb-2">
-          <Layers className="w-6 h-6" />
-          <span className="text-xs font-bold uppercase tracking-wider">Genres & Categories</span>
+    <div className="space-y-8 max-w-7xl mx-auto pb-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2.5 text-emerald-400 mb-2">
+            <Layers className="w-6 h-6" />
+            <span className="text-xs font-bold uppercase tracking-wider">Genres & Categories</span>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">Music Genres</h1>
+          <p className="text-sm text-neutral-400 mt-1">
+            Explore all musical genres, styles, and catalogs curated on SONORA.
+          </p>
         </div>
-        <h1 className="text-3xl font-extrabold text-white">Music Genres</h1>
-        <p className="text-sm text-neutral-400 mt-1">
-          Explore all musical genres, styles, and catalogs curated on SONORA.
-        </p>
+
+        {/* Search */}
+        <div className="relative w-full md:w-72">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+          <input
+            type="text"
+            placeholder="Search categories..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-neutral-900 border border-white/10 rounded-full text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500 transition-colors"
+          />
+        </div>
       </div>
 
       {isLoading ? (
-        <div className="py-16 text-center text-sm text-neutral-400">Loading genres...</div>
+        <div className="py-20 text-center text-sm text-neutral-400">Loading genres...</div>
+      ) : displayedGenres.length === 0 ? (
+        <div className="py-20 text-center text-sm text-neutral-400">No categories found matching "{searchQuery}".</div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {genres.map((genre) => (
+          {displayedGenres.map((genre) => (
             <GenreCard key={genre.id} genre={genre} />
           ))}
         </div>

@@ -22,16 +22,24 @@ export async function GET(request: NextRequest) {
     albums = albums.filter((a) => a.isFeatured);
   }
 
-  // Populate song count and total duration
+  // Fast O(N) indexing for song count and total duration
   const allSongs = db.getSongs();
+  const songCountMap = new Map<string, number>();
+  const durationMap = new Map<string, number>();
+
+  for (const s of allSongs) {
+    if (s.albumId) {
+      songCountMap.set(s.albumId, (songCountMap.get(s.albumId) || 0) + 1);
+      durationMap.set(s.albumId, (durationMap.get(s.albumId) || 0) + (s.duration || 0));
+    }
+  }
+
   const enhancedAlbums = albums.map((album) => {
-    const albumSongs = allSongs.filter(
-      (s) => (album.songIds && album.songIds.includes(s.id)) || s.albumId === album.id
-    );
-    const totalDuration = albumSongs.reduce((acc, s) => acc + (s.duration || 0), 0);
+    const songCount = songCountMap.get(album.id) || (album.songIds ? album.songIds.length : 0);
+    const totalDuration = durationMap.get(album.id) || 0;
     return {
       ...album,
-      songCount: albumSongs.length,
+      songCount,
       totalDuration
     };
   });

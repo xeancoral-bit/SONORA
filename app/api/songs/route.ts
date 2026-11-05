@@ -12,8 +12,16 @@ export async function GET(request: NextRequest) {
   const genreId = searchParams.get('genreId');
   const status = searchParams.get('status');
   const isFeatured = searchParams.get('featured');
-  const limit = parseInt(searchParams.get('limit') || '50', 10);
+  const limitParam = searchParams.get('limit');
   const sort = searchParams.get('sort') || 'latest'; // 'latest', 'plays', 'title'
+
+  let limit = 50;
+  if (limitParam === 'all' || limitParam === 'none') {
+    limit = 100000;
+  } else if (limitParam) {
+    const parsed = parseInt(limitParam, 10);
+    limit = isNaN(parsed) ? 50 : Math.max(1, parsed);
+  }
 
   let songs = db.getSongs();
 
@@ -201,6 +209,34 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    let resolvedLyrics = lyrics || '';
+    let resolvedSyncedLyrics: SyncedLyricLine[] = (syncedLyrics && syncedLyrics.length > 0) ? syncedLyrics : [];
+
+    if (!resolvedLyrics && resolvedSyncedLyrics.length === 0) {
+      try {
+        const cleanT = title.trim().replace(/\s*\(feat\.[^)]+\)/gi, '').replace(/\s*\(with[^)]+\)/gi, '').trim();
+        const cleanA = resolvedArtistName.replace(/&.*/, '').trim();
+        const lrcRes = await fetch(
+          `https://lrclib.net/api/get?artist_name=${encodeURIComponent(cleanA)}&track_name=${encodeURIComponent(cleanT)}`,
+          { headers: { 'User-Agent': 'SonoraMusic/2.0' }, signal: AbortSignal.timeout(3500) }
+        );
+        if (lrcRes.ok) {
+          const lrcData = await lrcRes.json();
+          if (lrcData.syncedLyrics) {
+            resolvedSyncedLyrics = autoGenerateSyncedLyrics(lrcData.syncedLyrics, duration || 180);
+            resolvedLyrics = lrcData.plainLyrics || lrcData.syncedLyrics;
+          } else if (lrcData.plainLyrics) {
+            resolvedLyrics = lrcData.plainLyrics;
+            resolvedSyncedLyrics = autoGenerateSyncedLyrics(lrcData.plainLyrics, duration || 180);
+          }
+        }
+      } catch {}
+    }
+
+    if (resolvedSyncedLyrics.length === 0 && resolvedLyrics) {
+      resolvedSyncedLyrics = autoGenerateSyncedLyrics(resolvedLyrics, duration || 180);
+    }
+
     const newSong: Song = {
       id: `song-${Date.now()}`,
       title: title.trim(),
@@ -217,14 +253,10 @@ export async function POST(request: NextRequest) {
       duration: duration || 180,
       releaseDate: releaseDate || new Date().toISOString().split('T')[0],
       description: description || '',
-      lyrics: lyrics || '',
-      syncedLyrics: (syncedLyrics && syncedLyrics.length > 0)
-        ? syncedLyrics
-        : autoGenerateSyncedLyrics(lyrics, duration || 180),
+      lyrics: resolvedLyrics,
+      syncedLyrics: resolvedSyncedLyrics,
       multilingualLyrics: (() => {
-        const base = (syncedLyrics && syncedLyrics.length > 0)
-          ? syncedLyrics
-          : autoGenerateSyncedLyrics(lyrics, duration || 180);
+        const base = resolvedSyncedLyrics;
         const map: Record<string, SyncedLyricLine[]> = { en: base };
         SUPPORTED_LYRIC_LANGUAGES.forEach((l) => {
           if (l.code !== 'en') {

@@ -1,13 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, initDb } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  const artist = db.getArtistById(id);
+  await initDb();
+  const rawId = (await params).id;
+  const id = decodeURIComponent(rawId).trim();
+  let artist = db.getArtistById(id);
+  if (!artist) {
+    const allArtists = db.getArtists();
+    const idLower = id.toLowerCase();
+    artist = allArtists.find(
+      (a) => a.id.toLowerCase() === idLower || a.name.toLowerCase() === idLower
+    );
+  }
   if (!artist) {
     return NextResponse.json({ error: 'Artist not found' }, { status: 404 });
   }
@@ -20,12 +29,17 @@ export async function GET(
   );
   songs.sort((a, b) => (b.playCount || 0) - (a.playCount || 0));
 
-  // Get artist's albums
+  // Get artist's albums sorted chronologically (latest to earliest)
   const albums = db.getAlbums().filter(
     (a) =>
       (a.artistId === artist.id || a.artistName?.toLowerCase() === artist.name.toLowerCase()) &&
       a.status === 'published'
   );
+  albums.sort((a, b) => {
+    const dateA = new Date(a.releaseDate || `${a.releaseYear || 2020}-01-01`).getTime() || 0;
+    const dateB = new Date(b.releaseDate || `${b.releaseYear || 2020}-01-01`).getTime() || 0;
+    return dateB - dateA;
+  });
 
   // Related artists (same genre)
   const relatedArtists = db.getArtists().filter((a) => a.id !== id && (a.genreId === artist.genreId || !artist.genreId)).slice(0, 5);

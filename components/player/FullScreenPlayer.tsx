@@ -18,8 +18,10 @@ import {
   Sparkles,
   ChevronDown,
   Loader2,
-  Music
+  Music,
+  Sliders
 } from 'lucide-react';
+import { EqualizerModal } from './EqualizerModal';
 import { formatTime } from '@/lib/utils';
 import { EqualizerAnimation } from './EqualizerAnimation';
 import { YouTubePlayer } from './YouTubePlayer';
@@ -27,6 +29,7 @@ import { Youtube } from '@/components/ui/icons';
 import { LikeButton } from '@/components/ui/LikeButton';
 import { LyricsControls } from './LyricsControls';
 import { useSyncedLyrics } from '@/hooks/useSyncedLyrics';
+import { useAlbumColor } from '@/hooks/useAlbumColor';
 
 export const FullScreenPlayer: React.FC = () => {
   const {
@@ -60,6 +63,7 @@ export const FullScreenPlayer: React.FC = () => {
     decreaseLyricsFontSize,
     activeSyncedLyrics,
     isLyricsLoading,
+    refetchLyrics,
   } = useAudio();
 
   const {
@@ -71,6 +75,9 @@ export const FullScreenPlayer: React.FC = () => {
   } = useSyncedLyrics(activeSyncedLyrics, currentTime);
 
   const isYouTube = Boolean(currentTrack?.sourcePlatform === 'youtube' || currentTrack?.externalMediaId);
+  const [isEqOpen, setIsEqOpen] = useState(false);
+  const [isKaraokeMode, setIsKaraokeMode] = useState(false);
+  const { dominantRgb, glowStyle } = useAlbumColor(currentTrack?.coverImage);
   const [activeTab, setActiveTab] = useState<'lyrics' | 'queue' | 'video' | 'disk'>('lyrics');
   const lyricsContainerRef = useRef<HTMLDivElement | null>(null);
   const activeLineRef = useRef<HTMLDivElement | null>(null);
@@ -138,6 +145,15 @@ export const FullScreenPlayer: React.FC = () => {
       <div
         className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-35 scale-125 pointer-events-none transition-all duration-1000 animate-ambient-pulse"
         style={{ backgroundImage: `url(${currentTrack.coverImage})` }}
+      />
+      {/* Dynamic Ambient Color Mesh Glow based on Album Cover Art */}
+      <div
+        className="absolute -top-32 -left-32 w-[650px] h-[650px] rounded-full blur-[140px] pointer-events-none opacity-40 transition-all duration-1000"
+        style={{ backgroundColor: `rgb(${dominantRgb})` }}
+      />
+      <div
+        className="absolute -bottom-32 -right-32 w-[650px] h-[650px] rounded-full blur-[140px] pointer-events-none opacity-30 transition-all duration-1000"
+        style={{ backgroundColor: `rgb(${dominantRgb})` }}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/85 to-black/60 pointer-events-none" />
 
@@ -225,6 +241,15 @@ export const FullScreenPlayer: React.FC = () => {
                   Queue ({queue.length})
                 </button>
               </div>
+
+              {/* Sonora Sound Studio EQ */}
+              <button
+                onClick={() => setIsEqOpen(true)}
+                className="p-1.5 sm:p-2 rounded-full bg-white/10 hover:bg-white/20 text-neutral-300 hover:text-amber-400 backdrop-blur-md border border-white/10 transition-colors"
+                title="Sonora Sound Studio (Equalizer and Presets)"
+              >
+                <Sliders className="w-4 h-4" />
+              </button>
 
               {/* Close Button */}
               <button
@@ -497,7 +522,20 @@ export const FullScreenPlayer: React.FC = () => {
                   )}
                 </div>
 
-                <div className="shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => setIsKaraokeMode(!isKaraokeMode)}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                      isKaraokeMode
+                        ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-black shadow-lg shadow-amber-500/30 ring-2 ring-amber-300 scale-105'
+                        : 'bg-white/10 hover:bg-white/20 text-neutral-300 hover:text-white'
+                    }`}
+                    title="Toggle Karaoke Sing-Along Mode"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-current" />
+                    <span>Karaoke {isKaraokeMode ? 'ON' : ''}</span>
+                  </button>
+
                   <LyricsControls
                     language={lyricsLanguage}
                     onLanguageChange={setLyricsLanguage}
@@ -554,9 +592,11 @@ export const FullScreenPlayer: React.FC = () => {
                           isUserScrollingRef.current = false;
                           seek(line.time);
                         }}
-                        className={`group/line relative flex items-center justify-between gap-4 p-3 rounded-2xl cursor-pointer transition-all duration-500 ease-out ${
+                        className={`group/line relative flex items-center justify-between gap-4 p-3.5 rounded-2xl cursor-pointer transition-all duration-500 ease-out ${
                           isCurrent
-                            ? 'bg-gradient-to-r from-emerald-500/15 via-emerald-500/5 to-transparent border border-emerald-500/30 shadow-lg shadow-emerald-500/5 scale-[1.03] origin-left'
+                            ? isKaraokeMode
+                              ? 'bg-gradient-to-r from-amber-500/25 via-amber-500/10 to-transparent border border-amber-400/50 shadow-xl shadow-amber-500/15 scale-[1.04] origin-left'
+                              : 'bg-gradient-to-r from-emerald-500/15 via-emerald-500/5 to-transparent border border-emerald-500/30 shadow-lg shadow-emerald-500/5 scale-[1.03] origin-left'
                             : isPast
                             ? 'opacity-35 hover:opacity-80 hover:bg-white/5'
                             : 'opacity-55 hover:opacity-90 hover:bg-white/5'
@@ -565,24 +605,36 @@ export const FullScreenPlayer: React.FC = () => {
                         <div className="flex items-center gap-3.5 min-w-0 flex-1">
                           {/* Glowing active indicator bar */}
                           <div
-                            className={`w-1.5 h-6 rounded-full transition-all duration-500 shrink-0 ${
+                            className={`w-1.5 h-7 rounded-full transition-all duration-500 shrink-0 ${
                               isCurrent
-                                ? 'bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.9)] opacity-100 scale-y-100'
+                                ? isKaraokeMode
+                                  ? 'bg-amber-400 shadow-[0_0_16px_rgba(251,191,36,0.95)] opacity-100 scale-y-100'
+                                  : 'bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.9)] opacity-100 scale-y-100'
                                 : 'opacity-0 scale-y-0'
                             }`}
                           />
 
-                          <p
-                            className={`${fsFontSizeClass} transition-all duration-500 leading-snug tracking-tight ${
-                              isCurrent
-                                ? 'text-white font-black drop-shadow-[0_2px_24px_rgba(52,211,153,0.45)]'
-                                : isPast
-                                ? 'text-neutral-400 font-semibold'
-                                : 'text-neutral-200 font-bold'
-                            }`}
-                          >
-                            {line.text}
-                          </p>
+                          <div className="flex flex-col min-w-0">
+                            {isCurrent && isKaraokeMode && (
+                              <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-300 flex items-center gap-1 mb-0.5">
+                                <Sparkles className="w-3 h-3 text-amber-400 animate-spin" />
+                                Sing along
+                              </span>
+                            )}
+                            <p
+                              className={`${fsFontSizeClass} transition-all duration-500 leading-snug tracking-tight ${
+                                isCurrent
+                                  ? isKaraokeMode
+                                    ? 'text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-100 to-yellow-300 font-black drop-shadow-[0_2px_28px_rgba(251,191,36,0.55)]'
+                                    : 'text-white font-black drop-shadow-[0_2px_24px_rgba(52,211,153,0.45)]'
+                                  : isPast
+                                  ? 'text-neutral-400 font-semibold'
+                                  : 'text-neutral-200 font-bold'
+                              }`}
+                            >
+                              {line.text}
+                            </p>
+                          </div>
                         </div>
 
                         {/* Timestamp indicator */}
@@ -602,21 +654,36 @@ export const FullScreenPlayer: React.FC = () => {
                       </div>
                     );
                   })
-                ) : currentTrack.lyrics ? (
+                ) : typeof currentTrack.lyrics === 'string' && currentTrack.lyrics.trim() ? (
                   <div className="text-lg text-neutral-200 whitespace-pre-line leading-relaxed font-sans px-2">
                     {currentTrack.lyrics}
                   </div>
+                ) : Array.isArray(currentTrack.lyrics) && currentTrack.lyrics.length > 0 ? (
+                  <div className="space-y-4 px-2 max-w-2xl mx-auto">
+                    {currentTrack.lyrics.map((line: any, idx: number) => (
+                      <p key={idx} className="text-lg font-bold text-neutral-300">
+                        {typeof line === 'string' ? line : line.text}
+                      </p>
+                    ))}
+                  </div>
                 ) : (
-                  <div className="py-24 flex flex-col items-center justify-center text-center gap-3">
-                    <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-neutral-500">
-                      <Music className="w-7 h-7" />
+                  <div className="py-20 flex flex-col items-center justify-center text-center gap-3">
+                    <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-emerald-400">
+                      <Mic2 className="w-7 h-7" />
                     </div>
                     <div>
-                      <h4 className="text-base font-bold text-white">Lyrics unavailable</h4>
+                      <h4 className="text-base font-bold text-white">Live Lyrics Ready</h4>
                       <p className="text-xs text-neutral-400 mt-1 max-w-xs">
-                        No synchronized lyrics were found for this track.
+                        Fetch and match verified synchronized lyrics for &quot;{currentTrack.title}&quot;.
                       </p>
                     </div>
+                    <button
+                      onClick={() => refetchLyrics()}
+                      className="mt-2 px-5 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-md active:scale-95 flex items-center gap-2 cursor-pointer"
+                    >
+                      <Mic2 className="w-4 h-4" />
+                      Sync Lyrics Now
+                    </button>
                   </div>
                 )}
 
@@ -766,6 +833,7 @@ export const FullScreenPlayer: React.FC = () => {
           </div>
         </div>
       </div>
+      <EqualizerModal isOpen={isEqOpen} onClose={() => setIsEqOpen(false)} isPlaying={isPlaying} />
     </div>
   );
 };

@@ -26,12 +26,14 @@ function SearchContent() {
     albums: Album[];
     playlists: Playlist[];
     genres: Genre[];
+    topResult?: { type: 'artist' | 'song'; data: any; tracks?: Song[] } | null;
   }>({
     songs: [],
     artists: [],
     albums: [],
     playlists: [],
-    genres: []
+    genres: [],
+    topResult: null
   });
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,12 +50,14 @@ function SearchContent() {
       if (stored) {
         setRecentSearches(JSON.parse(stored));
       } else {
-        setRecentSearches(['Night Drive', 'Aurora Wave', 'Synthwave', 'Lo-Fi', 'Pop']);
+        setRecentSearches(['Taylor Swift', 'Eminem', 'Bruno Mars', 'Coldplay', 'Lo-Fi & Chill', 'Country', 'Pop']);
       }
     } catch {
-      setRecentSearches(['Night Drive', 'Aurora Wave', 'Synthwave', 'Lo-Fi', 'Pop']);
+      setRecentSearches(['Taylor Swift', 'Eminem', 'Bruno Mars', 'Coldplay', 'Lo-Fi & Chill', 'Country', 'Pop']);
     }
   }, []);
+
+  const [visibleSongCount, setVisibleSongCount] = useState(30);
 
   // Update query when URL param changes
   useEffect(() => {
@@ -64,6 +68,7 @@ function SearchContent() {
 
   // Debounced search fetch
   useEffect(() => {
+    setVisibleSongCount(30);
     if (!query.trim()) {
       setResults({ songs: [], artists: [], albums: [], playlists: [], genres: [] });
       setIsLoading(false);
@@ -73,7 +78,7 @@ function SearchContent() {
     setIsLoading(true);
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}&limit=500`);
         const data = await res.json();
         setResults(data);
       } catch (err) {
@@ -230,56 +235,119 @@ function SearchContent() {
             </div>
           ) : (
             <>
-              {/* Top Result + Songs Table (when filter is 'all') */}
+              {/* Top Result + Songs Table */}
               {(activeFilter === 'all' || activeFilter === 'songs') && results.songs.length > 0 && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                   {/* Top Result Card */}
-                  {topSong && activeFilter === 'all' && (
+                  {activeFilter === 'all' && (
                     <div className="lg:col-span-4 space-y-2">
                       <h3 className="text-base font-bold text-white">Top Result</h3>
-                      <div
-                        onClick={() => playTrack(topSong, results.songs)}
-                        className="group relative p-5 rounded-2xl bg-[#181818] hover:bg-[#202020] border border-white/5 hover:border-white/10 transition-all duration-300 cursor-pointer shadow-xl flex flex-col justify-between h-[220px]"
-                      >
-                        <img
-                          src={topSong.coverImage}
-                          alt={topSong.title}
-                          className="w-20 h-20 rounded-xl object-cover shadow-md"
-                        />
-                        <div>
-                          <h4 className="font-extrabold text-xl text-white group-hover:text-emerald-400 transition-colors truncate">
-                            {topSong.title}
-                          </h4>
-                          <span className="text-xs text-neutral-400 mt-1 block">
-                            Song • {topSong.artistName}
-                          </span>
-                        </div>
-
-                        <button
-                          className="absolute right-5 bottom-5 w-12 h-12 rounded-full bg-emerald-500 text-black flex items-center justify-center shadow-lg shadow-emerald-500/30 opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all"
-                          title="Play song"
+                      {results.topResult?.type === 'artist' && results.topResult.data ? (
+                        <div
+                          onClick={() => router.push(`/artists/${results.topResult?.data.id}`)}
+                          className="group relative p-6 rounded-2xl bg-[#181818] hover:bg-[#202020] border border-white/5 hover:border-white/10 transition-all duration-300 cursor-pointer shadow-xl flex flex-col justify-between h-[230px]"
                         >
-                          <Play className="w-5 h-5 fill-black ml-0.5" />
-                        </button>
-                      </div>
+                          <img
+                            src={results.topResult.data.avatar}
+                            alt={results.topResult.data.name}
+                            className="w-20 h-20 rounded-full object-cover shadow-md border-2 border-white/10"
+                          />
+                          <div>
+                            <h4 className="font-extrabold text-xl text-white group-hover:text-emerald-400 transition-colors truncate">
+                              {results.topResult.data.name}
+                            </h4>
+                            <span className="text-xs text-neutral-400 mt-1 block">
+                              Artist • {results.topResult.data.genreName || 'Music'}
+                            </span>
+                          </div>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const tracks = results.topResult?.tracks;
+                              if (tracks && tracks.length > 0) {
+                                playTrack(tracks[0], tracks);
+                              } else {
+                                router.push(`/artists/${results.topResult?.data.id}`);
+                              }
+                            }}
+                            className="absolute right-5 bottom-5 w-12 h-12 rounded-full bg-emerald-500 text-black flex items-center justify-center shadow-lg shadow-emerald-500/30 opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all cursor-pointer"
+                            title="Play artist"
+                          >
+                            <Play className="w-5 h-5 fill-black ml-0.5" />
+                          </button>
+                        </div>
+                      ) : topSong ? (
+                        <div
+                          onClick={() => playTrack(topSong, results.songs)}
+                          className="group relative p-6 rounded-2xl bg-[#181818] hover:bg-[#202020] border border-white/5 hover:border-white/10 transition-all duration-300 cursor-pointer shadow-xl flex flex-col justify-between h-[230px]"
+                        >
+                          <img
+                            src={topSong.coverImage}
+                            alt={topSong.title}
+                            className="w-20 h-20 rounded-xl object-cover shadow-md border border-white/10"
+                          />
+                          <div>
+                            <h4 className="font-extrabold text-xl text-white group-hover:text-emerald-400 transition-colors truncate">
+                              {topSong.title}
+                            </h4>
+                            <span className="text-xs text-neutral-400 mt-1 block">
+                              Song • {topSong.artistName}
+                            </span>
+                          </div>
+
+                          <button
+                            className="absolute right-5 bottom-5 w-12 h-12 rounded-full bg-emerald-500 text-black flex items-center justify-center shadow-lg shadow-emerald-500/30 opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all cursor-pointer"
+                            title="Play song"
+                          >
+                            <Play className="w-5 h-5 fill-black ml-0.5" />
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
                   )}
 
                   {/* Songs Track Rows */}
-                  <div className={`${activeFilter === 'all' && topSong ? 'lg:col-span-8' : 'lg:col-span-12'} space-y-2`}>
-                    <h3 className="text-base font-bold text-white">Songs</h3>
-                    <div className="space-y-1">
-                      {results.songs.slice(0, activeFilter === 'all' ? 5 : 20).map((song, i) => (
-                        <TrackRow
-                          key={song.id}
-                          song={song}
-                          index={i}
-                          playlistQueue={results.songs}
-                          onAddToPlaylist={(s) => setSelectedSongForPlaylist(s)}
-                          onAddToCollection={(s) => setSelectedSongForCollection(s)}
-                        />
-                      ))}
+                  <div className={`${activeFilter === 'all' ? 'lg:col-span-8' : 'lg:col-span-12'} space-y-2`}>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-base font-bold text-white">
+                        Songs {activeFilter === 'songs' ? `(${results.songs.length})` : ''}
+                      </h3>
+                      {activeFilter === 'all' && results.songs.length > 6 && (
+                        <button
+                          onClick={() => setActiveFilter('songs')}
+                          className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer"
+                        >
+                          See all {results.songs.length} songs →
+                        </button>
+                      )}
                     </div>
+
+                    <div className="space-y-1">
+                      {results.songs
+                        .slice(0, activeFilter === 'all' ? 6 : visibleSongCount)
+                        .map((song, i) => (
+                          <TrackRow
+                            key={song.id}
+                            song={song}
+                            index={i}
+                            playlistQueue={results.songs}
+                            onAddToPlaylist={(s) => setSelectedSongForPlaylist(s)}
+                            onAddToCollection={(s) => setSelectedSongForCollection(s)}
+                          />
+                        ))}
+                    </div>
+
+                    {activeFilter === 'songs' && visibleSongCount < results.songs.length && (
+                      <div className="pt-4 text-center">
+                        <button
+                          onClick={() => setVisibleSongCount((prev) => Math.min(prev + 30, results.songs.length))}
+                          className="px-6 py-2.5 rounded-full bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-semibold border border-white/10 transition-all hover:scale-105 active:scale-95 inline-flex items-center gap-2 cursor-pointer shadow-lg"
+                        >
+                          Load More Songs ({Math.min(visibleSongCount, results.songs.length)} of {results.songs.length})
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

@@ -8,10 +8,13 @@ export async function GET() {
   const genres = db.getGenres();
   const allSongs = db.getSongs().filter((s) => s.status === 'published');
 
-  const genresWithCount = genres.map((g) => ({
-    ...g,
-    songCount: allSongs.filter((s) => s.genreId === g.id).length
-  }));
+  const genresWithCount = genres.map((g) => {
+    const rawCount = allSongs.filter((s) => s.genreId === g.id).length;
+    return {
+      ...g,
+      songCount: rawCount
+    };
+  });
 
   return NextResponse.json({ genres: genresWithCount });
 }

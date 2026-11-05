@@ -437,14 +437,24 @@ function translateLineText(text: string, targetLang: string): string {
  * Automatically splits plain string lyrics and creates synchronized timestamped lines.
  */
 export function autoGenerateSyncedLyrics(
-  plainLyrics?: string,
+  plainLyrics?: any,
   durationSeconds: number = 180
 ): SyncedLyricLine[] {
-  if (!plainLyrics || !plainLyrics.trim()) {
+  let strLyrics = '';
+  if (Array.isArray(plainLyrics)) {
+    if (plainLyrics.length > 0 && typeof plainLyrics[0] === 'object' && 'time' in plainLyrics[0]) {
+      return plainLyrics as SyncedLyricLine[];
+    }
+    strLyrics = plainLyrics.map(l => (typeof l === 'string' ? l : l?.text || '')).filter(Boolean).join('\n');
+  } else if (typeof plainLyrics === 'string') {
+    strLyrics = plainLyrics;
+  }
+
+  if (!strLyrics || !strLyrics.trim()) {
     return [];
   }
 
-  const rawLines = plainLyrics
+  const rawLines = strLyrics
     .split('\n')
     .map((l) => l.trim())
     .filter((l) => l.length > 0);

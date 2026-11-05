@@ -32,6 +32,9 @@ interface AudioContextType {
   decreaseLyricsFontSize: () => void;
   activeSyncedLyrics: SyncedLyricLine[];
   isLyricsLoading: boolean;
+  refetchLyrics: () => void;
+  isResolving: boolean;
+  unavailableTrackIds: string[];
   
   // Actions
   playTrack: (track: Song, newQueue?: Song[]) => void;
@@ -59,6 +62,10 @@ const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
 export function AudioProvider({ children }: { children: React.ReactNode }) {
   const [currentTrack, setCurrentTrack] = useState<Song | null>(null);
+  const currentTrackRef = useRef<Song | null>(null);
+  useEffect(() => {
+    currentTrackRef.current = currentTrack;
+  }, [currentTrack]);
   // Memoized identifier for lyric fetching: prefer externalMediaId (e.g., YouTube ID) else track.id
   const lyricId = useMemo(() => currentTrack?.id || '', [currentTrack]);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -80,6 +87,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const [isCurrentLiked, setIsCurrentLiked] = useState(false);
   const [lyricsLanguage, setLyricsLanguageState] = useState('en');
   const [lyricsFontSize, setLyricsFontSizeState] = useState<'sm' | 'md' | 'lg' | 'xl'>('md');
+  const [isResolving, setIsResolving] = useState(false);
+  const [unavailableTrackIds, setUnavailableTrackIds] = useState<string[]>([]);
 
   // Load saved lyrics preferences on mount
   useEffect(() => {
@@ -279,13 +288,23 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         const cur = audio.currentTime;
         setCurrentTime((prev) => (Math.abs(prev - cur) >= 0.03 ? cur : prev));
         if (audio.duration && !isNaN(audio.duration)) {
-          setDuration((prev) => (Math.abs(prev - audio.duration) >= 0.5 ? audio.duration : prev));
+          const cur = currentTrackRef.current;
+          if (cur && cur.duration > 45 && audio.duration <= 35) {
+            // Keep real song duration, do not override with 30s preview
+          } else {
+            setDuration((prev) => (Math.abs(prev - audio.duration) >= 0.5 ? audio.duration : prev));
+          }
         }
       });
 
       audio.addEventListener('loadedmetadata', () => {
         if (audio.duration && !isNaN(audio.duration)) {
-          setDuration(audio.duration);
+          const cur = currentTrackRef.current;
+          if (cur && cur.duration > 45 && audio.duration <= 35) {
+            // Keep real song duration
+          } else {
+            setDuration(audio.duration);
+          }
         }
       });
 
@@ -293,6 +312,47 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         if (rafId) {
           cancelAnimationFrame(rafId);
           rafId = null;
+        }
+        const cur = currentTrackRef.current;
+        if (cur && cur.duration > 45 && audio.currentTime < cur.duration * 0.7) {
+          const ytId = getYouTubeId(cur);
+          if (ytId && ytReadyRef.current && ytPlayerRef.current) {
+            try {
+              ytPlayerRef.current.loadVideoById({
+                videoId: ytId,
+                startSeconds: Math.floor(audio.currentTime),
+              });
+              ytPlayerRef.current.setVolume((isMuted ? 0 : volume) * 100);
+              ytPlayerRef.current.playVideo();
+              setIsPlaying(true);
+              startYouTubePolling();
+              return;
+            } catch {}
+          } else {
+            // Background fallback: resolve full official soundtrack stream if preview reached 30s
+            fetch(`/api/media/resolve?artist=${encodeURIComponent(cur.artistName)}&title=${encodeURIComponent(cur.title)}&songId=${cur.id}`)
+              .then((res) => res.json())
+              .then((data) => {
+                if (data.success && data.videoId && currentTrackRef.current?.id === cur.id) {
+                  cur.externalMediaId = data.videoId;
+                  cur.sourcePlatform = 'youtube';
+                  if (ytReadyRef.current && ytPlayerRef.current) {
+                    try {
+                      ytPlayerRef.current.loadVideoById({
+                        videoId: data.videoId,
+                        startSeconds: Math.floor(audio.currentTime),
+                      });
+                      ytPlayerRef.current.setVolume((isMuted ? 0 : volume) * 100);
+                      ytPlayerRef.current.playVideo();
+                      setIsPlaying(true);
+                      startYouTubePolling();
+                    } catch {}
+                  }
+                }
+              })
+              .catch(() => {});
+            return;
+          }
         }
         handleTrackEndedRef.current();
       });
@@ -370,15 +430,40 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const lyricsFetchIdRef = useRef<number>(0);
   // Ref to hold the identifier used for fetching (trackId or externalMediaId)
   const currentLyricsIdRef = useRef<string>('');
+  const [lyricsRefreshCounter, setLyricsRefreshCounter] = useState(0);
 
-  // Fetch synced lyrics when track identifier or language changes
+  const refetchLyrics = useCallback(() => {
+    setLyricsRefreshCounter((prev) => prev + 1);
+  }, []);
+
+  // Auto-fetch if user opens lyrics panel and lyrics are not loaded yet
   useEffect(() => {
-    // Clear any existing lyrics immediately when track or language changes
-    setActiveSyncedLyrics([]);
+    if (isLyricsOpen && currentTrack && activeSyncedLyrics.length === 0 && !isLyricsLoading) {
+      refetchLyrics();
+    }
+  }, [isLyricsOpen, currentTrack, activeSyncedLyrics.length, isLyricsLoading, refetchLyrics]);
+
+  // Fetch synced lyrics when track identifier, language, or refresh counter changes
+  useEffect(() => {
+    // Seed initial lyrics from track if available
+    const existingSynced =
+      Array.isArray(currentTrack?.syncedLyrics) && currentTrack!.syncedLyrics.length > 0
+        ? currentTrack!.syncedLyrics
+        : Array.isArray(currentTrack?.lyrics) && (currentTrack!.lyrics as any).length > 0
+        ? (currentTrack!.lyrics as any)
+        : [];
+
+    if (existingSynced.length > 0 && lyricsLanguage === 'en') {
+      setActiveSyncedLyrics(existingSynced);
+      setIsLyricsLoading(false);
+    } else {
+      setActiveSyncedLyrics([]);
+      setIsLyricsLoading(true);
+    }
     setCurrentLyricIndex(0);
 
     // If no valid lyric identifier, nothing to fetch
-    if (!lyricId) {
+    if (!lyricId && !currentTrack) {
       setIsLyricsLoading(false);
       return;
     }
@@ -387,17 +472,28 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     const requestId = ++lyricsFetchIdRef.current;
     const controller = new AbortController();
     lyricsFetchAbortRef.current = controller;
-    setIsLyricsLoading(true);
 
     const fetchLyrics = async () => {
       try {
         // Build query: always include the primary song id; also include externalMediaId for YouTube tracks
         const params = new URLSearchParams({
-          trackId: lyricId,
+          trackId: lyricId || currentTrack?.id || '',
           lang: lyricsLanguage,
         });
         if (currentTrack?.externalMediaId) {
           params.set('externalId', currentTrack.externalMediaId);
+        }
+        if (currentTrack?.title) {
+          params.set('title', currentTrack.title);
+        }
+        if (currentTrack?.artistName) {
+          params.set('artist', currentTrack.artistName);
+        }
+        if (currentTrack?.albumTitle) {
+          params.set('album', currentTrack.albumTitle);
+        }
+        if (currentTrack?.duration) {
+          params.set('duration', String(currentTrack.duration));
         }
         const res = await fetch(`/api/lyrics?${params.toString()}`, {
           signal: controller.signal,
@@ -424,11 +520,12 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     return () => {
       controller.abort();
     };
-  }, [lyricId, lyricsLanguage]);
+  }, [lyricId, lyricsLanguage, lyricsRefreshCounter, currentTrack?.title, currentTrack?.artistName]);
 
   // Update current lyric index based on real-time audio playback
   useEffect(() => {
-    setCurrentLyricIndex(findActiveLyricIndex(activeSyncedLyrics, currentTime));
+    const nextIdx = findActiveLyricIndex(activeSyncedLyrics, currentTime);
+    setCurrentLyricIndex((prev) => (prev !== nextIdx ? nextIdx : prev));
   }, [currentTime, activeSyncedLyrics]);
 
   const getYouTubeId = (track: Song): string | null => {
@@ -436,7 +533,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     if (track.sourcePlatform === 'youtube') {
       return extractYouTubeId(track.audioUrl || track.sourceUrl || '') || null;
     }
-    if (track.audioUrl) {
+    if (track.audioUrl && !track.audioUrl.includes('apple.com') && !track.audioUrl.includes('mzstatic.com')) {
       return extractYouTubeId(track.audioUrl) || null;
     }
     return null;
@@ -448,19 +545,19 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       if (ytPlayerRef.current && ytReadyRef.current) {
         try {
           const state = typeof ytPlayerRef.current.getPlayerState === 'function' ? ytPlayerRef.current.getPlayerState() : -1;
-          if (state === 1 || state === 3 || isPlayingRef.current) {
+          if (state === 1 || isPlayingRef.current) {
             const cur = ytPlayerRef.current.getCurrentTime();
             const dur = ytPlayerRef.current.getDuration();
             if (typeof cur === 'number' && !isNaN(cur)) {
-              setCurrentTime((prev) => (Math.abs(prev - cur) >= 0.03 ? cur : prev));
+              setCurrentTime((prev) => (Math.abs(prev - cur) >= 0.2 ? cur : prev));
             }
             if (typeof dur === 'number' && !isNaN(dur) && dur > 0) {
-              setDuration((prev) => (Math.abs(prev - dur) >= 0.5 ? dur : prev));
+              setDuration((prev) => (Math.abs(prev - dur) >= 1 ? dur : prev));
             }
           }
         } catch {}
       }
-    }, 50);
+    }, 200);
   };
 
   const stopYouTubePolling = () => {
@@ -484,10 +581,10 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       setQueue(newQueue.filter((s) => s.id !== track.id));
     }
 
+    // 1. If track already has an authorized YouTube stream, play immediately from start to finish
     const ytId = getYouTubeId(track);
-
     if (ytId) {
-      // Pause HTML5 audio
+      setIsResolving(false);
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = '';
@@ -495,14 +592,16 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
 
       if (ytReadyRef.current && ytPlayerRef.current && typeof ytPlayerRef.current.loadVideoById === 'function') {
         try {
-          ytPlayerRef.current.loadVideoById(ytId);
+          ytPlayerRef.current.loadVideoById({
+            videoId: ytId,
+            startSeconds: 0
+          });
           ytPlayerRef.current.setVolume((isMuted ? 0 : volume) * 100);
           ytPlayerRef.current.playVideo();
           setIsPlaying(true);
           startYouTubePolling();
         } catch (err) {
           console.warn('Error loading video via YouTube player API:', err);
-          startSyntheticPlayback(track);
         }
       } else {
         pendingYtVideoIdRef.current = ytId;
@@ -512,42 +611,74 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Direct Audio or Synthesizer track: stop YouTube player
-    if (ytPlayerRef.current && ytReadyRef.current && typeof ytPlayerRef.current.stopVideo === 'function') {
-      try {
-        ytPlayerRef.current.stopVideo();
-      } catch {}
-    }
-
+    // 2. Immediate audio playback via direct audio stream (HTML5 Audio)
     const audioSource = track.audioPath || track.audioUrl;
     if (audioSource && audioRef.current) {
-      audioRef.current.src = audioSource;
-      audioRef.current.play().catch((err) => {
-        console.warn('Audio file play fallback to synthesizer:', err);
-        startSyntheticPlayback(track);
-      });
-    } else {
-      startSyntheticPlayback(track);
-    }
-  }, [volume, isMuted]);
-
-  const startSyntheticPlayback = (track: Song) => {
-    if (synthEngine) {
-      synthEngine.play(track.synthPreset || 'chill', 85);
-    }
-    setIsPlaying(true);
-    let time = 0;
-    const targetDuration = track.duration || 180;
-    setDuration(targetDuration);
-
-    synthTimerRef.current = setInterval(() => {
-      time += 0.5;
-      setCurrentTime(time);
-      if (time >= targetDuration) {
-        handleTrackEndedRef.current();
+      if (ytPlayerRef.current && ytReadyRef.current && typeof ytPlayerRef.current.stopVideo === 'function') {
+        try { ytPlayerRef.current.stopVideo(); } catch {}
       }
-    }, 500);
-  };
+      audioRef.current.src = audioSource;
+      audioRef.current.play().then(() => {
+        setIsPlaying(true);
+      }).catch((e) => {
+        console.warn('HTML5 Audio playback initiated:', e);
+      });
+    }
+
+    // 3. Resolve official authorized studio recording in background to connect full-length YouTube master
+    setIsResolving(true);
+    const resolveParams = new URLSearchParams({
+      artist: track.artistName,
+      title: track.title,
+      songId: track.id,
+      album: track.albumTitle || '',
+      isrc: track.isrc || '',
+      duration: String(track.duration || 0),
+    });
+
+    fetch(`/api/media/resolve?${resolveParams.toString()}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setIsResolving(false);
+        if (data.success && data.videoId) {
+          track.externalMediaId = data.videoId;
+          track.sourcePlatform = 'youtube';
+          track.isUnavailable = false;
+
+          // If track has transitioned to YouTube, load full recording seamlessly
+          if (currentTrackRef.current?.id === track.id) {
+            if (ytReadyRef.current && ytPlayerRef.current && typeof ytPlayerRef.current.loadVideoById === 'function') {
+              try {
+                // If HTML5 audio was playing, pause it and hand off to YouTube player
+                const currentPos = audioRef.current ? Math.floor(audioRef.current.currentTime) : 0;
+                if (audioRef.current) {
+                  audioRef.current.pause();
+                  audioRef.current.src = '';
+                }
+                ytPlayerRef.current.loadVideoById({
+                  videoId: data.videoId,
+                  startSeconds: currentPos,
+                });
+                ytPlayerRef.current.setVolume((isMuted ? 0 : volume) * 100);
+                ytPlayerRef.current.playVideo();
+                setIsPlaying(true);
+                startYouTubePolling();
+              } catch (e) {
+                console.warn('YouTube handoff:', e);
+              }
+            } else {
+              pendingYtVideoIdRef.current = data.videoId;
+              setIsPlaying(true);
+              startYouTubePolling();
+            }
+          }
+        }
+      })
+      .catch((err) => {
+        console.warn('Resolve error:', err);
+        setIsResolving(false);
+      });
+  }, [volume, isMuted, unavailableTrackIds]);
 
   const togglePlayPause = () => {
     if (!currentTrack) return;
@@ -569,19 +700,15 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (isPlaying) {
-      if (audioRef.current && (currentTrack.audioPath || currentTrack.audioUrl)) {
+      if (audioRef.current) {
         audioRef.current.pause();
       }
-      stopSynth();
       setIsPlaying(false);
     } else {
-      const audioSource = currentTrack.audioPath || currentTrack.audioUrl;
-      if (audioSource && audioRef.current) {
-        audioRef.current.play().catch(() => startSyntheticPlayback(currentTrack));
-      } else {
-        startSyntheticPlayback(currentTrack);
+      if (audioRef.current && currentTrack.uploadType === 'file') {
+        audioRef.current.play().catch(console.error);
+        setIsPlaying(true);
       }
-      setIsPlaying(true);
     }
   };
 
@@ -601,7 +728,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    if (audioRef.current && (currentTrack?.audioPath || currentTrack?.audioUrl)) {
+    if (audioRef.current && currentTrack?.uploadType === 'file') {
       audioRef.current.currentTime = clamped;
     }
   };
@@ -772,6 +899,9 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         decreaseLyricsFontSize,
         activeSyncedLyrics,
         isLyricsLoading,
+        refetchLyrics,
+        isResolving,
+        unavailableTrackIds,
         playTrack,
         togglePlayPause,
         seek,

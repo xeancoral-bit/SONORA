@@ -80,7 +80,7 @@ export default function ResetSuccessPage() {
           <p className="text-xs text-neutral-500">
             Need help?{' '}
             <Link
-              href="/contact"
+              href="/messages"
               className="text-emerald-400 hover:text-emerald-300 font-medium hover:underline transition-colors"
             >
               Contact Support

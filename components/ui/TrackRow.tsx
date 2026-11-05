@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Play, Pause, Heart, MoreHorizontal, Plus, ListPlus, Radio, Disc, User, Info, Trash2 } from 'lucide-react';
+import { Play, Pause, Heart, Mic2, MoreHorizontal, Plus, ListPlus, Radio, Disc, User, Info, Trash2 } from 'lucide-react';
 import { Song } from '@/lib/types';
 import { useAudio } from '@/context/AudioContext';
 import { formatTime, formatNumber } from '@/lib/utils';
@@ -31,7 +31,7 @@ export const TrackRow: React.FC<TrackRowProps> = ({
   onAddToCollection,
   onRemoveFromList
 }) => {
-  const { currentTrack, isPlaying, playTrack, togglePlayPause, addToQueue } = useAudio();
+  const { currentTrack, isPlaying, playTrack, togglePlayPause, addToQueue, unavailableTrackIds } = useAudio();
   const [isLiked, setIsLiked] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const isCurrent = currentTrack?.id === song.id;
@@ -118,6 +118,13 @@ export const TrackRow: React.FC<TrackRowProps> = ({
               E
             </span>
           )}
+          <span
+            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-[9px] font-bold border border-emerald-500/25 tracking-wide shrink-0"
+            title="Timed Synchronized Lyrics available"
+          >
+            <Mic2 className="w-2.5 h-2.5" />
+            LYRICS
+          </span>
         </div>
         <Link
           href={`/artists/${song.artistId}`}

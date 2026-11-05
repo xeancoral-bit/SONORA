@@ -159,11 +159,6 @@ export default function SongDetailPage({ params }: { params: Promise<{ id: strin
             <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
               {song.genreName}
             </span>
-            {isYouTube && (
-              <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20 flex items-center gap-1">
-                <Youtube className="w-2.5 h-2.5" /> YouTube Master
-              </span>
-            )}
             {song.explicit && (
               <span className="text-[10px] font-bold text-neutral-300 bg-neutral-800 px-1.5 py-0.5 rounded border border-white/10">
                 Explicit

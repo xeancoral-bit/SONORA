@@ -51,12 +51,6 @@ export const SongCard: React.FC<SongCardProps> = ({
           </div>
         )}
 
-        {/* Source badge */}
-        {isYouTube && (
-          <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded-full bg-black/75 backdrop-blur-md text-[9px] font-bold text-red-400 border border-red-500/30 flex items-center gap-0.5">
-            <Youtube className="w-2.5 h-2.5" /> YT
-          </span>
-        )}
 
         {/* Play / Pause button */}
         <button
