@@ -31,8 +31,10 @@ export const GenreCard: React.FC<GenreCardProps> = ({ genre }) => {
   const cardRef = useRef<HTMLAnchorElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [hovered, setHovered] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
-  const coverImage = genre.coverImage || GENRE_IMAGES[genre.id] || null;
+  const fallbackLocal = GENRE_IMAGES[genre.id] || null;
+  const coverImage = (!imageError && (genre.coverImage || fallbackLocal)) || fallbackLocal;
   const glowColor   = GENRE_GLOW[genre.id] || 'rgba(255,255,255,0.2)';
 
   const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -68,10 +70,11 @@ export const GenreCard: React.FC<GenreCardProps> = ({ genre }) => {
       onMouseLeave={handleMouseLeave}
     >
       {/* ── Background image ── */}
-      {coverImage ? (
+      {coverImage && !imageError ? (
         <img
           src={coverImage}
           alt={genre.name}
+          onError={() => setImageError(true)}
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             transform: hovered ? 'scale(1.10)' : 'scale(1.03)',
