@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, initDb } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { Song, Album, Artist, SyncedLyricLine } from '@/lib/types';
-import { autoGenerateSyncedLyrics } from '@/lib/lyricsService';
+import { parseLrc, autoGenerateSyncedLyrics } from '@/lib/lyricsService';
 
 function slugify(text: string): string {
   return text
@@ -12,24 +12,6 @@ function slugify(text: string): string {
     .replace(/\s+/g, '-')
     .replace(/[^\w\-]+/g, '')
     .replace(/\-\-+/g, '-');
-}
-
-function parseLrc(lrc: string): SyncedLyricLine[] {
-  if (!lrc) return [];
-  const lines = lrc.split('\n');
-  const result: SyncedLyricLine[] = [];
-  for (const line of lines) {
-    const match = line.match(/\[(\d+):(\d+(?:\.\d+)?)\](.*)/);
-    if (match) {
-      const min = parseInt(match[1], 10);
-      const sec = parseFloat(match[2]);
-      const text = match[3].trim();
-      if (text) {
-        result.push({ time: Math.round((min * 60 + sec) * 10) / 10, text });
-      }
-    }
-  }
-  return result;
 }
 
 function cleanTitle(title: string): string {

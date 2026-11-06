@@ -21,6 +21,8 @@ export const LyricsPanel: React.FC = () => {
     increaseLyricsFontSize,
     decreaseLyricsFontSize,
     activeSyncedLyrics,
+    activePlainLyrics,
+    hasSyncedLyrics,
     isLyricsLoading,
     refetchLyrics,
   } = useAudio();
@@ -237,9 +239,15 @@ export const LyricsPanel: React.FC = () => {
               </div>
             );
           })
-        ) : typeof currentTrack.lyrics === 'string' && currentTrack.lyrics.trim() ? (
-          <div className="text-sm text-neutral-300 whitespace-pre-line leading-relaxed font-sans px-1">
-            {currentTrack.lyrics}
+        ) : (activePlainLyrics || currentTrack.lyrics) ? (
+          <div className="py-2 px-1 space-y-4 animate-in fade-in duration-300">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-mono text-neutral-400">
+              <Music className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Full Lyrics</span>
+            </div>
+            <div className="text-sm sm:text-base text-neutral-200 whitespace-pre-line leading-relaxed font-sans font-medium select-text">
+              {activePlainLyrics || (typeof currentTrack.lyrics === 'string' ? currentTrack.lyrics : '')}
+            </div>
           </div>
         ) : Array.isArray(currentTrack.lyrics) && currentTrack.lyrics.length > 0 ? (
           <div className="space-y-3 px-1">

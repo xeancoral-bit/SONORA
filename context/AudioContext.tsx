@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import { Song, SyncedLyricLine } from '@/lib/types';
 import { synthEngine } from '@/lib/audioSynth';
 import { extractYouTubeId } from '@/lib/urlUtils';
-import { getSyncedLyricsForSong } from '@/lib/lyricsService';
+import { getSyncedLyricsForSong, parseLrc } from '@/lib/lyricsService';
 import { findActiveLyricIndex } from '@/hooks/useSyncedLyrics';
 
 export type RepeatMode = 'off' | 'one' | 'all';
@@ -31,6 +31,8 @@ interface AudioContextType {
   increaseLyricsFontSize: () => void;
   decreaseLyricsFontSize: () => void;
   activeSyncedLyrics: SyncedLyricLine[];
+  activePlainLyrics: string;
+  hasSyncedLyrics: boolean;
   isLyricsLoading: boolean;
   refetchLyrics: () => void;
   isResolving: boolean;
@@ -422,6 +424,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   }, [isPlaying, currentTrack, currentTime]);
 
   const [activeSyncedLyrics, setActiveSyncedLyrics] = useState<SyncedLyricLine[]>([]);
+  const [activePlainLyrics, setActivePlainLyrics] = useState<string>('');
+  const [hasSyncedLyrics, setHasSyncedLyrics] = useState<boolean>(false);
   const [isLyricsLoading, setIsLyricsLoading] = useState(false);
   const [currentLyricIndex, setCurrentLyricIndex] = useState(0);
   const lyricsFetchAbortRef = useRef<AbortController | null>(null);
@@ -438,10 +442,10 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
 
   // Auto-fetch if user opens lyrics panel and lyrics are not loaded yet
   useEffect(() => {
-    if (isLyricsOpen && currentTrack && activeSyncedLyrics.length === 0 && !isLyricsLoading) {
+    if (isLyricsOpen && currentTrack && activeSyncedLyrics.length === 0 && !activePlainLyrics && !isLyricsLoading) {
       refetchLyrics();
     }
-  }, [isLyricsOpen, currentTrack, activeSyncedLyrics.length, isLyricsLoading, refetchLyrics]);
+  }, [isLyricsOpen, currentTrack, activeSyncedLyrics.length, activePlainLyrics, isLyricsLoading, refetchLyrics]);
 
   // Fetch synced lyrics when track identifier, language, or refresh counter changes
   useEffect(() => {
@@ -449,15 +453,31 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     const existingSynced =
       Array.isArray(currentTrack?.syncedLyrics) && currentTrack!.syncedLyrics.length > 0
         ? currentTrack!.syncedLyrics
+        : typeof currentTrack?.lyrics === 'string' && /\[\d{1,2}:\d{2}/.test(currentTrack.lyrics)
+        ? parseLrc(currentTrack.lyrics)
         : Array.isArray(currentTrack?.lyrics) && (currentTrack!.lyrics as any).length > 0
         ? (currentTrack!.lyrics as any)
         : [];
 
+    const existingPlain =
+      typeof currentTrack?.lyrics === 'string' && currentTrack.lyrics.trim().length > 0
+        ? currentTrack.lyrics.replace(/\[\d{1,2}:\d{2}(?:[.:]\d{1,3})?\]/g, '').trim()
+        : '';
+
     if (existingSynced.length > 0 && lyricsLanguage === 'en') {
       setActiveSyncedLyrics(existingSynced);
+      setHasSyncedLyrics(true);
+      setActivePlainLyrics(existingPlain);
+      setIsLyricsLoading(false);
+    } else if (existingPlain && lyricsLanguage === 'en') {
+      setActiveSyncedLyrics([]);
+      setHasSyncedLyrics(false);
+      setActivePlainLyrics(existingPlain);
       setIsLyricsLoading(false);
     } else {
       setActiveSyncedLyrics([]);
+      setActivePlainLyrics('');
+      setHasSyncedLyrics(false);
       setIsLyricsLoading(true);
     }
     setCurrentLyricIndex(0);
@@ -502,7 +522,10 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         const data = await res.json();
         // Apply only if this is still the latest request (race-condition guard)
         if (lyricsFetchIdRef.current === requestId) {
-          setActiveSyncedLyrics(data.lyrics ?? []);
+          const syncedList = Array.isArray(data.lyrics) ? data.lyrics : [];
+          setActiveSyncedLyrics(syncedList);
+          setActivePlainLyrics(data.plainLyrics || existingPlain || (typeof currentTrack?.lyrics === 'string' ? currentTrack.lyrics : ''));
+          setHasSyncedLyrics(Boolean(data.hasSynced && syncedList.length > 0));
           setCurrentLyricIndex(0);
           setIsLyricsLoading(false);
         }
@@ -511,6 +534,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         if (err?.name === 'AbortError') return;
         if (lyricsFetchIdRef.current === requestId) {
           setActiveSyncedLyrics([]);
+          setActivePlainLyrics(existingPlain || '');
+          setHasSyncedLyrics(false);
           setCurrentLyricIndex(0);
           setIsLyricsLoading(false);
         }
@@ -549,7 +574,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
             const cur = ytPlayerRef.current.getCurrentTime();
             const dur = ytPlayerRef.current.getDuration();
             if (typeof cur === 'number' && !isNaN(cur)) {
-              setCurrentTime((prev) => (Math.abs(prev - cur) >= 0.2 ? cur : prev));
+              setCurrentTime((prev) => (Math.abs(prev - cur) >= 0.04 ? cur : prev));
             }
             if (typeof dur === 'number' && !isNaN(dur) && dur > 0) {
               setDuration((prev) => (Math.abs(prev - dur) >= 1 ? dur : prev));
@@ -557,7 +582,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
           }
         } catch {}
       }
-    }, 200);
+    }, 60);
   };
 
   const stopYouTubePolling = () => {
@@ -898,6 +923,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         increaseLyricsFontSize,
         decreaseLyricsFontSize,
         activeSyncedLyrics,
+        activePlainLyrics,
+        hasSyncedLyrics,
         isLyricsLoading,
         refetchLyrics,
         isResolving,

@@ -84,6 +84,29 @@ export default function SongDetailPage({ params }: { params: Promise<{ id: strin
           setSong(data.song);
           setRelatedSongs(data.relatedSongs || []);
           setIsLiked(data.isLiked);
+
+          // If song lacks lyrics, auto-fetch from lyrics service
+          if ((!data.song.syncedLyrics || data.song.syncedLyrics.length === 0) && !data.song.lyrics) {
+            try {
+              const lRes = await fetch(
+                `/api/lyrics?trackId=${songId}&title=${encodeURIComponent(data.song.title)}&artist=${encodeURIComponent(data.song.artistName)}&duration=${data.song.duration || 210}`
+              );
+              if (lRes.ok) {
+                const lData = await lRes.json();
+                if (isMounted && (lData.lyrics?.length > 0 || lData.plainLyrics)) {
+                  setSong((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          syncedLyrics: lData.lyrics || [],
+                          lyrics: lData.plainLyrics || (lData.lyrics ? lData.lyrics.map((l: any) => l.text).join('\n') : '')
+                        }
+                      : null
+                  );
+                }
+              }
+            } catch {}
+          }
         }
       } catch {
         // Safe catch

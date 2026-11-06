@@ -434,6 +434,85 @@ function translateLineText(text: string, targetLang: string): string {
 }
 
 /**
+ * Fully-compliant, sub-second precision LRC file parser.
+ * Handles:
+ * 1. Global [offset: +/- ms] adjustments.
+ * 2. Multi-timestamp lines ([00:12.30][01:45.60]Chorus line).
+ * 3. 2-digit, 3-digit, and colon/period millisecond formats ([mm:ss.xx], [mm:ss:xx]).
+ * 4. Strips metadata tags ([ti:...], [ar:...], [al:...], [by:...], etc.).
+ * 5. Preserves sub-second floating-point accuracy (2 decimal places).
+ * 6. Deduplicates and chronologically sorts timeline entries.
+ */
+export function parseLrc(lrc: string | undefined | null): SyncedLyricLine[] {
+  if (!lrc || typeof lrc !== 'string') return [];
+  const lines = lrc.split(/\r?\n/);
+  const result: SyncedLyricLine[] = [];
+  let offsetMs = 0;
+
+  // Scan for [offset: +/- ms] tag
+  for (const rawLine of lines) {
+    const offsetMatch = rawLine.match(/^\[offset:\s*([+-]?\d+)\]/i);
+    if (offsetMatch) {
+      offsetMs = parseInt(offsetMatch[1], 10) || 0;
+      break;
+    }
+  }
+  const offsetSec = offsetMs / 1000;
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    // Skip metadata tags
+    if (/^\[(ti|ar|al|by|offset|length|re|ve|encoding|id):/i.test(line)) {
+      continue;
+    }
+
+    // Match all timestamp tags on this line: [mm:ss.xx], [mm:ss:xx], or [mm:ss]
+    const timestampRegex = /\[(\d{1,2}):(\d{2})(?:[.:](\d{1,3}))?\]/g;
+    const timestamps: number[] = [];
+    let match: RegExpExecArray | null;
+
+    while ((match = timestampRegex.exec(line)) !== null) {
+      const min = parseInt(match[1], 10);
+      const sec = parseInt(match[2], 10);
+      let ms = 0;
+      if (match[3]) {
+        const msStr = match[3].padEnd(3, '0').slice(0, 3);
+        ms = parseInt(msStr, 10) / 1000;
+      }
+      const rawTime = min * 60 + sec + ms + offsetSec;
+      const finalTime = Math.max(0, Math.round(rawTime * 100) / 100);
+      timestamps.push(finalTime);
+    }
+
+    const cleanText = line.replace(/\[\d{1,2}:\d{2}(?:[.:]\d{1,3})?\]/g, '').trim();
+
+    if (timestamps.length > 0 && cleanText) {
+      if (/^\[(verse|chorus|bridge|intro|outro|pre-chorus|hook|solo)\]$/i.test(cleanText)) {
+        continue;
+      }
+      for (const t of timestamps) {
+        result.push({ time: t, text: cleanText });
+      }
+    }
+  }
+
+  result.sort((a, b) => a.time - b.time);
+
+  const deduplicated: SyncedLyricLine[] = [];
+  for (const item of result) {
+    const last = deduplicated[deduplicated.length - 1];
+    if (last && Math.abs(last.time - item.time) < 0.08 && last.text === item.text) {
+      continue;
+    }
+    deduplicated.push(item);
+  }
+
+  return deduplicated;
+}
+
+/**
  * Automatically splits plain string lyrics and creates synchronized timestamped lines.
  */
 export function autoGenerateSyncedLyrics(
@@ -454,6 +533,12 @@ export function autoGenerateSyncedLyrics(
     return [];
   }
 
+  // If input already contains LRC timestamps, parse it with full precision
+  if (/\[\d{1,2}:\d{2}/.test(strLyrics)) {
+    const parsed = parseLrc(strLyrics);
+    if (parsed.length > 0) return parsed;
+  }
+
   const rawLines = strLyrics
     .split('\n')
     .map((l) => l.trim())
@@ -463,29 +548,6 @@ export function autoGenerateSyncedLyrics(
     return [{ time: 0, text: '♪ (Instrumental track) ♪' }];
   }
 
-  const parsedWithTimes: SyncedLyricLine[] = [];
-  const timeRegex = /^\[(\d{1,2}):(\d{2})(?:\.(\d{2,3}))?\]\s*(.*)$/;
-
-  let hasExistingLrcTimestamps = false;
-  for (const line of rawLines) {
-    const match = line.match(timeRegex);
-    if (match) {
-      hasExistingLrcTimestamps = true;
-      const mins = parseInt(match[1], 10);
-      const secs = parseInt(match[2], 10);
-      const ms = match[3] ? parseInt(match[3].padEnd(3, '0').slice(0, 3), 10) / 1000 : 0;
-      const timeInSec = mins * 60 + secs + ms;
-      const text = match[4].trim();
-      if (text) {
-        parsedWithTimes.push({ time: Math.round(timeInSec), text });
-      }
-    }
-  }
-
-  if (hasExistingLrcTimestamps && parsedWithTimes.length > 0) {
-    return parsedWithTimes;
-  }
-
   const cleanedLines = rawLines
     .filter((l) => !/^\[(verse|chorus|bridge|intro|outro|pre-chorus|hook)/i.test(l))
     .filter((l) => l.length > 0);
@@ -493,13 +555,13 @@ export function autoGenerateSyncedLyrics(
   const linesToUse = cleanedLines.length > 0 ? cleanedLines : rawLines;
   const count = linesToUse.length;
 
-  const startSec = 6;
-  const endSec = Math.max(startSec + count * 3, durationSeconds - 8);
+  const startSec = 8;
+  const endSec = Math.max(startSec + count * 3.5, durationSeconds - 8);
   const timeSpan = endSec - startSec;
 
   return linesToUse.map((line, idx) => {
     const progress = idx / Math.max(1, count - 1);
-    const time = Math.round(startSec + progress * timeSpan);
+    const time = Math.round((startSec + progress * timeSpan) * 100) / 100;
     return {
       time,
       text: line,
@@ -510,7 +572,7 @@ export function autoGenerateSyncedLyrics(
 /**
  * Returns synchronized lyric lines for any song in the requested language.
  * Guarantees that:
- * 1. Synchronized lines are ALWAYS returned.
+ * 1. Synchronized lines are ALWAYS returned with sub-second accuracy.
  * 2. Timestamps match identically across all languages for perfect synchronization.
  */
 export function getSyncedLyricsForSong(
@@ -547,10 +609,12 @@ export function getSyncedLyricsForSong(
     }
   }
 
-  // 3. Fall back to song.syncedLyrics (or auto-generate if missing)
+  // 3. Fall back to song.syncedLyrics or parse song.lyrics if it contains timestamps
   let baseEnglishLyrics: SyncedLyricLine[] = [];
   if (song.syncedLyrics && song.syncedLyrics.length > 0) {
     baseEnglishLyrics = song.syncedLyrics;
+  } else if (typeof song.lyrics === 'string' && /\[\d{1,2}:\d{2}/.test(song.lyrics)) {
+    baseEnglishLyrics = parseLrc(song.lyrics);
   } else if (song.lyrics) {
     baseEnglishLyrics = autoGenerateSyncedLyrics(song.lyrics, song.duration || 180);
   }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, initDb, isInvalidAlbumTitle } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { Song, Artist, Album, SyncedLyricLine } from '@/lib/types';
-import { autoGenerateSyncedLyrics, getSyncedLyricsForSong, SUPPORTED_LYRIC_LANGUAGES } from '@/lib/lyricsService';
+import { parseLrc, autoGenerateSyncedLyrics, getSyncedLyricsForSong, SUPPORTED_LYRIC_LANGUAGES } from '@/lib/lyricsService';
 
 export async function GET(request: NextRequest) {
   await initDb();
@@ -223,18 +223,19 @@ export async function POST(request: NextRequest) {
         if (lrcRes.ok) {
           const lrcData = await lrcRes.json();
           if (lrcData.syncedLyrics) {
-            resolvedSyncedLyrics = autoGenerateSyncedLyrics(lrcData.syncedLyrics, duration || 180);
+            resolvedSyncedLyrics = parseLrc(lrcData.syncedLyrics);
             resolvedLyrics = lrcData.plainLyrics || lrcData.syncedLyrics;
           } else if (lrcData.plainLyrics) {
             resolvedLyrics = lrcData.plainLyrics;
-            resolvedSyncedLyrics = autoGenerateSyncedLyrics(lrcData.plainLyrics, duration || 180);
+            resolvedSyncedLyrics = [];
           }
         }
       } catch {}
     }
 
-    if (resolvedSyncedLyrics.length === 0 && resolvedLyrics) {
-      resolvedSyncedLyrics = autoGenerateSyncedLyrics(resolvedLyrics, duration || 180);
+    // If lyrics contain raw LRC timestamps, parse them directly with sub-second accuracy
+    if (resolvedSyncedLyrics.length === 0 && resolvedLyrics && /\[\d{1,2}:\d{2}/.test(resolvedLyrics)) {
+      resolvedSyncedLyrics = parseLrc(resolvedLyrics);
     }
 
     const newSong: Song = {

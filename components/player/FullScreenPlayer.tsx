@@ -62,6 +62,7 @@ export const FullScreenPlayer: React.FC = () => {
     increaseLyricsFontSize,
     decreaseLyricsFontSize,
     activeSyncedLyrics,
+    activePlainLyrics,
     isLyricsLoading,
     refetchLyrics,
   } = useAudio();
@@ -654,9 +655,15 @@ export const FullScreenPlayer: React.FC = () => {
                       </div>
                     );
                   })
-                ) : typeof currentTrack.lyrics === 'string' && currentTrack.lyrics.trim() ? (
-                  <div className="text-lg text-neutral-200 whitespace-pre-line leading-relaxed font-sans px-2">
-                    {currentTrack.lyrics}
+                ) : (activePlainLyrics || currentTrack.lyrics) ? (
+                  <div className="py-6 px-4 max-w-2xl mx-auto space-y-4 animate-in fade-in duration-300">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-neutral-400">
+                      <Music className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Full Lyrics</span>
+                    </div>
+                    <div className="text-lg sm:text-xl text-neutral-200 whitespace-pre-line leading-relaxed font-sans font-medium select-text">
+                      {activePlainLyrics || (typeof currentTrack.lyrics === 'string' ? currentTrack.lyrics : '')}
+                    </div>
                   </div>
                 ) : Array.isArray(currentTrack.lyrics) && currentTrack.lyrics.length > 0 ? (
                   <div className="space-y-4 px-2 max-w-2xl mx-auto">

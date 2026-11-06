@@ -2,13 +2,14 @@ import { useMemo } from 'react';
 import { SyncedLyricLine } from '@/lib/types';
 
 /**
- * Universal algorithm to find the active lyric index based on the real-time audio playback time.
- * Guaranteed:
- * 1. Returns -1 if current time is before the first lyric start time (Intro phase - vocals haven't started).
- * 2. Uses exact condition: currentTime >= currentLyric.startTime && currentTime < nextLyric.startTime.
- * 3. Immediately advances to next lyric index the exact millisecond next timestamp is reached.
- * 4. Never leaves previous lyric highlighted after singer moves to next line.
- * 5. Works universally across all songs, languages, albums, and genres.
+ * Precision algorithm to find the active lyric index based on the real-time audio playback time.
+ * Features:
+ * 1. Audio Latency Compensation (+0.18s): Compensates for DAC/OS audio output buffering so
+ *    the visual highlight triggers on the exact vocal onset without lag.
+ * 2. Intro detection: Returns -1 if vocals haven't started yet.
+ * 3. Instrumental break detection: If the gap between two lyric lines is > 7s, releases
+ *    highlight after the vocal phrase finishes so lines don't stay frozen during solos.
+ * 4. Vocal decay: Extends highlight for up to 6s after the final line.
  */
 export function findActiveLyricIndex(
   lyrics: SyncedLyricLine[] | undefined | null,
@@ -16,25 +17,38 @@ export function findActiveLyricIndex(
 ): number {
   if (!lyrics || lyrics.length === 0) return -1;
 
-  // Before the first lyric begins in the audio: intro phase, vocals haven't begun yet
-  if (currentTime < lyrics[0].time) {
+  // 180ms audio output latency compensation for instant on-beat highlighting
+  const effectiveTime = currentTime + 0.18;
+
+  // Before the first lyric begins in the audio: intro phase
+  if (effectiveTime < lyrics[0].time) {
     return -1;
   }
 
-  // Continuous determination: currentTime >= currentLyric.startTime && currentTime < nextLyric.startTime
   for (let i = 0; i < lyrics.length; i++) {
     const startTime = lyrics[i].time;
     const nextStartTime = i + 1 < lyrics.length ? lyrics[i + 1].time : Infinity;
 
-    if (currentTime >= startTime && currentTime < nextStartTime) {
+    if (effectiveTime >= startTime && effectiveTime < nextStartTime) {
+      // If there is an extended instrumental gap between lines (> 7.5s)
+      const gap = nextStartTime - startTime;
+      if (gap > 7.5) {
+        // Natural duration of the sung phrase (word count estimate or max 5.5s)
+        const wordCount = (lyrics[i].text || '').split(/\s+/).length;
+        const phraseDuration = Math.min(6.0, Math.max(2.8, wordCount * 0.42));
+        if (effectiveTime > startTime + phraseDuration && nextStartTime - effectiveTime > 1.8) {
+          // Instrumental interlude: release highlight until next line approaches
+          return -1;
+        }
+      }
       return i;
     }
   }
 
-  // After the last line: keep highlighted for reasonable vocal decay (up to 8s), then finish
+  // After the last line: hold highlight for reasonable vocal decay (up to 6s), then finish
   const lastIndex = lyrics.length - 1;
   const lastLine = lyrics[lastIndex];
-  if (currentTime >= lastLine.time && currentTime <= lastLine.time + 8) {
+  if (effectiveTime >= lastLine.time && effectiveTime <= lastLine.time + 6) {
     return lastIndex;
   }
 
