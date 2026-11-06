@@ -41,9 +41,19 @@ export async function getCurrentUser(): Promise<User | null> {
     if (!token) return null;
 
     const payload = verifyToken(token);
-    if (!payload?.userId) return null;
+    if (!payload) return null;
 
-    const user = db.getUserById(payload.userId);
+    let user: User | null | undefined = null;
+    if (payload.userId) {
+      user = db.getUserById(payload.userId);
+    }
+    if (!user && payload.email) {
+      user = db.getUserByEmail(payload.email);
+    }
+    if (!user && payload.username) {
+      user = db.getUserByUsername(payload.username);
+    }
+
     if (!user || !user.isActive) return null;
 
     return user;

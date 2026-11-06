@@ -28,7 +28,11 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name || !username || !email || !password) {
+    const cleanName = name.trim();
+    const cleanUsername = username.trim().toLowerCase().replace(/^@+/, '');
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanName || !cleanUsername || !cleanEmail || !password) {
       toast.error('All required fields must be filled');
       return;
     }
@@ -45,9 +49,9 @@ export default function RegisterPage() {
 
     setIsLoading(true);
     const res = await register({
-      name,
-      username,
-      email,
+      name: cleanName,
+      username: cleanUsername,
+      email: cleanEmail,
       password,
       confirmPassword,
       avatar: avatar.trim() || undefined
@@ -56,7 +60,8 @@ export default function RegisterPage() {
 
     if (res.success) {
       toast.success('Registration successful!', 'Welcome to SONORA');
-      router.push('/welcome');
+      // Full navigation ensures the authenticated session, cookie, and layout are loaded fresh
+      window.location.href = '/welcome';
     } else {
       toast.error(res.error || 'Registration failed');
     }
@@ -97,6 +102,9 @@ export default function RegisterPage() {
               <input
                 type="text"
                 required
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 placeholder="mayachen"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -114,6 +122,9 @@ export default function RegisterPage() {
               <input
                 type="email"
                 required
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 placeholder="maya@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}

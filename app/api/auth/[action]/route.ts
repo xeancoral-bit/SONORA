@@ -17,18 +17,25 @@ export async function POST(
   const body = await request.json().catch(() => ({}));
 
   if (action === 'login') {
-    const { email, password } = body;
-    if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
+    const rawIdentifier = (body.email || body.username || body.identifier || '').toString().trim();
+    const rawPassword = (body.password || '').toString();
+    const rememberMe = Boolean(body.rememberMe);
+
+    if (!rawIdentifier || !rawPassword) {
+      return NextResponse.json({ error: 'Email or username and password are required' }, { status: 400 });
     }
 
-    const user = db.getUserByEmail(email) || db.getUserByUsername(email);
+    const user = db.getUserByIdentifier(rawIdentifier);
     if (!user) {
-      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid email or username or password' }, { status: 401 });
     }
 
-    if (!verifyPassword(password, user.passwordHash)) {
-      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
+    const passwordMatches =
+      verifyPassword(rawPassword, user.passwordHash) ||
+      verifyPassword(rawPassword.trim(), user.passwordHash);
+
+    if (!passwordMatches) {
+      return NextResponse.json({ error: 'Invalid email or username or password' }, { status: 401 });
     }
 
     if (!user.isActive) {
@@ -55,7 +62,7 @@ export async function POST(
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 24 * 7 // 7 days
+      maxAge: rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24 * 7 // 30 days or 7 days
     });
 
     return response;
@@ -64,34 +71,40 @@ export async function POST(
   if (action === 'register') {
     const { name, username, email, password, confirmPassword, avatar } = body;
 
-    if (!name || !username || !email || !password) {
+    const rawName = (name || '').toString().trim();
+    const rawUsername = (username || '').toString().trim().toLowerCase().replace(/^@+/, '');
+    const rawEmail = (email || '').toString().trim().toLowerCase();
+    const rawPassword = (password || '').toString();
+    const rawConfirm = (confirmPassword || '').toString();
+
+    if (!rawName || !rawUsername || !rawEmail || !rawPassword) {
       return NextResponse.json({ error: 'All required fields must be filled' }, { status: 400 });
     }
 
-    if (password !== confirmPassword) {
+    if (rawPassword !== rawConfirm) {
       return NextResponse.json({ error: 'Passwords do not match' }, { status: 400 });
     }
 
-    if (password.length < 6) {
+    if (rawPassword.length < 6) {
       return NextResponse.json({ error: 'Password must be at least 6 characters' }, { status: 400 });
     }
 
-    if (db.getUserByEmail(email)) {
+    if (db.getUserByEmail(rawEmail)) {
       return NextResponse.json({ error: 'Email already registered' }, { status: 400 });
     }
 
-    if (db.getUserByUsername(username)) {
+    if (db.getUserByUsername(rawUsername)) {
       return NextResponse.json({ error: 'Username already taken' }, { status: 400 });
     }
 
     const newUser = {
       id: `user-${Date.now()}`,
-      name,
-      username: username.toLowerCase().trim(),
-      email: email.toLowerCase().trim(),
-      passwordHash: hashPassword(password),
+      name: rawName,
+      username: rawUsername,
+      email: rawEmail,
+      passwordHash: hashPassword(rawPassword),
       role: 'user' as const,
-      avatar: avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(username)}`,
+      avatar: avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(rawUsername)}`,
       bio: 'New music lover on SONORA.',
       favoriteGenres: ['genre-pop', 'genre-electronic'],
       createdAt: new Date().toISOString(),
@@ -161,7 +174,16 @@ export async function POST(
 
   if (action === 'logout') {
     const response = NextResponse.json({ success: true, message: 'Logged out successfully' });
-    response.cookies.delete(AUTH_COOKIE_NAME);
+    response.cookies.set({
+      name: AUTH_COOKIE_NAME,
+      value: '',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 0,
+      expires: new Date(0)
+    });
     return response;
   }
 

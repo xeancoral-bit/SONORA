@@ -19,20 +19,32 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sonora_saved_identifier');
+      if (saved) {
+        setEmail(saved);
+        setRememberMe(true);
+      }
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast.error('Please enter your email and password');
+    const cleanIdentifier = email.trim();
+    if (!cleanIdentifier || !password) {
+      toast.error('Please enter your email or username and password');
       return;
     }
 
     setIsLoading(true);
-    const res = await login(email, password);
+    const res = await login(cleanIdentifier, password, rememberMe);
     setIsLoading(false);
 
     if (res.success) {
       toast.success('Welcome back to SONORA!');
-      router.push('/');
+      // Full navigation guarantees all server components, cookies, and music state are loaded fresh
+      window.location.href = '/';
     } else {
       toast.error(res.error || 'Invalid credentials');
     }
@@ -42,11 +54,11 @@ export default function LoginPage() {
     setEmail(demoEmail);
     setPassword(demoPass);
     setIsLoading(true);
-    const res = await login(demoEmail, demoPass);
+    const res = await login(demoEmail, demoPass, true);
     setIsLoading(false);
     if (res.success) {
       toast.success(`Logged in as ${roleName}`);
-      router.push(roleName === 'Admin' ? '/admin' : '/');
+      window.location.href = roleName === 'Admin' ? '/admin' : '/';
     } else {
       toast.error(res.error || 'Quick login failed');
     }
@@ -99,7 +111,10 @@ export default function LoginPage() {
               <input
                 type="text"
                 required
-                placeholder="you@sonora.io"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                placeholder="Email or username (e.g. denzenmilson90 or you@sonora.io)"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-neutral-900 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"

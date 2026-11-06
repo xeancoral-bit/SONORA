@@ -418,6 +418,16 @@ export function writeDb(data: DatabaseSchema): void {
   // Always update the in-memory cache immediately (synchronous reads still work)
   dbMemoryCache = data;
 
+  // Always write synchronously to DB_FILE and sonora.backup.json so local disk persistence is never lost
+  try {
+    ensureDirectoryExistence(DB_FILE);
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    const backupFile = path.join(DATA_DIR, 'sonora.backup.json');
+    fs.writeFileSync(backupFile, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (error) {
+    console.error('Error writing database file:', error);
+  }
+
   if (USE_SUPABASE) {
     // Fire-and-forget async persistence to Supabase
     import('./supabase/admin')
@@ -431,14 +441,6 @@ export function writeDb(data: DatabaseSchema): void {
         if (error) console.error('[writeDb] Supabase write error:', error.message);
       })
       .catch((err) => console.error('[writeDb] Failed to persist to Supabase:', err));
-  } else {
-    // Local development: write to JSON file
-    try {
-      ensureDirectoryExistence(DB_FILE);
-      fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
-    } catch (error) {
-      console.error('Error writing database file:', error);
-    }
   }
 }
 
@@ -716,10 +718,38 @@ export const db = {
 
   // Users
   getUsers: () => readDb().users,
-  getUserById: (id: string) => readDb().users.find((u) => u.id === id),
-  getUserByEmail: (email: string) => readDb().users.find((u) => u.email.toLowerCase() === email.toLowerCase()),
-  getUserByUsername: (username: string) =>
-    readDb().users.find((u) => u.username.toLowerCase() === username.toLowerCase()),
+  getUserById: (id: string) => {
+    if (!id || typeof id !== 'string') return undefined;
+    const clean = id.trim();
+    return readDb().users.find((u) => u.id === clean);
+  },
+  getUserByEmail: (email: string) => {
+    if (!email || typeof email !== 'string') return undefined;
+    const clean = email.trim().toLowerCase();
+    return readDb().users.find((u) => u.email && u.email.trim().toLowerCase() === clean);
+  },
+  getUserByUsername: (username: string) => {
+    if (!username || typeof username !== 'string') return undefined;
+    const clean = username.trim().toLowerCase().replace(/^@+/, '');
+    return readDb().users.find(
+      (u) =>
+        (u.username && u.username.trim().toLowerCase() === clean) ||
+        (u.username && u.username.trim().toLowerCase().replace(/^@+/, '') === clean)
+    );
+  },
+  getUserByIdentifier: (identifier: string) => {
+    if (!identifier || typeof identifier !== 'string') return undefined;
+    const clean = identifier.trim().toLowerCase();
+    const cleanNoAt = clean.replace(/^@+/, '');
+    const users = readDb().users || [];
+    return users.find(
+      (u) =>
+        (u.email && u.email.trim().toLowerCase() === clean) ||
+        (u.username && u.username.trim().toLowerCase() === clean) ||
+        (u.username && u.username.trim().toLowerCase().replace(/^@+/, '') === cleanNoAt) ||
+        (u.id && u.id.trim().toLowerCase() === clean)
+    );
+  },
   saveUser: (user: User) => {
     const data = readDb();
     const index = data.users.findIndex((u) => u.id === user.id);

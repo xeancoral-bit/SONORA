@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAdmin: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (emailOrUsername: string, password: string, rememberMe?: boolean) => Promise<{ success: boolean; error?: string; user?: User }>;
   register: (data: {
     name: string;
     username: string;
@@ -15,7 +15,7 @@ interface AuthContextType {
     password: string;
     confirmPassword: string;
     avatar?: string;
-  }) => Promise<{ success: boolean; error?: string }>;
+  }) => Promise<{ success: boolean; error?: string; user?: User }>;
   logout: () => Promise<void>;
   switchRole: (role: Role) => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -29,12 +29,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshUser = useCallback(async () => {
     try {
-      const res = await fetch('/api/auth/me');
+      const res = await fetch('/api/auth/me', { cache: 'no-store' });
       const data = await res.json();
       if (data.user) {
         setUser(data.user);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('sonora_logged_in', 'true');
+        }
       } else {
         setUser(null);
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('sonora_logged_in');
+        }
       }
     } catch {
       setUser(null);
@@ -47,19 +53,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshUser();
   }, [refreshUser]);
 
-  const login = async (email: string, password: string) => {
+  const login = async (emailOrUsername: string, password: string, rememberMe?: boolean) => {
     try {
+      const cleanIdentifier = emailOrUsername.trim();
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({
+          email: cleanIdentifier,
+          username: cleanIdentifier,
+          identifier: cleanIdentifier,
+          password,
+          rememberMe: Boolean(rememberMe)
+        })
       });
       const data = await res.json();
       if (!res.ok) {
         return { success: false, error: data.error || 'Login failed' };
       }
       setUser(data.user);
-      return { success: true };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sonora_logged_in', 'true');
+        localStorage.setItem('sonora_user_name', data.user.name || '');
+        if (rememberMe) {
+          localStorage.setItem('sonora_saved_identifier', cleanIdentifier);
+        } else {
+          localStorage.removeItem('sonora_saved_identifier');
+        }
+      }
+      return { success: true, user: data.user };
     } catch (err: any) {
       return { success: false, error: err.message || 'Network error' };
     }
@@ -77,14 +99,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          username: formData.username.trim().toLowerCase().replace(/^@+/, ''),
+          email: formData.email.trim().toLowerCase()
+        })
       });
       const data = await res.json();
       if (!res.ok) {
         return { success: false, error: data.error || 'Registration failed' };
       }
       setUser(data.user);
-      return { success: true };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sonora_logged_in', 'true');
+        localStorage.setItem('sonora_user_name', data.user.name || '');
+      }
+      return { success: true, user: data.user };
     } catch (err: any) {
       return { success: false, error: err.message || 'Network error' };
     }
@@ -93,10 +123,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
-      setUser(null);
-      window.location.href = '/auth/login';
     } catch {
+      // ignore
+    } finally {
       setUser(null);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('sonora_logged_in');
+        localStorage.removeItem('sonora_user_name');
+        window.location.href = '/auth/login';
+      }
     }
   };
 
