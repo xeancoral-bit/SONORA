@@ -26,6 +26,9 @@ const GENRE_GLOW: Record<string, string> = {
   'genre-rnb':        'rgba(139,92,246,0.55)',
   'genre-classical':  'rgba(168,162,158,0.50)',
   'genre-christian':  'rgba(56,189,248,0.55)',
+  'genre-country':    'rgba(217,119,6,0.55)',
+  'genre-latin':      'rgba(244,63,94,0.55)',
+  'genre-blues':      'rgba(59,130,246,0.55)',
 };
 
 export const GenreCard: React.FC<GenreCardProps> = ({ genre }) => {
