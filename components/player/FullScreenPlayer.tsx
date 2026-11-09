@@ -23,9 +23,6 @@ import {
 } from 'lucide-react';
 import { EqualizerModal } from './EqualizerModal';
 import { formatTime } from '@/lib/utils';
-import { EqualizerAnimation } from './EqualizerAnimation';
-import { YouTubePlayer } from './YouTubePlayer';
-import { Youtube } from '@/components/ui/icons';
 import { LikeButton } from '@/components/ui/LikeButton';
 import { LyricsControls } from './LyricsControls';
 import { useSyncedLyrics } from '@/hooks/useSyncedLyrics';
@@ -55,7 +52,6 @@ export const FullScreenPlayer: React.FC = () => {
     toggleRepeat,
     toggleLikeCurrentTrack,
     isCurrentLiked,
-    currentLyricIndex,
     lyricsLanguage,
     setLyricsLanguage,
     lyricsFontSize,
@@ -75,11 +71,10 @@ export const FullScreenPlayer: React.FC = () => {
     getLineState,
   } = useSyncedLyrics(activeSyncedLyrics, currentTime);
 
-  const isYouTube = Boolean(currentTrack?.sourcePlatform === 'youtube' || currentTrack?.externalMediaId);
   const [isEqOpen, setIsEqOpen] = useState(false);
   const [isKaraokeMode, setIsKaraokeMode] = useState(false);
-  const { dominantRgb, glowStyle } = useAlbumColor(currentTrack?.coverImage);
-  const [activeTab, setActiveTab] = useState<'lyrics' | 'queue' | 'video' | 'disk'>('lyrics');
+  const { dominantRgb } = useAlbumColor(currentTrack?.coverImage);
+  const [activeTab, setActiveTab] = useState<'lyrics' | 'queue' | 'disk'>('lyrics');
   const lyricsContainerRef = useRef<HTMLDivElement | null>(null);
   const activeLineRef = useRef<HTMLDivElement | null>(null);
   const isUserScrollingRef = useRef<boolean>(false);
@@ -178,7 +173,7 @@ export const FullScreenPlayer: React.FC = () => {
 
             {/* Center: Track info & Album context — ALWAYS 100% VISIBLE & CLEANLY CENTERED */}
             <div className="flex flex-col items-center justify-center min-w-0 text-center px-2 select-none">
-              <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-emerald-400 font-bold block truncate max-w-[200px] xs:max-w-[240px] sm:max-w-md md:max-w-lg">
+              <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-blue-400 font-bold block truncate max-w-[200px] xs:max-w-[240px] sm:max-w-md md:max-w-lg">
                 Playing from {currentTrack.albumTitle || 'SONORA Masters'}
               </span>
               <span className="text-sm sm:text-base md:text-lg font-black text-white tracking-tight block truncate max-w-[200px] xs:max-w-[240px] sm:max-w-md md:max-w-lg mt-0.5 drop-shadow-sm">
@@ -190,24 +185,11 @@ export const FullScreenPlayer: React.FC = () => {
             <div className="flex items-center justify-end gap-2">
               {/* Desktop Segmented Tab Switcher (Visible on md and up) */}
               <div className="hidden md:flex items-center p-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 shadow-sm gap-1">
-                {isYouTube && currentTrack.externalMediaId && (
-                  <button
-                    onClick={() => setActiveTab('video')}
-                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                      activeTab === 'video'
-                        ? 'bg-red-500 text-white shadow-md shadow-red-500/30'
-                        : 'text-white/80 hover:text-white hover:bg-white/10'
-                    }`}
-                  >
-                    <Youtube className="w-3.5 h-3.5 inline mr-1 text-current" />
-                    Video
-                  </button>
-                )}
                 <button
                   onClick={() => setActiveTab('disk')}
                   className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                     activeTab === 'disk'
-                      ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/30'
+                      ? 'bg-blue-500 text-black font-bold shadow-md shadow-blue-500/30'
                       : 'text-white/80 hover:text-white hover:bg-white/10'
                   }`}
                 >
@@ -223,7 +205,7 @@ export const FullScreenPlayer: React.FC = () => {
                   onClick={() => setActiveTab('lyrics')}
                   className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                     activeTab === 'lyrics'
-                      ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/30'
+                      ? 'bg-blue-500 text-black font-bold shadow-md shadow-blue-500/30'
                       : 'text-white/80 hover:text-white hover:bg-white/10'
                   }`}
                 >
@@ -234,7 +216,7 @@ export const FullScreenPlayer: React.FC = () => {
                   onClick={() => setActiveTab('queue')}
                   className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                     activeTab === 'queue'
-                      ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/30'
+                      ? 'bg-blue-500 text-black font-bold shadow-md shadow-blue-500/30'
                       : 'text-white/80 hover:text-white hover:bg-white/10'
                   }`}
                 >
@@ -267,24 +249,11 @@ export const FullScreenPlayer: React.FC = () => {
           {/* Mobile Segmented Tab Capsule Bar (Visible only on < md) */}
           <div className="flex md:hidden items-center justify-center w-full pb-0.5">
             <div className="inline-flex items-center p-1 rounded-full bg-black/60 backdrop-blur-xl border border-white/15 shadow-xl gap-1 max-w-full overflow-x-auto">
-              {isYouTube && currentTrack.externalMediaId && (
-                <button
-                  onClick={() => setActiveTab('video')}
-                  className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                    activeTab === 'video'
-                      ? 'bg-red-500 text-white shadow-md shadow-red-500/30'
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  <Youtube className="w-3.5 h-3.5 text-current" />
-                  <span>Video</span>
-                </button>
-              )}
               <button
                 onClick={() => setActiveTab('disk')}
                 className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                   activeTab === 'disk'
-                    ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/30'
+                    ? 'bg-blue-500 text-black font-bold shadow-md shadow-blue-500/30'
                     : 'text-white/70 hover:text-white hover:bg-white/10'
                 }`}
               >
@@ -298,7 +267,7 @@ export const FullScreenPlayer: React.FC = () => {
                 onClick={() => setActiveTab('lyrics')}
                 className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                   activeTab === 'lyrics'
-                    ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/30'
+                    ? 'bg-blue-500 text-black font-bold shadow-md shadow-blue-500/30'
                     : 'text-white/70 hover:text-white hover:bg-white/10'
                 }`}
               >
@@ -309,7 +278,7 @@ export const FullScreenPlayer: React.FC = () => {
                 onClick={() => setActiveTab('queue')}
                 className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                   activeTab === 'queue'
-                    ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/30'
+                    ? 'bg-blue-500 text-black font-bold shadow-md shadow-blue-500/30'
                     : 'text-white/70 hover:text-white hover:bg-white/10'
                 }`}
               >
@@ -376,8 +345,8 @@ export const FullScreenPlayer: React.FC = () => {
                     width: 10,
                     height: 10,
                     borderRadius: '50%',
-                    background: '#10B981',
-                    boxShadow: '0 0 10px #10B981, 0 0 20px rgba(16,185,129,0.6)'
+                    background: '#2563EB',
+                    boxShadow: '0 0 10px #2563EB, 0 0 20px rgba(16,185,129,0.6)'
                   }}
                 />
               </div>
@@ -452,8 +421,8 @@ export const FullScreenPlayer: React.FC = () => {
                     width: 8,
                     height: 8,
                     borderRadius: '50%',
-                    background: '#10B981',
-                    boxShadow: '0 0 8px #10B981, 0 0 16px rgba(16,185,129,0.5)'
+                    background: '#2563EB',
+                    boxShadow: '0 0 8px #2563EB, 0 0 16px rgba(16,185,129,0.5)'
                   }}
                 />
               </div>
@@ -489,31 +458,19 @@ export const FullScreenPlayer: React.FC = () => {
           </div>
         </div>
 
-        {/* Right: Synced Lyrics, Queue, or Video */}
+        {/* Right: Synced Lyrics, Queue, or Disk */}
         <div className="lg:col-span-6 h-full max-h-[580px] flex flex-col justify-center">
-          {activeTab === 'video' && isYouTube && currentTrack.externalMediaId ? (
-            <div className="h-full flex flex-col justify-center items-center p-2">
-              <div className="w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-black">
-                <YouTubePlayer
-                  videoId={currentTrack.externalMediaId}
-                  title={currentTrack.title}
-                  artistName={currentTrack.artistName}
-                  isPlaying={isPlaying}
-                  className="w-full"
-                />
-              </div>
-            </div>
-          ) : activeTab === 'lyrics' ? (
+          {activeTab === 'lyrics' ? (
             <div className="h-full flex flex-col rounded-3xl bg-black/45 backdrop-blur-2xl border border-white/10 p-5 md:p-7 shadow-2xl overflow-hidden relative">
               {/* Lyrics Top Header Toolbar */}
               <div className="flex items-center justify-between gap-3 pb-4 mb-2 border-b border-white/10 shrink-0">
                 <div className="flex items-center gap-2.5">
                   <span className="relative flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500"></span>
                   </span>
                   <div className="flex items-center gap-1.5 text-xs font-bold text-white tracking-wider uppercase font-mono">
-                    <Mic2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <Mic2 className="w-3.5 h-3.5 text-blue-400" />
                     <span className="text-neutral-200">Live Lyrics</span>
                   </div>
                   {totalLines > 0 && (
@@ -564,10 +521,10 @@ export const FullScreenPlayer: React.FC = () => {
 
                 {/* Instrumental Intro indicator when vocals haven't started yet */}
                 {isIntro && activeSyncedLyrics && activeSyncedLyrics.length > 0 && (
-                  <div className="flex items-center justify-center py-2.5 px-4 text-xs font-mono text-emerald-400/90 gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-3 animate-in fade-in duration-300 select-none">
+                  <div className="flex items-center justify-center py-2.5 px-4 text-xs font-mono text-blue-400/90 gap-2 bg-blue-500/10 border border-blue-500/20 rounded-2xl mb-3 animate-in fade-in duration-300 select-none">
                     <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
                     </span>
                     <span>♪ Instrumental Intro</span>
                     <span>•</span>
@@ -577,7 +534,7 @@ export const FullScreenPlayer: React.FC = () => {
 
                 {isLyricsLoading ? (
                   <div className="py-24 flex flex-col items-center justify-center gap-3 text-neutral-400 animate-in fade-in duration-200">
-                    <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
                     <p className="text-sm font-medium tracking-wide">Syncing lyrics with audio...</p>
                   </div>
                 ) : activeSyncedLyrics && activeSyncedLyrics.length > 0 ? (
@@ -597,7 +554,7 @@ export const FullScreenPlayer: React.FC = () => {
                           isCurrent
                             ? isKaraokeMode
                               ? 'bg-gradient-to-r from-amber-500/25 via-amber-500/10 to-transparent border border-amber-400/50 shadow-xl shadow-amber-500/15 scale-[1.04] origin-left'
-                              : 'bg-gradient-to-r from-emerald-500/15 via-emerald-500/5 to-transparent border border-emerald-500/30 shadow-lg shadow-emerald-500/5 scale-[1.03] origin-left'
+                              : 'bg-gradient-to-r from-blue-500/15 via-blue-500/5 to-transparent border border-blue-500/30 shadow-lg shadow-blue-500/5 scale-[1.03] origin-left'
                             : isPast
                             ? 'opacity-35 hover:opacity-80 hover:bg-white/5'
                             : 'opacity-55 hover:opacity-90 hover:bg-white/5'
@@ -610,7 +567,7 @@ export const FullScreenPlayer: React.FC = () => {
                               isCurrent
                                 ? isKaraokeMode
                                   ? 'bg-amber-400 shadow-[0_0_16px_rgba(251,191,36,0.95)] opacity-100 scale-y-100'
-                                  : 'bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.9)] opacity-100 scale-y-100'
+                                  : 'bg-blue-400 shadow-[0_0_12px_rgba(52,211,153,0.9)] opacity-100 scale-y-100'
                                 : 'opacity-0 scale-y-0'
                             }`}
                           />
@@ -640,10 +597,10 @@ export const FullScreenPlayer: React.FC = () => {
 
                         {/* Timestamp indicator */}
                         {isCurrent ? (
-                          <span className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold text-emerald-300 bg-emerald-500/20 border border-emerald-500/40 px-2.5 py-1 rounded-full shrink-0 shadow-sm animate-in fade-in zoom-in-95 duration-200 select-none">
+                          <span className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold text-blue-300 bg-blue-500/20 border border-blue-500/40 px-2.5 py-1 rounded-full shrink-0 shadow-sm animate-in fade-in zoom-in-95 duration-200 select-none">
                             <span className="relative flex h-1.5 w-1.5">
-                              <span className={`${isPlaying ? 'animate-ping' : ''} absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75`}></span>
-                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400"></span>
+                              <span className={`${isPlaying ? 'animate-ping' : ''} absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75`}></span>
+                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-400"></span>
                             </span>
                             {formatTime(line.time)}
                           </span>
@@ -658,7 +615,7 @@ export const FullScreenPlayer: React.FC = () => {
                 ) : (activePlainLyrics || currentTrack.lyrics) ? (
                   <div className="py-6 px-4 max-w-2xl mx-auto space-y-4 animate-in fade-in duration-300">
                     <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-neutral-400">
-                      <Music className="w-3.5 h-3.5 text-emerald-400" />
+                      <Music className="w-3.5 h-3.5 text-blue-400" />
                       <span>Full Lyrics</span>
                     </div>
                     <div className="text-lg sm:text-xl text-neutral-200 whitespace-pre-line leading-relaxed font-sans font-medium select-text">
@@ -675,7 +632,7 @@ export const FullScreenPlayer: React.FC = () => {
                   </div>
                 ) : (
                   <div className="py-20 flex flex-col items-center justify-center text-center gap-3">
-                    <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-emerald-400">
+                    <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-blue-400">
                       <Mic2 className="w-7 h-7" />
                     </div>
                     <div>
@@ -686,7 +643,7 @@ export const FullScreenPlayer: React.FC = () => {
                     </div>
                     <button
                       onClick={() => refetchLyrics()}
-                      className="mt-2 px-5 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-md active:scale-95 flex items-center gap-2 cursor-pointer"
+                      className="mt-2 px-5 py-2.5 rounded-full bg-blue-500 hover:bg-blue-400 text-black text-xs font-bold transition-all shadow-md active:scale-95 flex items-center gap-2 cursor-pointer"
                     >
                       <Mic2 className="w-4 h-4" />
                       Sync Lyrics Now
@@ -751,7 +708,7 @@ export const FullScreenPlayer: React.FC = () => {
               value={currentTime}
               onChange={(e) => seek(parseFloat(e.target.value))}
               style={{
-                background: `linear-gradient(to right, #10B981 0%, #10B981 ${
+                background: `linear-gradient(to right, #2563EB 0%, #2563EB ${
                   duration > 0 ? (currentTime / duration) * 100 : 0
                 }%, rgba(255, 255, 255, 0.2) ${
                   duration > 0 ? (currentTime / duration) * 100 : 0
@@ -772,7 +729,7 @@ export const FullScreenPlayer: React.FC = () => {
             <button
               onClick={toggleShuffle}
               className={`p-2 rounded-full transition-colors ${
-                isShuffle ? 'text-emerald-400' : 'text-neutral-400 hover:text-white'
+                isShuffle ? 'text-blue-400' : 'text-neutral-400 hover:text-white'
               }`}
               title="Shuffle"
             >
@@ -781,7 +738,7 @@ export const FullScreenPlayer: React.FC = () => {
             <button
               onClick={toggleRepeat}
               className={`p-2 rounded-full transition-colors ${
-                repeatMode !== 'off' ? 'text-emerald-400' : 'text-neutral-400 hover:text-white'
+                repeatMode !== 'off' ? 'text-blue-400' : 'text-neutral-400 hover:text-white'
               }`}
               title="Repeat"
             >
@@ -800,7 +757,7 @@ export const FullScreenPlayer: React.FC = () => {
             </button>
             <button
               onClick={togglePlayPause}
-              className="w-16 h-16 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black flex items-center justify-center shadow-xl shadow-emerald-500/40 transition-all hover:scale-105 active:scale-95"
+              className="w-16 h-16 rounded-full bg-blue-500 hover:bg-blue-400 text-black flex items-center justify-center shadow-xl shadow-blue-500/40 transition-all hover:scale-105 active:scale-95"
               title={isPlaying ? 'Pause' : 'Play'}
             >
               {isPlaying ? (
@@ -831,7 +788,7 @@ export const FullScreenPlayer: React.FC = () => {
               value={isMuted ? 0 : volume}
               onChange={(e) => setVolume(parseFloat(e.target.value))}
               style={{
-                background: `linear-gradient(to right, #10B981 0%, #10B981 ${
+                background: `linear-gradient(to right, #2563EB 0%, #2563EB ${
                   (isMuted ? 0 : volume) * 100
                 }%, rgba(255, 255, 255, 0.2) ${(isMuted ? 0 : volume) * 100}%, rgba(255, 255, 255, 0.2) 100%)`
               }}

@@ -1,8 +1,8 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Globe, ChevronDown, Check, Search, X } from 'lucide-react';
-import { SUPPORTED_LYRIC_LANGUAGES, LyricLanguage } from '@/lib/lyricsData';
+import { SUPPORTED_LYRIC_LANGUAGES } from '@/lib/lyricsData';
 
 interface LyricsControlsProps {
   language: string;
@@ -20,7 +20,7 @@ export const LyricsControls: React.FC<LyricsControlsProps> = ({
   fontSize,
   onIncreaseFontSize,
   onDecreaseFontSize,
-  variant = 'panel',
+  variant: _variant = 'panel',
   className = '',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -89,10 +89,10 @@ export const LyricsControls: React.FC<LyricsControlsProps> = ({
             setIsOpen(!isOpen);
             setSearchQuery('');
           }}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white/10 hover:border-emerald-500/40 text-white font-medium transition-all shadow-sm group"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white/10 hover:border-blue-500/40 text-white font-medium transition-all shadow-sm group"
           title="Change lyrics language"
         >
-          <span className="w-5 h-4 rounded bg-neutral-800 border border-white/10 flex items-center justify-center text-[9px] font-mono font-bold text-emerald-400">
+          <span className="w-5 h-4 rounded bg-neutral-800 border border-white/10 flex items-center justify-center text-[9px] font-mono font-bold text-blue-400">
             {currentLang.code.toUpperCase()}
           </span>
           <span className="truncate max-w-[100px] sm:max-w-[130px] font-semibold text-xs">
@@ -100,7 +100,7 @@ export const LyricsControls: React.FC<LyricsControlsProps> = ({
           </span>
           <ChevronDown
             className={`w-3.5 h-3.5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${
-              isOpen ? 'rotate-180 text-emerald-400' : ''
+              isOpen ? 'rotate-180 text-blue-400' : ''
             }`}
           />
         </button>
@@ -110,10 +110,10 @@ export const LyricsControls: React.FC<LyricsControlsProps> = ({
             {/* Header with Title and Language Count */}
             <div className="px-3 pb-2 border-b border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-2 text-white">
-                <Globe className="w-4 h-4 text-emerald-400" />
+                <Globe className="w-4 h-4 text-blue-400" />
                 <span className="font-bold text-xs">All Languages</span>
               </div>
-              <span className="text-[10px] text-emerald-400 font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/20">
+              <span className="text-[10px] text-blue-400 font-bold px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/20">
                 {SUPPORTED_LYRIC_LANGUAGES.length} Available
               </span>
             </div>
@@ -128,7 +128,7 @@ export const LyricsControls: React.FC<LyricsControlsProps> = ({
                   placeholder="Search language (e.g. Spanish, Tagalog, 日本語)..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-neutral-900/90 border border-white/10 rounded-xl pl-8 pr-7 py-1.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500/60 transition-colors"
+                  className="w-full bg-neutral-900/90 border border-white/10 rounded-xl pl-8 pr-7 py-1.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500/60 transition-colors"
                 />
                 {searchQuery && (
                   <button
@@ -158,7 +158,7 @@ export const LyricsControls: React.FC<LyricsControlsProps> = ({
                       }}
                       className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left text-xs transition-colors my-0.5 ${
                         isSelected
-                          ? 'bg-emerald-500/15 text-emerald-400 font-semibold'
+                          ? 'bg-blue-500/15 text-blue-400 font-semibold'
                           : 'text-neutral-300 hover:bg-white/10 hover:text-white'
                       }`}
                     >
@@ -175,7 +175,7 @@ export const LyricsControls: React.FC<LyricsControlsProps> = ({
                           </div>
                         </div>
                       </div>
-                      {isSelected && <Check className="w-4 h-4 text-emerald-400 shrink-0 ml-2" />}
+                      {isSelected && <Check className="w-4 h-4 text-blue-400 shrink-0 ml-2" />}
                     </button>
                   );
                 })

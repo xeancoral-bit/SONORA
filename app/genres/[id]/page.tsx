@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, use, useMemo } from 'react';
 import { Song, Album, Artist, Genre } from '@/lib/types';
@@ -128,7 +128,7 @@ export default function GenreDetailPage({ params }: { params: Promise<{ id: stri
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Music className="w-5 h-5 text-emerald-400" />
+            <Music className="w-5 h-5 text-blue-400" />
             <h3 className="text-xl font-bold text-white">Tracks in {genre.name}</h3>
             <span className="text-xs font-medium text-neutral-400 ml-1">
               ({filteredSongs.length} {filteredSongs.length === 1 ? 'song' : 'songs'})
@@ -147,7 +147,7 @@ export default function GenreDetailPage({ params }: { params: Promise<{ id: stri
                   setSearchQuery(e.target.value);
                   setVisibleCount(BATCH_SIZE);
                 }}
-                className="w-full pl-9 pr-3 py-1.5 bg-neutral-900 border border-white/10 rounded-full text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500 transition-colors"
+                className="w-full pl-9 pr-3 py-1.5 bg-neutral-900 border border-white/10 rounded-full text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500 transition-colors"
               />
             </div>
 
@@ -192,7 +192,7 @@ export default function GenreDetailPage({ params }: { params: Promise<{ id: stri
                   onClick={handleLoadMore}
                   className="px-6 py-2.5 rounded-full bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-semibold border border-white/10 transition-all hover:scale-105 active:scale-95 inline-flex items-center gap-2 cursor-pointer shadow-lg"
                 >
-                  <ChevronDown className="w-4 h-4 text-emerald-400" />
+                  <ChevronDown className="w-4 h-4 text-blue-400" />
                   Load More ({displayedSongs.length} of {filteredSongs.length})
                 </button>
               </div>

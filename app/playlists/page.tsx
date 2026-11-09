@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { PlaylistCard } from '@/components/ui/PlaylistCard';
@@ -23,7 +23,7 @@ export default function PlaylistsPage() {
     <div className="space-y-8 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-2 text-emerald-400 mb-2">
+          <div className="flex items-center gap-2 text-blue-400 mb-2">
             <ListMusic className="w-6 h-6" />
             <span className="text-xs font-bold uppercase tracking-wider">Library</span>
           </div>
@@ -33,7 +33,7 @@ export default function PlaylistsPage() {
 
         <button
           onClick={() => setIsCreateOpen(true)}
-          className="px-5 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/25 transition-all hover:scale-105 active:scale-95"
+          className="px-5 py-2.5 rounded-full bg-blue-500 hover:bg-blue-400 text-black font-semibold text-xs flex items-center gap-2 shadow-lg shadow-blue-500/25 transition-all hover:scale-105 active:scale-95"
         >
           <Plus className="w-4 h-4" />
           Create Playlist

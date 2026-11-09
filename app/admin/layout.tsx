@@ -1,15 +1,13 @@
-'use client';
+﻿'use client';
 
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
-import { ShieldAlert, AlertTriangle } from 'lucide-react';
+import { ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading, isAdmin } = useAuth();
-  const router = useRouter();
 
   if (isLoading) {
     return (
@@ -34,7 +32,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="pt-2 flex flex-col gap-2">
             <Link
               href="/"
-              className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs transition-colors"
+              className="w-full py-2.5 rounded-xl bg-blue-500 hover:bg-blue-400 text-black font-semibold text-xs transition-colors"
             >
               Return to Streaming Home
             </Link>

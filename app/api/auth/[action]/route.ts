@@ -172,6 +172,100 @@ export async function POST(
     return response;
   }
 
+  if (action === 'sso-sync') {
+    const { email, name, username, avatar, clerkId, provider } = body;
+    let rawEmail = (email || '').toString().trim().toLowerCase();
+
+    if (!rawEmail && (username || name)) {
+      const cleanPrefix = (username || name || 'user')
+        .toString()
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, '');
+      const domain = provider === 'facebook' ? 'facebook.com' : 'gmail.com';
+      rawEmail = `${cleanPrefix || 'user'}@${domain}`;
+    }
+
+    if (!rawEmail) {
+      return NextResponse.json({ error: 'Email or account identifier is required' }, { status: 400 });
+    }
+
+    let user = db.getUserByEmail(rawEmail);
+    if (!user) {
+      let baseUsername = (username || rawEmail.split('@')[0] || 'user')
+        .toString()
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, '');
+      if (!baseUsername) baseUsername = 'user';
+      let finalUsername = baseUsername;
+      let counter = 1;
+      while (db.getUserByUsername(finalUsername)) {
+        finalUsername = `${baseUsername}${counter++}`;
+      }
+
+      user = {
+        id: clerkId || `user-${Date.now()}`,
+        name: (name || finalUsername).toString().trim(),
+        username: finalUsername,
+        email: rawEmail,
+        passwordHash: hashPassword(Math.random().toString(36) + Date.now().toString(36)),
+        role: 'user' as const,
+        avatar: avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(finalUsername)}`,
+        bio: 'Music lover on SONORA.',
+        favoriteGenres: ['genre-pop', 'genre-electronic'],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isActive: true,
+        preferences: {
+          autoplay: true,
+          audioQuality: 'high' as const,
+          crossfade: 2,
+          normalizeVolume: true,
+          explicitFilter: false,
+          theme: 'dark' as const
+        }
+      };
+      db.saveUser(user);
+
+      db.addNotification({
+        id: `notif-${Date.now()}`,
+        userId: user.id,
+        title: 'Welcome to SONORA!',
+        message: 'Explore millions of tracks, build your playlists, and follow your favorite artists.',
+        type: 'system',
+        link: '/browse',
+        isRead: false,
+        createdAt: new Date().toISOString()
+      });
+    }
+
+    const token = generateToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      username: user.username
+    });
+
+    const response = NextResponse.json({
+      success: true,
+      user: sanitizeUser(user),
+      token
+    });
+
+    response.cookies.set({
+      name: AUTH_COOKIE_NAME,
+      value: token,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7
+    });
+
+    return response;
+  }
+
   if (action === 'logout') {
     const response = NextResponse.json({ success: true, message: 'Logged out successfully' });
     response.cookies.set({

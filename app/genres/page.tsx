@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { GenreCard } from '@/components/ui/GenreCard';
@@ -29,7 +29,7 @@ export default function GenresPage() {
     <div className="space-y-8 max-w-7xl mx-auto pb-12">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2.5 text-emerald-400 mb-2">
+          <div className="flex items-center gap-2.5 text-blue-400 mb-2">
             <Layers className="w-6 h-6" />
             <span className="text-xs font-bold uppercase tracking-wider">Genres & Categories</span>
           </div>
@@ -47,7 +47,7 @@ export default function GenresPage() {
             placeholder="Search categories..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-neutral-900 border border-white/10 rounded-full text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500 transition-colors"
+            className="w-full pl-10 pr-4 py-2 bg-neutral-900 border border-white/10 rounded-full text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500 transition-colors"
           />
         </div>
       </div>
@@ -55,7 +55,7 @@ export default function GenresPage() {
       {isLoading ? (
         <div className="py-20 text-center text-sm text-neutral-400">Loading genres...</div>
       ) : displayedGenres.length === 0 ? (
-        <div className="py-20 text-center text-sm text-neutral-400">No categories found matching "{searchQuery}".</div>
+        <div className="py-20 text-center text-sm text-neutral-400">No categories found matching &quot;{searchQuery}&quot;.</div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {displayedGenres.map((genre) => (

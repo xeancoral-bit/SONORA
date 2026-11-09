@@ -247,7 +247,7 @@ export async function GET(req: NextRequest) {
 
     // Target duration from song metadata
     let targetDuration = durationParam;
-    let existingSong = songId ? db.getSongById(songId) : null;
+    const existingSong = songId ? db.getSongById(songId) : null;
     if (existingSong && existingSong.duration && !targetDuration) {
       targetDuration = existingSong.duration;
     }

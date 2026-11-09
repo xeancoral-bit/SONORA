@@ -38,25 +38,39 @@ export async function getCurrentUser(): Promise<User | null> {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get(COOKIE_NAME)?.value;
-    if (!token) return null;
+    if (token) {
+      const payload = verifyToken(token);
+      if (payload) {
+        let user: User | null | undefined = null;
+        if (payload.userId) {
+          user = db.getUserById(payload.userId);
+        }
+        if (!user && payload.email) {
+          user = db.getUserByEmail(payload.email);
+        }
+        if (!user && payload.username) {
+          user = db.getUserByUsername(payload.username);
+        }
 
-    const payload = verifyToken(token);
-    if (!payload) return null;
-
-    let user: User | null | undefined = null;
-    if (payload.userId) {
-      user = db.getUserById(payload.userId);
+        if (user && user.isActive) return user;
+      }
     }
-    if (!user && payload.email) {
-      user = db.getUserByEmail(payload.email);
-    }
-    if (!user && payload.username) {
-      user = db.getUserByUsername(payload.username);
+
+    // Secondary fallback: check Clerk's client session cookie (__session)
+    const clerkSession = cookieStore.get('__session')?.value;
+    if (clerkSession) {
+      const decoded = jwt.decode(clerkSession) as { sub?: string; email?: string } | null;
+      if (decoded?.sub) {
+        const userByClerk = db.getUserById(decoded.sub);
+        if (userByClerk && userByClerk.isActive) return userByClerk;
+      }
+      if (decoded?.email) {
+        const userByEmail = db.getUserByEmail(decoded.email);
+        if (userByEmail && userByEmail.isActive) return userByEmail;
+      }
     }
 
-    if (!user || !user.isActive) return null;
-
-    return user;
+    return null;
   } catch {
     return null;
   }
@@ -79,8 +93,7 @@ export async function requireAdmin(): Promise<User> {
 }
 
 export function sanitizeUser(user: User): Omit<User, 'passwordHash'> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { passwordHash, ...sanitized } = user;
+  const { passwordHash: _passwordHash, ...sanitized } = user;
   return sanitized;
 }
 

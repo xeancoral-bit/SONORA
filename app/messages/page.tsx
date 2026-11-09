@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
@@ -35,7 +35,7 @@ import {
 import Link from 'next/link';
 
 const CATEGORIES: { id: SupportCategory; label: string; icon: any; color: string }[] = [
-  { id: 'music_request', label: 'Music Request', icon: Music, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+  { id: 'music_request', label: 'Music Request', icon: Music, color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
   { id: 'issue_report', label: 'Report an Issue', icon: AlertTriangle, color: 'text-rose-400 bg-rose-500/10 border-rose-500/20' },
   { id: 'account_support', label: 'Account Support', icon: UserCheck, color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
   { id: 'feedback', label: 'Feedback & Suggestion', icon: Lightbulb, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
@@ -274,7 +274,7 @@ export default function MessagesPage() {
   if (isAuthLoading) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3 text-neutral-400 animate-in fade-in">
-        <RefreshCw className="w-6 h-6 animate-spin text-emerald-400" />
+        <RefreshCw className="w-6 h-6 animate-spin text-blue-400" />
         <p className="text-sm font-medium">Loading your secure support messages...</p>
       </div>
     );
@@ -284,7 +284,7 @@ export default function MessagesPage() {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-[#141414] border border-white/10 rounded-3xl p-8 text-center space-y-4 shadow-2xl">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
+          <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center mx-auto">
             <MessageSquare className="w-7 h-7" />
           </div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Private Support Messages</h2>
@@ -294,7 +294,7 @@ export default function MessagesPage() {
           <div className="pt-2 flex flex-col gap-2">
             <Link
               href="/auth/login"
-              className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs transition-colors"
+              className="w-full py-2.5 rounded-xl bg-blue-500 hover:bg-blue-400 text-black font-semibold text-xs transition-colors"
             >
               Sign In to Sonora
             </Link>
@@ -318,7 +318,7 @@ export default function MessagesPage() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-                <MessageSquare className="w-6 h-6 text-emerald-400" />
+                <MessageSquare className="w-6 h-6 text-blue-400" />
                 Messages
               </h1>
               {conversation?.status === 'waiting_admin' && (
@@ -327,7 +327,7 @@ export default function MessagesPage() {
                 </span>
               )}
               {conversation?.status === 'resolved' && (
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-400">
                   Resolved
                 </span>
               )}
@@ -342,17 +342,17 @@ export default function MessagesPage() {
             <div
               className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold select-none backdrop-blur-md transition-all ${
                 adminStatus.isOnline
-                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.15)]'
+                  ? 'bg-blue-500/10 border-blue-500/30 text-blue-400 shadow-[0_0_12px_rgba(16,185,129,0.15)]'
                   : 'bg-neutral-800/80 border-neutral-700 text-neutral-400'
               }`}
             >
               <span className="relative flex h-2.5 w-2.5">
                 {adminStatus.isOnline && (
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                 )}
                 <span
                   className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                    adminStatus.isOnline ? 'bg-emerald-500' : 'bg-neutral-500'
+                    adminStatus.isOnline ? 'bg-blue-500' : 'bg-neutral-500'
                   }`}
                 ></span>
               </span>
@@ -366,7 +366,7 @@ export default function MessagesPage() {
                 className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 text-xs text-neutral-300 hover:text-white border border-white/10 flex items-center gap-1.5 transition-all"
                 title="Submit a music request"
               >
-                <Music className="w-3.5 h-3.5 text-emerald-400" />
+                <Music className="w-3.5 h-3.5 text-blue-400" />
                 <span>Request Music</span>
               </button>
               <button
@@ -383,7 +383,7 @@ export default function MessagesPage() {
 
         {/* Informative Status Banner */}
         <div className="mt-3 pt-3 border-t border-white/5 flex items-start gap-2 text-xs text-neutral-400">
-          <Info className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />
+          <Info className="w-4 h-4 shrink-0 text-blue-400 mt-0.5" />
           {adminStatus.isOnline ? (
             <p>
               <strong className="text-white">SONORA Administrator is online.</strong> You can send a message and receive a direct response from the administrator.
@@ -402,13 +402,13 @@ export default function MessagesPage() {
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 select-text">
           {isLoading ? (
             <div className="h-full flex flex-col items-center justify-center gap-2 text-neutral-500">
-              <RefreshCw className="w-6 h-6 animate-spin text-emerald-400" />
+              <RefreshCw className="w-6 h-6 animate-spin text-blue-400" />
               <span className="text-xs">Loading conversation history...</span>
             </div>
           ) : messages.length === 0 ? (
             /* Welcome Screen / Empty State */
             <div className="h-full flex flex-col items-center justify-center text-center p-4 sm:p-8 max-w-lg mx-auto">
-              <div className="w-16 h-16 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/10">
+              <div className="w-16 h-16 rounded-3xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center mb-4 shadow-lg shadow-blue-500/10">
                 <Sparkles className="w-8 h-8" />
               </div>
               <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">How can we help?</h2>
@@ -420,13 +420,13 @@ export default function MessagesPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full mt-6">
                 <button
                   onClick={() => setIsMusicModalOpen(true)}
-                  className="flex items-center gap-3 p-3 rounded-2xl bg-[#181818] border border-white/10 hover:border-emerald-500/40 text-left transition-all group hover:-translate-y-0.5 cursor-pointer"
+                  className="flex items-center gap-3 p-3 rounded-2xl bg-[#181818] border border-white/10 hover:border-blue-500/40 text-left transition-all group hover:-translate-y-0.5 cursor-pointer"
                 >
-                  <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20 transition-colors">
+                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 group-hover:bg-blue-500/20 transition-colors">
                     <Music className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-white group-hover:text-emerald-400 transition-colors">🎵 Request Music</h4>
+                    <h4 className="text-xs font-bold text-white group-hover:text-blue-400 transition-colors">🎵 Request Music</h4>
                     <p className="text-[11px] text-neutral-500">Ask for songs, albums, or artists</p>
                   </div>
                 </button>
@@ -519,7 +519,7 @@ export default function MessagesPage() {
                   <div
                     className={`max-w-[85%] sm:max-w-[75%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed shadow-lg whitespace-pre-line ${
                       isUser
-                        ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-black font-semibold rounded-tr-sm shadow-emerald-900/20'
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-black font-semibold rounded-tr-sm shadow-blue-900/20'
                         : isAI
                         ? 'bg-[#18181c] border border-cyan-500/20 text-neutral-200 rounded-tl-sm shadow-black/40'
                         : 'bg-[#1e1c18] border border-amber-500/30 text-neutral-100 rounded-tl-sm shadow-black/40'
@@ -615,7 +615,7 @@ export default function MessagesPage() {
                     : 'The administrator is offline. The SONORA Support Assistant can help with common questions…'
                 }
                 rows={2}
-                className="w-full bg-[#1e1e1e] border border-white/10 focus:border-emerald-500/50 rounded-2xl px-4 py-3 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 resize-none transition-all"
+                className="w-full bg-[#1e1e1e] border border-white/10 focus:border-blue-500/50 rounded-2xl px-4 py-3 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50 resize-none transition-all"
               />
             </div>
 
@@ -635,7 +635,7 @@ export default function MessagesPage() {
                 <button
                   type="button"
                   onClick={() => setIsMusicModalOpen(true)}
-                  className="sm:hidden p-2 rounded-xl bg-white/5 text-emerald-400 border border-white/10"
+                  className="sm:hidden p-2 rounded-xl bg-white/5 text-blue-400 border border-white/10"
                   title="Request Music"
                 >
                   <Music className="w-4 h-4" />
@@ -652,7 +652,7 @@ export default function MessagesPage() {
                 <button
                   type="submit"
                   disabled={!inputMessage.trim() || isSending}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:hover:bg-emerald-500 text-black font-bold text-xs transition-all active:scale-95 shadow-md shadow-emerald-500/20 cursor-pointer"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-400 disabled:opacity-40 disabled:hover:bg-blue-500 text-black font-bold text-xs transition-all active:scale-95 shadow-md shadow-blue-500/20 cursor-pointer"
                 >
                   {isSending ? (
                     <>
@@ -678,7 +678,7 @@ export default function MessagesPage() {
           <div className="max-w-md w-full bg-[#181818] border border-white/10 rounded-3xl p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
+                <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400">
                   <Music className="w-5 h-5" />
                 </div>
                 <div>
@@ -697,7 +697,7 @@ export default function MessagesPage() {
             <form onSubmit={handleSubmitMusicRequest} className="space-y-3">
               <div>
                 <label className="block text-xs font-semibold text-neutral-300 mb-1">
-                  Song Title <span className="text-emerald-400">*</span>
+                  Song Title <span className="text-blue-400">*</span>
                 </label>
                 <input
                   type="text"
@@ -705,13 +705,13 @@ export default function MessagesPage() {
                   placeholder="e.g. Espresso, Birds of a Feather"
                   value={mrTitle}
                   onChange={(e) => setMrTitle(e.target.value)}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500/60"
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500/60"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-neutral-300 mb-1">
-                  Artist Name <span className="text-emerald-400">*</span>
+                  Artist Name <span className="text-blue-400">*</span>
                 </label>
                 <input
                   type="text"
@@ -719,7 +719,7 @@ export default function MessagesPage() {
                   placeholder="e.g. Sabrina Carpenter, Billie Eilish"
                   value={mrArtist}
                   onChange={(e) => setMrArtist(e.target.value)}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500/60"
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500/60"
                 />
               </div>
 
@@ -732,7 +732,7 @@ export default function MessagesPage() {
                   placeholder="e.g. Short n' Sweet"
                   value={mrAlbum}
                   onChange={(e) => setMrAlbum(e.target.value)}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500/60"
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500/60"
                 />
               </div>
 
@@ -745,7 +745,7 @@ export default function MessagesPage() {
                   placeholder="Provide YouTube link or version details (acoustic, live, etc.)"
                   value={mrNote}
                   onChange={(e) => setMrNote(e.target.value)}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500/60 resize-none"
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500/60 resize-none"
                 />
               </div>
 
@@ -760,7 +760,7 @@ export default function MessagesPage() {
                 <button
                   type="submit"
                   disabled={mrSubmitting || !mrTitle.trim() || !mrArtist.trim()}
-                  className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 text-black font-bold text-xs transition-colors flex items-center gap-1.5"
+                  className="px-5 py-2 rounded-xl bg-blue-500 hover:bg-blue-400 disabled:opacity-40 text-black font-bold text-xs transition-colors flex items-center gap-1.5"
                 >
                   {mrSubmitting ? 'Submitting...' : 'Submit Music Request'}
                 </button>

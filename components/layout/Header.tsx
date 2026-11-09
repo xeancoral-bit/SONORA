@@ -4,16 +4,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import {
-  ChevronLeft,
-  ChevronRight,
   Search,
   Bell,
   User,
   Shield,
-  ShieldAlert,
-  Sparkles,
   ExternalLink,
-  Check,
   Settings,
   LogOut,
   LayoutDashboard,
@@ -120,23 +115,6 @@ export const Header: React.FC = () => {
     <header className="sticky top-0 z-20 flex items-center justify-between px-6 py-3 bg-[#121212]/95 backdrop-blur-xl border-b border-white/5 gap-4">
       {/* Left: History nav & Search */}
       <div className="flex items-center gap-3 flex-1 max-w-xl">
-        <div className="hidden sm:flex items-center gap-1 shrink-0">
-          <button
-            onClick={() => router.back()}
-            className="w-8 h-8 rounded-full bg-black/60 border border-white/5 flex items-center justify-center text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
-            title="Go back"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => router.forward()}
-            className="w-8 h-8 rounded-full bg-black/60 border border-white/5 flex items-center justify-center text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
-            title="Go forward"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-
         {/* Global Search Bar */}
         <div className="relative flex-1">
           <form onSubmit={handleSearchSubmit} className="relative w-full">
@@ -196,7 +174,7 @@ export const Header: React.FC = () => {
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-white truncate group-hover:text-emerald-400 transition-colors">
+                        <span className="text-xs font-bold text-white truncate group-hover:text-blue-400 transition-colors">
                           {item.title}
                         </span>
                         <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-white/10 text-neutral-300 uppercase shrink-0">
@@ -206,7 +184,7 @@ export const Header: React.FC = () => {
                       <p className="text-[11px] text-neutral-400 truncate">{item.subtitle}</p>
                     </div>
                     {item.type === 'song' && (
-                      <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                         <Play className="w-3.5 h-3.5 fill-black text-black ml-0.5" />
                       </div>
                     )}
@@ -217,7 +195,7 @@ export const Header: React.FC = () => {
                     setShowSuggestions(false);
                     router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
                   }}
-                  className="mt-1 pt-2 border-t border-white/5 text-center text-xs font-semibold text-emerald-400 hover:text-emerald-300 p-1.5 cursor-pointer"
+                  className="mt-1 pt-2 border-t border-white/5 text-center text-xs font-semibold text-blue-400 hover:text-blue-300 p-1.5 cursor-pointer"
                 >
                   View all results for &quot;{searchQuery}&quot; &rarr;
                 </div>
@@ -238,7 +216,7 @@ export const Header: React.FC = () => {
           >
             <MessageSquare className="w-4 h-4" />
             {unreadMessages > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-emerald-500 text-[10px] font-bold text-black flex items-center justify-center shadow-lg shadow-emerald-500/50">
+              <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-blue-500 text-[10px] font-bold text-black flex items-center justify-center shadow-lg shadow-blue-500/50">
                 {unreadMessages > 9 ? '9+' : unreadMessages}
               </span>
             )}
@@ -257,7 +235,7 @@ export const Header: React.FC = () => {
           >
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-[10px] font-bold text-black flex items-center justify-center shadow-lg shadow-emerald-500/50">
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-500 text-[10px] font-bold text-black flex items-center justify-center shadow-lg shadow-blue-500/50">
                 {unreadCount}
               </span>
             )}
@@ -285,13 +263,13 @@ export const Header: React.FC = () => {
                         className={`p-2.5 rounded-xl border text-xs transition-colors cursor-pointer ${
                           notif.isRead
                             ? 'bg-neutral-900/40 border-transparent text-neutral-400'
-                            : 'bg-emerald-500/10 border-emerald-500/20 text-neutral-200'
+                            : 'bg-blue-500/10 border-blue-500/20 text-neutral-200'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <h5 className="font-semibold text-white">{notif.title}</h5>
                           {!notif.isRead && (
-                            <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 mt-1" />
+                            <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0 mt-1" />
                           )}
                         </div>
                         <p className="mt-1 text-neutral-400 leading-snug">{notif.message}</p>
@@ -299,7 +277,7 @@ export const Header: React.FC = () => {
                           <Link
                             href={notif.link}
                             onClick={() => setShowNotifs(false)}
-                            className="inline-flex items-center gap-1 text-[11px] text-emerald-400 hover:underline mt-2"
+                            className="inline-flex items-center gap-1 text-[11px] text-blue-400 hover:underline mt-2"
                           >
                             View details <ExternalLink className="w-3 h-3" />
                           </Link>
@@ -327,7 +305,7 @@ export const Header: React.FC = () => {
               <img
                 src={user.avatar}
                 alt={user.name}
-                className="w-7 h-7 rounded-full object-cover ring-1 ring-white/20 group-hover:ring-emerald-400 transition-all"
+                className="w-7 h-7 rounded-full object-cover ring-1 ring-white/20 group-hover:ring-blue-400 transition-all"
               />
               <span className="text-xs font-semibold text-white hidden sm:block max-w-[90px] truncate">
                 {user.name.split(' ')[0]}
@@ -359,7 +337,7 @@ export const Header: React.FC = () => {
                       <span className={`px-2 py-0.5 rounded-full font-bold uppercase text-[10px] ${
                         user.role === 'admin'
                           ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                          : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                          : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                       }`}>
                         {user.role}
                       </span>
@@ -378,7 +356,7 @@ export const Header: React.FC = () => {
                           }}
                           className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-colors ${
                             user.role === 'user'
-                              ? 'bg-emerald-500 text-black shadow-md'
+                              ? 'bg-blue-500 text-black shadow-md'
                               : 'text-neutral-400 hover:text-white'
                           }`}
                         >

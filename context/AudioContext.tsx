@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import { Song, SyncedLyricLine } from '@/lib/types';
 import { synthEngine } from '@/lib/audioSynth';
 import { extractYouTubeId } from '@/lib/urlUtils';
-import { getSyncedLyricsForSong, parseLrc } from '@/lib/lyricsService';
+import { parseLrc } from '@/lib/lyricsService';
 import { findActiveLyricIndex } from '@/hooks/useSyncedLyrics';
 
 export type RepeatMode = 'off' | 'one' | 'all';
@@ -197,6 +197,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
               height: '200',
               width: '200',
               videoId: '',
+              host: 'https://www.youtube-nocookie.com',
               playerVars: {
                 autoplay: 0,
                 controls: 0,
@@ -205,7 +206,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
                 rel: 0,
                 playsinline: 1,
                 enablejsapi: 1,
-                origin: window.location.origin
+                origin: typeof window !== 'undefined' ? window.location.origin : ''
               },
               events: {
                 onReady: (event: any) => {
@@ -424,6 +425,13 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   }, [isPlaying, currentTrack, currentTime]);
 
   const [activeSyncedLyrics, setActiveSyncedLyrics] = useState<SyncedLyricLine[]>([]);
+  // Mirror activeSyncedLyrics in a ref so the lyric-index effect can read the latest
+  // value without listing it as a dependency (prevents infinite re-render loop).
+  const activeSyncedLyricsRef = useRef<SyncedLyricLine[]>([]);
+  // Keep the ref in sync with state (runs synchronously after every render)
+  useEffect(() => {
+    activeSyncedLyricsRef.current = activeSyncedLyrics;
+  }, [activeSyncedLyrics]);
   const [activePlainLyrics, setActivePlainLyrics] = useState<string>('');
   const [hasSyncedLyrics, setHasSyncedLyrics] = useState<boolean>(false);
   const [isLyricsLoading, setIsLyricsLoading] = useState(false);
@@ -432,51 +440,73 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
 
   // Ref to track latest lyrics fetch request to avoid race conditions
   const lyricsFetchIdRef = useRef<number>(0);
-  // Ref to hold the identifier used for fetching (trackId or externalMediaId)
-  const currentLyricsIdRef = useRef<string>('');
+  const lyricsAttemptedForTrackIdRef = useRef<string | null>(null);
   const [lyricsRefreshCounter, setLyricsRefreshCounter] = useState(0);
 
   const refetchLyrics = useCallback(() => {
     setLyricsRefreshCounter((prev) => prev + 1);
   }, []);
 
-  // Auto-fetch if user opens lyrics panel and lyrics are not loaded yet
+  // Auto-fetch at most once per track if user opens lyrics panel and lyrics are not loaded yet
   useEffect(() => {
-    if (isLyricsOpen && currentTrack && activeSyncedLyrics.length === 0 && !activePlainLyrics && !isLyricsLoading) {
+    if (
+      isLyricsOpen &&
+      currentTrack &&
+      lyricsAttemptedForTrackIdRef.current !== currentTrack.id &&
+      activeSyncedLyrics.length === 0 &&
+      !activePlainLyrics &&
+      !isLyricsLoading
+    ) {
+      lyricsAttemptedForTrackIdRef.current = currentTrack.id;
       refetchLyrics();
     }
   }, [isLyricsOpen, currentTrack, activeSyncedLyrics.length, activePlainLyrics, isLyricsLoading, refetchLyrics]);
 
   // Fetch synced lyrics when track identifier, language, or refresh counter changes
   useEffect(() => {
+    if (currentTrack?.id) {
+      lyricsAttemptedForTrackIdRef.current = currentTrack.id;
+    }
     // Seed initial lyrics from track if available
-    const existingSynced =
-      Array.isArray(currentTrack?.syncedLyrics) && currentTrack!.syncedLyrics.length > 0
-        ? currentTrack!.syncedLyrics
-        : typeof currentTrack?.lyrics === 'string' && /\[\d{1,2}:\d{2}/.test(currentTrack.lyrics)
-        ? parseLrc(currentTrack.lyrics)
-        : Array.isArray(currentTrack?.lyrics) && (currentTrack!.lyrics as any).length > 0
-        ? (currentTrack!.lyrics as any)
+    // Use functional setters so React bails out when the value is unchanged — prevents
+    // infinite loop: setCurrentTime (YT poll) → useEffect[currentTime, activeSyncedLyrics]
+    // → setCurrentLyricIndex → re-render → activeSyncedLyrics reference changed → loop.
+    const rawSynced = currentTrack?.syncedLyrics;
+    const rawLyrics = currentTrack?.lyrics;
+
+    const existingSynced: SyncedLyricLine[] =
+      Array.isArray(rawSynced) && rawSynced.length > 0
+        ? rawSynced
+        : typeof rawLyrics === 'string' && /\[\d{1,2}:\d{2}/.test(rawLyrics)
+        ? parseLrc(rawLyrics)
+        : Array.isArray(rawLyrics) && (rawLyrics as any).length > 0
+        ? (rawLyrics as any)
         : [];
 
     const existingPlain =
-      typeof currentTrack?.lyrics === 'string' && currentTrack.lyrics.trim().length > 0
-        ? currentTrack.lyrics.replace(/\[\d{1,2}:\d{2}(?:[.:]\d{1,3})?\]/g, '').trim()
+      typeof rawLyrics === 'string' && rawLyrics.trim().length > 0
+        ? rawLyrics.replace(/\[\d{1,2}:\d{2}(?:[.:]\d{1,3})?\]/g, '').trim()
         : '';
 
     if (existingSynced.length > 0 && lyricsLanguage === 'en') {
-      setActiveSyncedLyrics(existingSynced);
+      // Stable reference check: only update state when content actually changed
+      setActiveSyncedLyrics((prev) =>
+        prev.length === existingSynced.length &&
+        prev.every((l, i) => l.time === existingSynced[i].time && l.text === existingSynced[i].text)
+          ? prev
+          : existingSynced
+      );
       setHasSyncedLyrics(true);
-      setActivePlainLyrics(existingPlain);
+      setActivePlainLyrics((prev) => (prev === existingPlain ? prev : existingPlain));
       setIsLyricsLoading(false);
     } else if (existingPlain && lyricsLanguage === 'en') {
-      setActiveSyncedLyrics([]);
+      setActiveSyncedLyrics((prev) => (prev.length === 0 ? prev : []));
       setHasSyncedLyrics(false);
-      setActivePlainLyrics(existingPlain);
+      setActivePlainLyrics((prev) => (prev === existingPlain ? prev : existingPlain));
       setIsLyricsLoading(false);
     } else {
-      setActiveSyncedLyrics([]);
-      setActivePlainLyrics('');
+      setActiveSyncedLyrics((prev) => (prev.length === 0 ? prev : []));
+      setActivePlainLyrics((prev) => (prev === '' ? prev : ''));
       setHasSyncedLyrics(false);
       setIsLyricsLoading(true);
     }
@@ -547,13 +577,15 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     };
   }, [lyricId, lyricsLanguage, lyricsRefreshCounter, currentTrack?.title, currentTrack?.artistName]);
 
-  // Update current lyric index based on real-time audio playback
+  // Update current lyric index based on real-time audio playback.
+  // Use the ref (not the state) so activeSyncedLyrics is NOT a dependency —
+  // this breaks the setState → useEffect → setState infinite loop.
   useEffect(() => {
-    const nextIdx = findActiveLyricIndex(activeSyncedLyrics, currentTime);
+    const nextIdx = findActiveLyricIndex(activeSyncedLyricsRef.current, currentTime);
     setCurrentLyricIndex((prev) => (prev !== nextIdx ? nextIdx : prev));
-  }, [currentTime, activeSyncedLyrics]);
+  }, [currentTime]);
 
-  const getYouTubeId = (track: Song): string | null => {
+  function getYouTubeId(track: Song): string | null {
     if (track.externalMediaId) return track.externalMediaId;
     if (track.sourcePlatform === 'youtube') {
       return extractYouTubeId(track.audioUrl || track.sourceUrl || '') || null;
@@ -562,9 +594,9 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       return extractYouTubeId(track.audioUrl) || null;
     }
     return null;
-  };
+  }
 
-  const startYouTubePolling = () => {
+  function startYouTubePolling() {
     if (ytPollTimerRef.current) clearInterval(ytPollTimerRef.current);
     ytPollTimerRef.current = setInterval(() => {
       if (ytPlayerRef.current && ytReadyRef.current) {
@@ -583,14 +615,14 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         } catch {}
       }
     }, 60);
-  };
+  }
 
-  const stopYouTubePolling = () => {
+  function stopYouTubePolling() {
     if (ytPollTimerRef.current) {
       clearInterval(ytPollTimerRef.current);
       ytPollTimerRef.current = null;
     }
-  };
+  }
 
   const playTrack = useCallback((track: Song, newQueue?: Song[]) => {
     stopSynth();
@@ -637,17 +669,29 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     }
 
     // 2. Immediate audio playback via direct audio stream (HTML5 Audio)
-    const audioSource = track.audioPath || track.audioUrl;
-    if (audioSource && audioRef.current) {
+    // Guard: only use HTML5 Audio for real direct audio files — never for YouTube/SoundCloud URLs
+    const rawAudioSource = track.audioPath || track.audioUrl || '';
+    const isDirectAudioSource =
+      rawAudioSource.length > 0 &&
+      !rawAudioSource.includes('youtube.com') &&
+      !rawAudioSource.includes('youtu.be') &&
+      !rawAudioSource.includes('soundcloud.com');
+
+    if (isDirectAudioSource && audioRef.current) {
       if (ytPlayerRef.current && ytReadyRef.current && typeof ytPlayerRef.current.stopVideo === 'function') {
         try { ytPlayerRef.current.stopVideo(); } catch {}
       }
-      audioRef.current.src = audioSource;
+      audioRef.current.src = rawAudioSource;
       audioRef.current.play().then(() => {
         setIsPlaying(true);
       }).catch((e) => {
         console.warn('HTML5 Audio playback initiated:', e);
       });
+    } else if (!isDirectAudioSource && audioRef.current) {
+      // No playable direct source — clear previous audio and wait for YouTube resolve
+      audioRef.current.pause();
+      audioRef.current.src = '';
+      setIsPlaying(true); // show playing state optimistically while YT resolves
     }
 
     // 3. Resolve official authorized studio recording in background to connect full-length YouTube master
@@ -724,13 +768,21 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       } catch {}
     }
 
+    // Fallback for YT tracks when player not yet ready: re-trigger pending load
+    if (ytId && !ytReadyRef.current) {
+      pendingYtVideoIdRef.current = ytId;
+      setIsPlaying((prev) => !prev);
+      return;
+    }
+
     if (isPlaying) {
       if (audioRef.current) {
         audioRef.current.pause();
       }
       setIsPlaying(false);
     } else {
-      if (audioRef.current && currentTrack.uploadType === 'file') {
+      // Allow replay for both 'file' and direct-URL audio sources
+      if (audioRef.current && audioRef.current.src && audioRef.current.src !== window.location.href) {
         audioRef.current.play().catch(console.error);
         setIsPlaying(true);
       }
@@ -810,7 +862,9 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     }
   }, [repeatMode, currentTrack, playTrack, nextTrack]);
 
-  handleTrackEndedRef.current = handleTrackEnded;
+  useEffect(() => {
+    handleTrackEndedRef.current = handleTrackEnded;
+  }, [handleTrackEnded]);
 
   const setVolume = (vol: number) => {
     const clamped = Math.max(0, Math.min(1, vol));

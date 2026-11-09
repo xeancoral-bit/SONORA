@@ -218,7 +218,7 @@ function syncMissingAlbums(data: DatabaseSchema): boolean {
     const aLower = (song.artistName || '').trim().toLowerCase();
     const artistTitleKey = `${aLower}::${tLower}`;
 
-    let matched =
+    const matched =
       (aLower ? artistTitleMap.get(artistTitleKey) : null) ||
       (cleanAlbumId ? albumIdMap.get(cleanAlbumId) : null) ||
       albumTitleMap.get(tLower) ||

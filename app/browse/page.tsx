@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { GenreCard } from '@/components/ui/GenreCard';
@@ -20,7 +20,7 @@ export default function BrowsePage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       <div>
-        <div className="flex items-center gap-2.5 text-emerald-400 mb-2">
+        <div className="flex items-center gap-2.5 text-blue-400 mb-2">
           <Compass className="w-6 h-6" />
           <span className="text-xs font-bold uppercase tracking-wider">Discover Music</span>
         </div>

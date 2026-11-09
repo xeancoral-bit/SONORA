@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
-import { ExternalLink, X } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { Youtube } from '@/components/ui/icons';
 
 interface YouTubePlayerProps {
@@ -36,7 +36,8 @@ export function YouTubePlayer({
     setIsVisible(isPlaying);
   }, [isPlaying]);
 
-  const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=${isPlaying ? 1 : 0}&rel=0&enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`;
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=${isPlaying ? 1 : 0}&rel=0&playsinline=1&enablejsapi=0${origin ? `&origin=${encodeURIComponent(origin)}` : ''}`;
 
   return (
     <div className={`relative ${className}`}>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
@@ -13,13 +13,13 @@ interface GenreFormModalProps {
 }
 
 const colorPresets = [
-  { name: 'Emerald / Teal', color: 'from-emerald-500 to-teal-800', accent: '#10B981' },
+  { name: 'Emerald / Teal', color: 'from-blue-500 to-blue-800', accent: '#2563EB' },
   { name: 'Cyan / Blue', color: 'from-cyan-500 to-blue-700', accent: '#06B6D4' },
   { name: 'Pink / Rose', color: 'from-pink-500 to-rose-700', accent: '#EC4899' },
   { name: 'Purple / Indigo', color: 'from-purple-500 to-indigo-800', accent: '#8B5CF6' },
   { name: 'Amber / Red', color: 'from-amber-600 to-red-800', accent: '#F59E0B' },
   { name: 'Orange / Amber', color: 'from-orange-500 to-amber-700', accent: '#F97316' },
-  { name: 'Lime / Green', color: 'from-lime-600 to-emerald-800', accent: '#84CC16' },
+  { name: 'Lime / Green', color: 'from-lime-600 to-blue-800', accent: '#84CC16' },
   { name: 'Slate / Dark', color: 'from-slate-600 to-zinc-900', accent: '#64748B' }
 ];
 
@@ -101,7 +101,7 @@ export const GenreFormModal: React.FC<GenreFormModalProps> = ({
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+            className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
           />
         </div>
 
@@ -135,7 +135,7 @@ export const GenreFormModal: React.FC<GenreFormModalProps> = ({
             type="url"
             value={coverImage}
             onChange={(e) => setCoverImage(e.target.value)}
-            className="w-full bg-neutral-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+            className="w-full bg-neutral-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
           />
         </div>
 
@@ -147,7 +147,7 @@ export const GenreFormModal: React.FC<GenreFormModalProps> = ({
             rows={2}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full bg-neutral-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 resize-none"
+            className="w-full bg-neutral-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500 resize-none"
           />
         </div>
 
@@ -162,7 +162,7 @@ export const GenreFormModal: React.FC<GenreFormModalProps> = ({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-6 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs shadow-lg shadow-emerald-500/25"
+            className="px-6 py-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-black font-semibold text-xs shadow-lg shadow-blue-500/25"
           >
             {isSubmitting ? 'Saving...' : 'Save Genre'}
           </button>

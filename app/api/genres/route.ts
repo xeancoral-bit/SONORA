@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { db, initDb } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { Genre } from '@/lib/types';
@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
       id: `genre-${name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
       name: name.trim(),
       slug: slug || name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-      color: color || 'from-emerald-600 to-teal-900',
-      accentColor: accentColor || '#10B981',
+      color: color || 'from-blue-600 to-blue-900',
+      accentColor: accentColor || '#2563EB',
       coverImage: coverImage || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80',
       description: description || ''
     };

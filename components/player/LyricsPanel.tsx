@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useRef } from 'react';
 import { useAudio } from '@/context/AudioContext';
@@ -22,7 +22,6 @@ export const LyricsPanel: React.FC = () => {
     decreaseLyricsFontSize,
     activeSyncedLyrics,
     activePlainLyrics,
-    hasSyncedLyrics,
     isLyricsLoading,
     refetchLyrics,
   } = useAudio();
@@ -101,12 +100,12 @@ export const LyricsPanel: React.FC = () => {
     <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[420px] bg-[#111111]/95 backdrop-blur-2xl border-l border-white/10 shadow-2xl p-5 flex flex-col animate-in slide-in-from-right duration-300">
       {/* Header */}
       <div className="flex items-center justify-between pb-3.5 border-b border-white/10">
-        <div className="flex items-center gap-2 text-emerald-400">
+        <div className="flex items-center gap-2 text-blue-400">
           <span className="relative flex h-2 w-2">
-            <span className={`${isPlaying ? 'animate-ping' : ''} absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75`}></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            <span className={`${isPlaying ? 'animate-ping' : ''} absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75`}></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
           </span>
-          <Mic2 className="w-4 h-4 text-emerald-400" />
+          <Mic2 className="w-4 h-4 text-blue-400" />
           <h3 className="font-bold text-sm text-white tracking-wider uppercase font-mono">Live Lyrics</h3>
         </div>
         <button
@@ -130,7 +129,7 @@ export const LyricsPanel: React.FC = () => {
           <p className="text-xs text-neutral-400 truncate mt-0.5">{currentTrack.artistName}</p>
         </div>
         {totalLines > 0 && (
-          <span className="text-[10px] font-mono font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full shrink-0">
+          <span className="text-[10px] font-mono font-semibold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full shrink-0">
             {activeIndex >= 0 ? `Line ${currentLineNumber} of ${totalLines}` : `Intro • 1 of ${totalLines}`}
           </span>
         )}
@@ -164,10 +163,10 @@ export const LyricsPanel: React.FC = () => {
 
         {/* Instrumental Intro indicator when vocals haven't started yet */}
         {isIntro && activeSyncedLyrics && activeSyncedLyrics.length > 0 && (
-          <div className="flex items-center justify-center py-2 px-3 text-[11px] font-mono text-emerald-400/90 gap-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl mb-3 animate-in fade-in duration-300 select-none">
+          <div className="flex items-center justify-center py-2 px-3 text-[11px] font-mono text-blue-400/90 gap-1.5 bg-blue-500/10 border border-blue-500/20 rounded-xl mb-3 animate-in fade-in duration-300 select-none">
             <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-400"></span>
             </span>
             <span>♪ Intro • Vocals start at {formatTime(activeSyncedLyrics[0].time)}</span>
           </div>
@@ -175,7 +174,7 @@ export const LyricsPanel: React.FC = () => {
 
         {isLyricsLoading ? (
           <div className="py-20 flex flex-col items-center justify-center gap-3 text-neutral-400">
-            <Loader2 className="w-7 h-7 animate-spin text-emerald-400" />
+            <Loader2 className="w-7 h-7 animate-spin text-blue-400" />
             <p className="text-xs font-medium tracking-wide">Syncing lyrics with audio...</p>
           </div>
         ) : activeSyncedLyrics && activeSyncedLyrics.length > 0 ? (
@@ -193,7 +192,7 @@ export const LyricsPanel: React.FC = () => {
                 }}
                 className={`group/line relative flex items-center justify-between gap-3 p-2.5 rounded-xl cursor-pointer transition-all duration-500 ease-out ${
                   isCurrent
-                    ? 'bg-gradient-to-r from-emerald-500/15 via-emerald-500/5 to-transparent border border-emerald-500/30 shadow-md scale-[1.02] origin-left'
+                    ? 'bg-gradient-to-r from-blue-500/15 via-blue-500/5 to-transparent border border-blue-500/30 shadow-md scale-[1.02] origin-left'
                     : isPast
                     ? 'opacity-35 hover:opacity-80 hover:bg-white/5'
                     : 'opacity-55 hover:opacity-90 hover:bg-white/5'
@@ -204,7 +203,7 @@ export const LyricsPanel: React.FC = () => {
                   <div
                     className={`w-1 h-5 rounded-full transition-all duration-500 shrink-0 ${
                       isCurrent
-                        ? 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)] opacity-100 scale-y-100'
+                        ? 'bg-blue-400 shadow-[0_0_10px_rgba(52,211,153,0.9)] opacity-100 scale-y-100'
                         : 'opacity-0 scale-y-0'
                     }`}
                   />
@@ -224,10 +223,10 @@ export const LyricsPanel: React.FC = () => {
 
                 {/* Timestamp indicator */}
                 {isCurrent ? (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-300 bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 rounded-full shrink-0 shadow-sm animate-in fade-in zoom-in-95 duration-200 select-none">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-blue-300 bg-blue-500/20 border border-blue-500/40 px-2 py-0.5 rounded-full shrink-0 shadow-sm animate-in fade-in zoom-in-95 duration-200 select-none">
                     <span className="relative flex h-1.5 w-1.5">
-                      <span className={`${isPlaying ? 'animate-ping' : ''} absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75`}></span>
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400"></span>
+                      <span className={`${isPlaying ? 'animate-ping' : ''} absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75`}></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-400"></span>
                     </span>
                     {formatTime(line.time)}
                   </span>
@@ -242,7 +241,7 @@ export const LyricsPanel: React.FC = () => {
         ) : (activePlainLyrics || currentTrack.lyrics) ? (
           <div className="py-2 px-1 space-y-4 animate-in fade-in duration-300">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-mono text-neutral-400">
-              <Music className="w-3.5 h-3.5 text-emerald-400" />
+              <Music className="w-3.5 h-3.5 text-blue-400" />
               <span>Full Lyrics</span>
             </div>
             <div className="text-sm sm:text-base text-neutral-200 whitespace-pre-line leading-relaxed font-sans font-medium select-text">
@@ -259,7 +258,7 @@ export const LyricsPanel: React.FC = () => {
           </div>
         ) : (
           <div className="py-16 flex flex-col items-center justify-center text-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-emerald-400">
+            <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-blue-400">
               <Mic2 className="w-6 h-6" />
             </div>
             <div>
@@ -270,7 +269,7 @@ export const LyricsPanel: React.FC = () => {
             </div>
             <button
               onClick={() => refetchLyrics()}
-              className="mt-2 px-4 py-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-md active:scale-95 flex items-center gap-2 cursor-pointer"
+              className="mt-2 px-4 py-2 rounded-full bg-blue-500 hover:bg-blue-400 text-black text-xs font-bold transition-all shadow-md active:scale-95 flex items-center gap-2 cursor-pointer"
             >
               <Mic2 className="w-3.5 h-3.5" />
               Sync Lyrics Now

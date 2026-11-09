@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
@@ -268,7 +268,7 @@ export const SongFormModal: React.FC<SongFormModalProps> = ({
                       }}
                       className={`w-full bg-neutral-950 border rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-neutral-600 focus:outline-none font-mono transition-colors ${
                         urlCheckState === 'valid'
-                          ? 'border-emerald-500/50'
+                          ? 'border-blue-500/50'
                           : urlCheckState === 'invalid'
                           ? 'border-red-500/50'
                           : 'border-white/10 focus:border-amber-500/50'
@@ -291,7 +291,7 @@ export const SongFormModal: React.FC<SongFormModalProps> = ({
                   </button>
                 </div>
                 {urlCheckState === 'valid' && (
-                  <p className="text-[11px] text-emerald-400 flex items-center gap-1">
+                  <p className="text-[11px] text-blue-400 flex items-center gap-1">
                     <CheckCircle2 className="w-3 h-3" /> Valid — will be saved on submit
                   </p>
                 )}
@@ -305,7 +305,7 @@ export const SongFormModal: React.FC<SongFormModalProps> = ({
           </div>
         ) : (
           <div className="flex items-center gap-2 p-2.5 rounded-xl bg-neutral-900 border border-white/5 text-xs text-neutral-400 font-mono">
-            <FileCode className="w-4 h-4 text-emerald-400" />
+            <FileCode className="w-4 h-4 text-blue-400" />
             <span>File:</span>
             <span className="text-white font-bold truncate">{song.originalFilename || 'audio_file.mp3'}</span>
           </div>

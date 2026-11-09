@@ -42,3 +42,32 @@ export function getGreeting(): string {
   if (hour < 18) return 'Good Afternoon';
   return 'Good Evening';
 }
+
+// Hosts that block hotlinking — route through our image proxy
+const PROXY_REQUIRED_HOSTS = [
+  'cdn-images.dzcdn.net',
+  'e-cdns-images.dzcdn.net',
+  'is1-ssl.mzstatic.com',
+  'is2-ssl.mzstatic.com',
+  'is3-ssl.mzstatic.com',
+  'is4-ssl.mzstatic.com',
+  'is5-ssl.mzstatic.com',
+  'encrypted-tbn0.gstatic.com',
+];
+
+/**
+ * Returns a proxied URL for image sources that block direct hotlinking,
+ * otherwise returns the original URL unchanged.
+ */
+export function getProxiedImageUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    if (PROXY_REQUIRED_HOSTS.includes(parsed.hostname)) {
+      return `/api/image-proxy?url=${encodeURIComponent(url)}`;
+    }
+    return url;
+  } catch {
+    return null;
+  }
+}

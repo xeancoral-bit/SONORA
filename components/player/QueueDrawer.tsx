@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { useAudio } from '@/context/AudioContext';
@@ -24,7 +24,7 @@ export const QueueDrawer: React.FC = () => {
     <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-96 bg-[#121212]/95 backdrop-blur-2xl border-l border-white/10 shadow-2xl p-6 flex flex-col animate-in slide-in-from-right duration-300">
       {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-white/10">
-        <div className="flex items-center gap-2 text-emerald-400">
+        <div className="flex items-center gap-2 text-blue-400">
           <ListMusic className="w-5 h-5" />
           <h3 className="font-bold text-base text-white">Play Queue</h3>
         </div>
@@ -50,10 +50,10 @@ export const QueueDrawer: React.FC = () => {
         {/* Now Playing */}
         {currentTrack && (
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 block mb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-blue-400 block mb-2">
               Now Playing
             </span>
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
               <div className="relative w-12 h-12 rounded-lg overflow-hidden shrink-0">
                 <img
                   src={currentTrack.coverImage}
@@ -61,7 +61,7 @@ export const QueueDrawer: React.FC = () => {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                  <EqualizerAnimation isPlaying={isPlaying} color="bg-emerald-400" />
+                  <EqualizerAnimation isPlaying={isPlaying} color="bg-blue-400" />
                 </div>
               </div>
               <div className="flex-1 min-w-0">
@@ -113,7 +113,7 @@ export const QueueDrawer: React.FC = () => {
                     onClick={() => playTrack(track, queue.slice(idx + 1))}
                     className="flex-1 min-w-0 cursor-pointer"
                   >
-                    <h5 className="font-semibold text-xs text-white truncate group-hover:text-emerald-400 transition-colors">
+                    <h5 className="font-semibold text-xs text-white truncate group-hover:text-blue-400 transition-colors">
                       {track.title}
                     </h5>
                     <p className="text-[11px] text-neutral-400 truncate">{track.artistName}</p>

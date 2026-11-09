@@ -25,7 +25,7 @@ export interface SendEmailResult {
 export async function sendOtpEmail(
   toEmail: string,
   otpCode: string,
-  maskedEmail?: string
+  _maskedEmail?: string
 ): Promise<SendEmailResult> {
   const emailHtml = `
     <!DOCTYPE html>

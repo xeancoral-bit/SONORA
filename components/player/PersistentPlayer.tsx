@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -33,7 +33,6 @@ export const PersistentPlayer: React.FC = () => {
   const {
     currentTrack,
     isPlaying,
-    isResolving,
     currentTime,
     duration,
     volume,
@@ -42,7 +41,6 @@ export const PersistentPlayer: React.FC = () => {
     repeatMode,
     isLyricsOpen,
     isQueueOpen,
-    playTrack,
     togglePlayPause,
     seek,
     nextTrack,
@@ -94,7 +92,7 @@ export const PersistentPlayer: React.FC = () => {
               <div className="flex items-center gap-2">
                 <span
                   onClick={() => setIsFullScreen(true)}
-                  className="font-bold text-xs md:text-sm text-white truncate cursor-pointer hover:underline hover:text-emerald-400 transition-colors"
+                  className="font-bold text-xs md:text-sm text-white truncate cursor-pointer hover:underline hover:text-blue-400 transition-colors"
                 >
                   {currentTrack.title}
                 </span>
@@ -124,7 +122,7 @@ export const PersistentPlayer: React.FC = () => {
               <button
                 onClick={toggleShuffle}
                 className={`p-1.5 transition-colors hidden sm:block ${
-                  isShuffle ? 'text-emerald-400' : 'text-neutral-400 hover:text-white'
+                  isShuffle ? 'text-blue-400' : 'text-neutral-400 hover:text-white'
                 }`}
                 title="Shuffle"
               >
@@ -141,7 +139,7 @@ export const PersistentPlayer: React.FC = () => {
 
               <button
                 onClick={togglePlayPause}
-                className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black flex items-center justify-center shadow-lg shadow-emerald-500/30 transition-all hover:scale-105 active:scale-95"
+                className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-blue-500 hover:bg-blue-400 text-black flex items-center justify-center shadow-lg shadow-blue-500/30 transition-all hover:scale-105 active:scale-95"
                 title={isPlaying ? 'Pause' : 'Play'}
               >
                 {isPlaying ? (
@@ -162,7 +160,7 @@ export const PersistentPlayer: React.FC = () => {
               <button
                 onClick={toggleRepeat}
                 className={`p-1.5 transition-colors hidden sm:block ${
-                  repeatMode !== 'off' ? 'text-emerald-400' : 'text-neutral-400 hover:text-white'
+                  repeatMode !== 'off' ? 'text-blue-400' : 'text-neutral-400 hover:text-white'
                 }`}
                 title="Repeat mode"
               >
@@ -188,7 +186,7 @@ export const PersistentPlayer: React.FC = () => {
                   value={currentTime}
                   onChange={(e) => seek(parseFloat(e.target.value))}
                   style={{
-                    background: `linear-gradient(to right, #10B981 0%, #10B981 ${
+                    background: `linear-gradient(to right, #2563EB 0%, #2563EB ${
                       duration > 0 ? (currentTime / duration) * 100 : 0
                     }%, rgba(255, 255, 255, 0.18) ${
                       duration > 0 ? (currentTime / duration) * 100 : 0
@@ -209,7 +207,7 @@ export const PersistentPlayer: React.FC = () => {
             <button
               onClick={() => setIsLyricsOpen(!isLyricsOpen)}
               className={`p-2 rounded-lg transition-colors hidden md:block ${
-                isLyricsOpen ? 'text-emerald-400 bg-white/10' : 'text-neutral-400 hover:text-white'
+                isLyricsOpen ? 'text-blue-400 bg-white/10' : 'text-neutral-400 hover:text-white'
               }`}
               title="Lyrics"
             >
@@ -230,7 +228,7 @@ export const PersistentPlayer: React.FC = () => {
             <button
               onClick={() => setIsQueueOpen(!isQueueOpen)}
               className={`p-2 rounded-lg transition-colors hidden md:block ${
-                isQueueOpen ? 'text-emerald-400 bg-white/10' : 'text-neutral-400 hover:text-white'
+                isQueueOpen ? 'text-blue-400 bg-white/10' : 'text-neutral-400 hover:text-white'
               }`}
               title="Queue"
             >
@@ -257,7 +255,7 @@ export const PersistentPlayer: React.FC = () => {
                 value={isMuted ? 0 : volume}
                 onChange={(e) => setVolume(parseFloat(e.target.value))}
                 style={{
-                  background: `linear-gradient(to right, #10B981 0%, #10B981 ${
+                  background: `linear-gradient(to right, #2563EB 0%, #2563EB ${
                     (isMuted ? 0 : volume) * 100
                   }%, rgba(255, 255, 255, 0.18) ${(isMuted ? 0 : volume) * 100}%, rgba(255, 255, 255, 0.18) 100%)`
                 }}

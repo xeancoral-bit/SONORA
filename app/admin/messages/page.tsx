@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
@@ -7,15 +7,10 @@ import {
   MessageSquare,
   Send,
   Search,
-  Filter,
   CheckCircle2,
-  Clock,
-  AlertCircle,
   Bot,
   User,
   ShieldCheck,
-  ShieldAlert,
-  Sparkles,
   ArrowLeft,
   RefreshCw,
   Power,
@@ -24,8 +19,7 @@ import {
   Lightbulb,
   UserCheck,
   HelpCircle,
-  ExternalLink,
-  ChevronRight
+  ExternalLink
 } from 'lucide-react';
 import {
   SupportConversation,
@@ -36,7 +30,7 @@ import {
 } from '@/lib/types';
 
 const STATUS_BADGES: Record<ConversationStatus, { label: string; color: string; border: string; bg: string }> = {
-  new: { label: 'New', color: 'text-emerald-400', border: 'border-emerald-500/30', bg: 'bg-emerald-500/15' },
+  new: { label: 'New', color: 'text-blue-400', border: 'border-blue-500/30', bg: 'bg-blue-500/15' },
   unread: { label: 'Unread', color: 'text-amber-400', border: 'border-amber-500/30', bg: 'bg-amber-500/15' },
   ai_assisted: { label: 'AI Assisted', color: 'text-cyan-400', border: 'border-cyan-500/30', bg: 'bg-cyan-500/15' },
   waiting_admin: { label: 'Waiting for Admin', color: 'text-rose-400', border: 'border-rose-500/30', bg: 'bg-rose-500/15' },
@@ -53,7 +47,6 @@ const CATEGORY_LABELS: Record<SupportCategory, { label: string; icon: any }> = {
 };
 
 export default function AdminMessagesPage() {
-  const { user } = useAuth();
   const toast = useToast();
 
   const [conversations, setConversations] = useState<SupportConversation[]>([]);
@@ -233,10 +226,10 @@ export default function AdminMessagesPage() {
             <span className="text-neutral-400 font-medium">Your Status:</span>
             <span
               className={`inline-flex items-center gap-1.5 font-bold ${
-                adminStatus.isOnline ? 'text-emerald-400' : 'text-neutral-400'
+                adminStatus.isOnline ? 'text-blue-400' : 'text-neutral-400'
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${adminStatus.isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-neutral-500'}`} />
+              <span className={`w-2 h-2 rounded-full ${adminStatus.isOnline ? 'bg-blue-500 animate-pulse' : 'bg-neutral-500'}`} />
               {adminStatus.isOnline ? 'Online (Accepting Live Chats)' : 'Offline (AI Bot Handling)'}
             </span>
           </div>
@@ -247,7 +240,7 @@ export default function AdminMessagesPage() {
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 disabled:opacity-50 cursor-pointer ${
               adminStatus.isOnline
                 ? 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-neutral-700'
-                : 'bg-emerald-500 hover:bg-emerald-400 text-black shadow-emerald-500/20'
+                : 'bg-blue-500 hover:bg-blue-400 text-black shadow-blue-500/20'
             }`}
             title="Toggle whether users see you as Online or Offline"
           >
@@ -437,7 +430,7 @@ export default function AdminMessagesPage() {
                   {selectedConv.status !== 'resolved' ? (
                     <button
                       onClick={() => handleUpdateStatus(selectedConv.id, 'resolved')}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold transition-all active:scale-95 cursor-pointer"
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs font-semibold transition-all active:scale-95 cursor-pointer"
                       title="Mark ticket resolved"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" />
@@ -461,7 +454,6 @@ export default function AdminMessagesPage() {
                 {activeMessages.map((msg) => {
                   const isUser = msg.senderRole === 'user';
                   const isAI = msg.senderType === 'ai';
-                  const isAdmin = msg.senderType === 'admin';
 
                   return (
                     <div
@@ -472,7 +464,7 @@ export default function AdminMessagesPage() {
                       <div className="flex items-center gap-2 text-[11px] px-1">
                         {isUser ? (
                           <div className="flex items-center gap-1.5 text-neutral-300 font-bold">
-                            <User className="w-3.5 h-3.5 text-emerald-400" />
+                            <User className="w-3.5 h-3.5 text-blue-400" />
                             <span>{msg.senderName} (User)</span>
                           </div>
                         ) : isAI ? (

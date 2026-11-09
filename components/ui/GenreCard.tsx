@@ -9,13 +9,14 @@ interface GenreCardProps {
   genre: Genre;
 }
 
-/* Built-in image map for the 4 featured genres */
+/* Built-in image map for the featured genres */
 const GENRE_IMAGES: Record<string, string> = {
   'genre-pop':        '/genres/genre-pop.jpg',
   'genre-electronic': '/genres/genre-electronic.jpg',
   'genre-chill':      '/genres/genre-lofi.jpg',
   'genre-rnb':        '/genres/genre-rnb.jpg',
   'genre-classical':  '/genres/genre-classical.jpg',
+  'genre-opm':        'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80',
 };
 
 /* Accent glow colour per genre */
@@ -29,6 +30,7 @@ const GENRE_GLOW: Record<string, string> = {
   'genre-country':    'rgba(217,119,6,0.55)',
   'genre-latin':      'rgba(244,63,94,0.55)',
   'genre-blues':      'rgba(59,130,246,0.55)',
+  'genre-opm':        'rgba(245,158,11,0.65)',
 };
 
 export const GenreCard: React.FC<GenreCardProps> = ({ genre }) => {

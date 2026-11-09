@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { LucideIcon, TrendingUp } from 'lucide-react';
 import { formatNumber } from '@/lib/utils';
 
@@ -7,7 +7,7 @@ interface AdminStatsCardProps {
   value: number | string;
   icon: LucideIcon;
   subtitle?: string;
-  color?: string; // e.g. text-emerald-400
+  color?: string; // e.g. text-blue-400
 }
 
 export const AdminStatsCard: React.FC<AdminStatsCardProps> = ({
@@ -15,7 +15,7 @@ export const AdminStatsCard: React.FC<AdminStatsCardProps> = ({
   value,
   icon: Icon,
   subtitle,
-  color = 'text-emerald-400'
+  color = 'text-blue-400'
 }) => {
   return (
     <div className="p-5 rounded-2xl bg-[#141414] border border-white/5 hover:border-white/10 transition-all shadow-md flex items-center justify-between">
@@ -28,7 +28,7 @@ export const AdminStatsCard: React.FC<AdminStatsCardProps> = ({
         </h3>
         {subtitle && (
           <span className="text-[11px] text-neutral-500 mt-1 block flex items-center gap-1">
-            <TrendingUp className="w-3 h-3 text-emerald-400 inline" />
+            <TrendingUp className="w-3 h-3 text-blue-400 inline" />
             {subtitle}
           </span>
         )}

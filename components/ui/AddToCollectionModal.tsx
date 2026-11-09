@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Modal } from './Modal';
 import { Song, UserCollection } from '@/lib/types';
 import { useToast } from '@/context/ToastContext';
@@ -23,15 +23,8 @@ export const AddToCollectionModal: React.FC<AddToCollectionModalProps> = ({
   const [isCreating, setIsCreating] = useState(false);
   const toast = useToast();
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchCollections();
-    }
-  }, [isOpen]);
-
-  const fetchCollections = async () => {
+  const fetchCollections = useCallback(async () => {
     try {
-      setIsLoading(true);
       const res = await fetch('/api/collections');
       const data = await res.json();
       setCollections(data.collections || []);
@@ -40,7 +33,13 @@ export const AddToCollectionModal: React.FC<AddToCollectionModalProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchCollections();
+    }
+  }, [isOpen, fetchCollections]);
 
   const handleToggleSong = async (collection: UserCollection) => {
     if (!song) return;

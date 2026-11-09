@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { Play, Pause, Heart, Plus, ListPlus, Radio, MoreVertical } from 'lucide-react';
+import { Play, Pause } from 'lucide-react';
 import { Song } from '@/lib/types';
 import { useAudio } from '@/context/AudioContext';
 import { EqualizerAnimation } from '@/components/player/EqualizerAnimation';
-import { Youtube } from '@/components/ui/icons';
 
 interface SongCardProps {
   song: Song;
@@ -16,12 +15,11 @@ interface SongCardProps {
 export const SongCard: React.FC<SongCardProps> = ({
   song,
   playlistQueue,
-  onAddToPlaylist,
-  onAddToCollection
+  onAddToPlaylist: _onAddToPlaylist,
+  onAddToCollection: _onAddToCollection
 }) => {
-  const { currentTrack, isPlaying, playTrack, togglePlayPause, addToQueue } = useAudio();
+  const { currentTrack, isPlaying, playTrack, togglePlayPause } = useAudio();
   const isCurrent = currentTrack?.id === song.id;
-  const isYouTube = song.sourcePlatform === 'youtube' || Boolean(song.externalMediaId);
 
   const handlePlayClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -55,7 +53,7 @@ export const SongCard: React.FC<SongCardProps> = ({
         {/* Play / Pause button */}
         <button
           onClick={handlePlayClick}
-          className={`absolute right-3 bottom-3 w-11 h-11 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black flex items-center justify-center shadow-xl shadow-emerald-500/30 transition-all duration-300 hover:scale-110 active:scale-95 z-20 ${
+          className={`absolute right-3 bottom-3 w-11 h-11 rounded-full bg-blue-500 hover:bg-blue-400 text-black flex items-center justify-center shadow-xl shadow-blue-500/30 transition-all duration-300 hover:scale-110 active:scale-95 z-20 ${
             isCurrent ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0'
           }`}
           title={isCurrent && isPlaying ? 'Pause' : 'Play'}
@@ -80,7 +78,7 @@ export const SongCard: React.FC<SongCardProps> = ({
         <Link
           href={`/songs/${song.id}`}
           className={`font-semibold text-sm truncate hover:underline leading-snug ${
-            isCurrent ? 'text-emerald-400' : 'text-white'
+            isCurrent ? 'text-blue-400' : 'text-white'
           }`}
         >
           {song.title}

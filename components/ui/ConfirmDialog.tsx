@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Modal } from './Modal';
 import { AlertTriangle } from 'lucide-react';
 
@@ -49,7 +49,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all duration-200 ${
               isDestructive
                 ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/25'
-                : 'bg-emerald-500 hover:bg-emerald-400 text-black shadow-lg shadow-emerald-500/25'
+                : 'bg-blue-500 hover:bg-blue-400 text-black shadow-lg shadow-blue-500/25'
             }`}
           >
             {confirmText}

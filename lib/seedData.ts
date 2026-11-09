@@ -1,4 +1,4 @@
-import { User, Artist, Album, Song, Genre, Playlist, UserCollection, LikedSong, ListeningHistory, NotificationItem, AdminActivityLog, SystemSettings } from './types';
+﻿import { User, Artist, Album, Song, Genre, Playlist, UserCollection, LikedSong, ListeningHistory, NotificationItem, AdminActivityLog, SystemSettings } from './types';
 
 // Pre-computed bcrypt hashes to avoid synchronous hashing at module load time
 // Admin123! hashed with bcrypt saltRounds=10
@@ -7,6 +7,15 @@ export const ADMIN_PASSWORD_HASH = '$2b$10$GVUSSV5jrDwAl4162tZ3o.hTBo/tzsA6sPabf
 export const USER_PASSWORD_HASH = '$2b$10$hzkKpQhVStd0/OQPFG2dgOs2T2p4GwPKTOnXTHJphc55flz4Z/Mpi';
 
 export const initialGenres: Genre[] = [
+  {
+    id: 'genre-opm',
+    name: 'Pinoy Music (OPM)',
+    slug: 'opm',
+    color: 'from-blue-600 via-indigo-700 to-amber-600',
+    accentColor: '#F59E0B',
+    coverImage: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1000&auto=format&fit=crop&q=80',
+    description: 'The heart and soul of Philippine music across generations: classic Manila Sound, 90s/2000s Pinoy alternative rock anthems, teleserye & movie OSTs, and modern chart-topping hits.'
+  },
   {
     id: 'genre-pop',
     name: 'Pop',
@@ -29,8 +38,8 @@ export const initialGenres: Genre[] = [
     id: 'genre-chill',
     name: 'Lo-Fi & Chill',
     slug: 'chill',
-    color: 'from-emerald-500 to-teal-800',
-    accentColor: '#10B981',
+    color: 'from-blue-500 to-blue-800',
+    accentColor: '#2563EB',
     coverImage: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=600&auto=format&fit=crop&q=80',
     description: 'Relaxing study beats, ambient textures, and peaceful vibes.'
   },
@@ -65,7 +74,7 @@ export const initialGenres: Genre[] = [
     id: 'genre-acoustic',
     name: 'Acoustic',
     slug: 'acoustic',
-    color: 'from-lime-600 to-emerald-800',
+    color: 'from-lime-600 to-blue-800',
     accentColor: '#84CC16',
     coverImage: 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=600&auto=format&fit=crop&q=80',
     description: 'Intimate acoustic guitars, soft pianos, and warm organic recordings.'
@@ -124,7 +133,7 @@ export const initialArtists: Artist[] = [
   {
     id: 'artist-kai-sterling',
     name: 'Kai Sterling',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=80',
+    avatar: 'https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/3d/87/0e/3d870e07-05f5-d14e-9a63-2d6f331d74b2/021865435486.png/1000x1000bb.jpg',
     banner: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1600&auto=format&fit=crop&q=80',
     bio: 'Contemporary R&B singer and songwriter known for buttery vocals, velvety harmonies, and midnight love letters.',
     country: 'United States',

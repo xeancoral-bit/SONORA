@@ -1,8 +1,8 @@
-import React from 'react';
+﻿import React from 'react';
 
 export const EqualizerAnimation: React.FC<{ isPlaying?: boolean; color?: string }> = ({
   isPlaying = true,
-  color = 'bg-emerald-400'
+  color = 'bg-blue-400'
 }) => {
   return (
     <div className="flex items-end gap-0.5 h-4 w-4">

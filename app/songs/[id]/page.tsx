@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
@@ -179,7 +179,7 @@ export default function SongDetailPage({ params }: { params: Promise<{ id: strin
 
         <div className="flex-1 text-center md:text-left min-w-0">
           <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">
               {song.genreName}
             </span>
             {song.explicit && (
@@ -196,7 +196,7 @@ export default function SongDetailPage({ params }: { params: Promise<{ id: strin
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs md:text-sm text-neutral-400">
             <Link
               href={`/artists/${song.artistId}`}
-              className="font-bold text-white hover:text-emerald-400 hover:underline transition-colors"
+              className="font-bold text-white hover:text-blue-400 hover:underline transition-colors"
             >
               {song.artistName}
             </Link>
@@ -223,7 +223,7 @@ export default function SongDetailPage({ params }: { params: Promise<{ id: strin
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-6">
             <button
               onClick={handlePlayClick}
-              className="px-8 py-3 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm flex items-center gap-2.5 shadow-xl shadow-emerald-500/25 transition-all hover:scale-105 active:scale-95"
+              className="px-8 py-3 rounded-full bg-blue-500 hover:bg-blue-400 text-black font-bold text-sm flex items-center gap-2.5 shadow-xl shadow-blue-500/25 transition-all hover:scale-105 active:scale-95"
             >
               {isCurrent && isPlaying ? (
                 <>
@@ -239,11 +239,11 @@ export default function SongDetailPage({ params }: { params: Promise<{ id: strin
             <button
               onClick={handleLikeClick}
               className={`p-3 rounded-full border border-white/10 hover:bg-white/5 transition-colors ${
-                isLiked ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10' : 'text-neutral-400 hover:text-white'
+                isLiked ? 'text-blue-400 border-blue-500/30 bg-blue-500/10' : 'text-neutral-400 hover:text-white'
               }`}
               title="Like song"
             >
-              <Heart className={`w-5 h-5 ${isLiked ? 'fill-emerald-400' : ''}`} />
+              <Heart className={`w-5 h-5 ${isLiked ? 'fill-blue-400' : ''}`} />
             </button>
 
             <button
@@ -309,7 +309,7 @@ export default function SongDetailPage({ params }: { params: Promise<{ id: strin
           {/* Lyrics Box */}
           <div className="p-6 rounded-2xl bg-[#141414] border border-white/5 shadow-md space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/5">
-              <div className="flex items-center gap-2 text-emerald-400">
+              <div className="flex items-center gap-2 text-blue-400">
                 <Mic2 className="w-5 h-5" />
                 <h3 className="font-bold text-lg text-white">Lyrics</h3>
               </div>
@@ -339,14 +339,14 @@ export default function SongDetailPage({ params }: { params: Promise<{ id: strin
                       }}
                       className={`group flex items-baseline justify-between gap-3 px-3 py-2 rounded-xl cursor-pointer transition-all duration-200 ${
                         isLineActive
-                          ? 'bg-emerald-500/15 text-emerald-300 font-bold border border-emerald-500/20 shadow-sm'
+                          ? 'bg-blue-500/15 text-blue-300 font-bold border border-blue-500/20 shadow-sm'
                           : 'text-neutral-300 hover:text-white hover:bg-white/5'
                       }`}
                     >
                       <p className={`${detailPageFontSizeMap[lyricsFontSize]} transition-all leading-relaxed`}>
                         {line.text}
                       </p>
-                      <span className="opacity-0 group-hover:opacity-100 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded shrink-0 transition-opacity select-none">
+                      <span className="opacity-0 group-hover:opacity-100 text-[10px] font-mono text-blue-400 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded shrink-0 transition-opacity select-none">
                         {formatTime(line.time)}
                       </span>
                     </div>
@@ -395,7 +395,7 @@ export default function SongDetailPage({ params }: { params: Promise<{ id: strin
 
               <div className="flex justify-between py-1">
                 <span className="text-neutral-500">Genre</span>
-                <Link href={`/genres/${song.genreId}`} className="text-emerald-400 hover:underline font-semibold">
+                <Link href={`/genres/${song.genreId}`} className="text-blue-400 hover:underline font-semibold">
                   {song.genreName}
                 </Link>
               </div>
@@ -422,7 +422,7 @@ export default function SongDetailPage({ params }: { params: Promise<{ id: strin
 
               {song.copyrightOwner && (
                 <div className="pt-2 border-t border-white/5 flex items-start gap-1.5 text-neutral-400 text-[11px]">
-                  <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <ShieldCheck className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
                   <span>{song.copyrightOwner}</span>
                 </div>
               )}

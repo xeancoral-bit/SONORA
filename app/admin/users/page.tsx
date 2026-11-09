@@ -1,11 +1,11 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { User, Role } from '@/lib/types';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/context/ToastContext';
 import { formatDate } from '@/lib/utils';
-import { UserCheck, ShieldAlert, ShieldCheck, UserX, Trash2, Search } from 'lucide-react';
+import { Trash2, Search } from 'lucide-react';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -166,7 +166,7 @@ export default function AdminUsersPage() {
                       <span
                         className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
                           u.isActive
-                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                            ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
                             : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
                         }`}
                       >
@@ -181,7 +181,7 @@ export default function AdminUsersPage() {
                           className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-colors ${
                             u.isActive
                               ? 'border-neutral-700 text-neutral-400 hover:text-amber-400 hover:bg-amber-500/10'
-                              : 'border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10'
+                              : 'border-blue-500/30 text-blue-400 hover:bg-blue-500/10'
                           }`}
                         >
                           {u.isActive ? 'Suspend' : 'Activate'}

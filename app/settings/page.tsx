@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
@@ -158,7 +158,7 @@ export default function SettingsPage() {
                   onClick={() => setActiveTab(tab.id as any)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold text-left transition-all ${
                     active
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-sm'
+                      ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-sm'
                       : 'text-neutral-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
@@ -215,7 +215,7 @@ export default function SettingsPage() {
                     <img
                       src={avatarPreview || avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200'}
                       alt="Avatar preview"
-                      className="w-[72px] h-[72px] rounded-full object-cover border border-white/10 shadow-md group-hover:border-emerald-500/40 transition-colors duration-200"
+                      className="w-[72px] h-[72px] rounded-full object-cover border border-white/10 shadow-md group-hover:border-blue-500/40 transition-colors duration-200"
                     />
                     <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-200">
                       <Upload className="w-4 h-4 text-white" />
@@ -234,7 +234,7 @@ export default function SettingsPage() {
                       <button
                         type="button"
                         onClick={() => avatarInputRef.current?.click()}
-                        className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-white/10 hover:border-emerald-500/30 text-xs font-semibold text-white transition-all"
+                        className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-white/10 hover:border-blue-500/30 text-xs font-semibold text-white transition-all"
                       >
                         <Upload className="w-3.5 h-3.5" />
                         {avatarFile ? 'Change Photo' : 'Upload Photo'}
@@ -271,7 +271,7 @@ export default function SettingsPage() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
 
@@ -284,7 +284,7 @@ export default function SettingsPage() {
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   placeholder="Tell music lovers about your taste..."
-                  className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 resize-none"
+                  className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500 resize-none"
                 />
               </div>
 
@@ -320,7 +320,7 @@ export default function SettingsPage() {
                   type="checkbox"
                   checked={autoplay}
                   onChange={(e) => setAutoplay(e.target.checked)}
-                  className="w-4 h-4 accent-emerald-500 cursor-pointer"
+                  className="w-4 h-4 accent-blue-500 cursor-pointer"
                 />
               </div>
 
@@ -338,7 +338,7 @@ export default function SettingsPage() {
                       onClick={() => setAudioQuality(q)}
                       className={`p-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all ${
                         audioQuality === q
-                          ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 shadow-md'
+                          ? 'bg-blue-500/10 border-blue-500/40 text-blue-400 shadow-md'
                           : 'bg-neutral-900 border-white/5 text-neutral-400 hover:text-white'
                       }`}
                     >
@@ -352,7 +352,7 @@ export default function SettingsPage() {
               <div className="py-2 border-b border-white/5">
                 <div className="flex justify-between items-center mb-1">
                   <h4 className="text-sm font-semibold text-white">Crossfade Songs</h4>
-                  <span className="text-xs font-mono text-emerald-400">{crossfade}s</span>
+                  <span className="text-xs font-mono text-blue-400">{crossfade}s</span>
                 </div>
                 <p className="text-xs text-neutral-400 mb-2">
                   Seamless transition duration between consecutive songs.
@@ -379,7 +379,7 @@ export default function SettingsPage() {
                   type="checkbox"
                   checked={normalizeVolume}
                   onChange={(e) => setNormalizeVolume(e.target.checked)}
-                  className="w-4 h-4 accent-emerald-500 cursor-pointer"
+                  className="w-4 h-4 accent-blue-500 cursor-pointer"
                 />
               </div>
 
@@ -395,7 +395,7 @@ export default function SettingsPage() {
                   type="checkbox"
                   checked={explicitFilter}
                   onChange={(e) => setExplicitFilter(e.target.checked)}
-                  className="w-4 h-4 accent-emerald-500 cursor-pointer"
+                  className="w-4 h-4 accent-blue-500 cursor-pointer"
                 />
               </div>
             </div>
@@ -417,7 +417,7 @@ export default function SettingsPage() {
                   type="checkbox"
                   checked={notifyNewReleases}
                   onChange={(e) => setNotifyNewReleases(e.target.checked)}
-                  className="w-4 h-4 accent-emerald-500 cursor-pointer"
+                  className="w-4 h-4 accent-blue-500 cursor-pointer"
                 />
               </div>
 
@@ -430,7 +430,7 @@ export default function SettingsPage() {
                   type="checkbox"
                   checked={notifyRecommendations}
                   onChange={(e) => setNotifyRecommendations(e.target.checked)}
-                  className="w-4 h-4 accent-emerald-500 cursor-pointer"
+                  className="w-4 h-4 accent-blue-500 cursor-pointer"
                 />
               </div>
 
@@ -443,7 +443,7 @@ export default function SettingsPage() {
                   type="checkbox"
                   checked={notifySystem}
                   onChange={(e) => setNotifySystem(e.target.checked)}
-                  className="w-4 h-4 accent-emerald-500 cursor-pointer"
+                  className="w-4 h-4 accent-blue-500 cursor-pointer"
                 />
               </div>
             </div>
@@ -467,7 +467,7 @@ export default function SettingsPage() {
                   type="checkbox"
                   checked={privateListening}
                   onChange={(e) => setPrivateListening(e.target.checked)}
-                  className="w-4 h-4 accent-emerald-500 cursor-pointer"
+                  className="w-4 h-4 accent-blue-500 cursor-pointer"
                 />
               </div>
             </div>
@@ -478,7 +478,7 @@ export default function SettingsPage() {
             <button
               type="submit"
               disabled={isSaving}
-              className="px-8 py-3 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm flex items-center gap-2 shadow-xl shadow-emerald-500/25 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+              className="px-8 py-3 rounded-full bg-blue-500 hover:bg-blue-400 text-black font-bold text-sm flex items-center gap-2 shadow-xl shadow-blue-500/25 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
               {isSaving ? 'Saving...' : 'Save Settings'}

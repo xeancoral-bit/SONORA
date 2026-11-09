@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -17,9 +17,7 @@ import {
   ExternalLink,
   RefreshCw,
   Music2,
-  Image as ImageIcon,
   Info,
-  Globe,
   Sparkles
 } from 'lucide-react';
 import { Youtube } from '@/components/ui/icons';
@@ -465,17 +463,17 @@ export default function AdminAddMusicPage() {
               onClick={() => setAudioSourceMode('file')}
               className={`relative p-5 rounded-2xl border text-left transition-all duration-200 ${
                 audioSourceMode === 'file'
-                  ? 'bg-emerald-500/10 border-emerald-500/40 shadow-lg shadow-emerald-500/10'
+                  ? 'bg-blue-500/10 border-blue-500/40 shadow-lg shadow-blue-500/10'
                   : 'bg-neutral-900/60 border-white/[0.06] hover:border-white/20 hover:bg-white/[0.02]'
               }`}
             >
               {audioSourceMode === 'file' && (
-                <div className="absolute top-3 right-3 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center">
+                <div className="absolute top-3 right-3 w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
                   <CheckCircle2 className="w-3 h-3 text-black" />
                 </div>
               )}
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
                   <Upload className="w-5 h-5" />
                 </div>
                 <div>
@@ -598,18 +596,18 @@ export default function AdminAddMusicPage() {
               {/* Import Results Banner & Album Grid */}
               {autoImportResult && (
                 <div className="space-y-4 pt-3 border-t border-white/10">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl bg-blue-500/10 border border-blue-500/30">
                     <div className="flex items-center gap-3.5">
                       <img
                         src={autoImportResult.artist.avatar}
                         alt={autoImportResult.artist.name}
-                        className="w-12 h-12 rounded-full object-cover ring-2 ring-emerald-400/50"
+                        className="w-12 h-12 rounded-full object-cover ring-2 ring-blue-400/50"
                       />
                       <div>
                         <h4 className="font-extrabold text-white text-base">
                           {autoImportResult.artist.name}
                         </h4>
-                        <p className="text-xs text-emerald-400 font-semibold">
+                        <p className="text-xs text-blue-400 font-semibold">
                           ✓ Successfully imported {autoImportResult.albumsCount} studio albums &amp; {autoImportResult.songsCount} soundtracks with lyrics!
                         </p>
                       </div>
@@ -665,7 +663,7 @@ export default function AdminAddMusicPage() {
                 htmlFor="audio-file-input"
                 className={`flex flex-col items-center justify-center gap-3 p-8 rounded-2xl border-2 border-dashed cursor-pointer transition-all ${
                   selectedFile
-                    ? 'border-emerald-500/40 bg-emerald-500/5'
+                    ? 'border-blue-500/40 bg-blue-500/5'
                     : 'border-white/10 bg-neutral-900/40 hover:border-white/20 hover:bg-white/[0.02]'
                 }`}
               >
@@ -676,7 +674,7 @@ export default function AdminAddMusicPage() {
                   onChange={handleFileChange}
                   className="hidden"
                 />
-                <div className="w-14 h-14 rounded-2xl bg-neutral-800 flex items-center justify-center text-emerald-400">
+                <div className="w-14 h-14 rounded-2xl bg-neutral-800 flex items-center justify-center text-blue-400">
                   <FileAudio className="w-7 h-7" />
                 </div>
                 <div className="text-center">
@@ -688,8 +686,8 @@ export default function AdminAddMusicPage() {
               </label>
 
               {selectedFile && (
-                <div className="mt-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2 text-emerald-400 font-semibold">
+                <div className="mt-3 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 text-blue-400 font-semibold">
                     <CheckCircle2 className="w-4 h-4" />
                     <span>
                       {isUploadingFile
@@ -727,7 +725,7 @@ export default function AdminAddMusicPage() {
                       }}
                       className={`w-full bg-neutral-900 border rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none transition-colors font-mono ${
                         urlValidation === 'valid'
-                          ? 'border-emerald-500/60 focus:border-emerald-400'
+                          ? 'border-blue-500/60 focus:border-blue-400'
                           : urlValidation === 'invalid'
                           ? 'border-red-500/60 focus:border-red-400'
                           : 'border-white/10 focus:border-amber-500/60'
@@ -750,7 +748,7 @@ export default function AdminAddMusicPage() {
 
                 {/* Validation feedback */}
                 {urlValidation === 'valid' && !isFetchingMeta && (
-                  <p className="flex items-center gap-1.5 text-xs text-emerald-400 mt-1.5 font-semibold">
+                  <p className="flex items-center gap-1.5 text-xs text-blue-400 mt-1.5 font-semibold">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Valid URL — source ready
                   </p>
                 )}
@@ -812,8 +810,8 @@ export default function AdminAddMusicPage() {
                             <p className="text-xs text-neutral-400 truncate mt-0.5">{urlPreview.channelName}</p>
                           )}
                           <div className="flex items-center gap-1.5 mt-1.5">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                            <span className="text-[11px] text-emerald-400 font-semibold">Valid Source</span>
+                            <CheckCircle2 className="w-3 h-3 text-blue-400" />
+                            <span className="text-[11px] text-blue-400 font-semibold">Valid Source</span>
                             {urlPreview.platform === 'youtube' && (
                               <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/20 font-semibold">
                                 YouTube
@@ -917,7 +915,7 @@ export default function AdminAddMusicPage() {
                 );
                 if (matched) {
                   return (
-                    <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-emerald-400">
+                    <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-blue-400">
                       <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                       <span>Connects to existing artist <strong>{matched.name}</strong> (sidebar &gt; Artists)</span>
                     </div>
@@ -982,7 +980,7 @@ export default function AdminAddMusicPage() {
                 );
                 if (matched) {
                   return (
-                    <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-emerald-400">
+                    <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-blue-400">
                       <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                       <span>
                         Connects to existing album <strong>{matched.title}</strong> by {matched.artistName} ({matched.songIds?.length || 0} tracks) — appears on Albums page

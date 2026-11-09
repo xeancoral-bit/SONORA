@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -63,13 +63,13 @@ export default function LikedSongsPage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* Hero Header */}
-      <div className="flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8 bg-gradient-to-b from-emerald-950/60 via-emerald-950/20 to-transparent p-6 md:p-8 rounded-3xl border border-emerald-500/20 shadow-2xl">
-        <div className="w-48 h-48 md:w-56 md:h-56 rounded-2xl overflow-hidden shadow-2xl shrink-0 bg-gradient-to-br from-emerald-600 to-teal-900 flex items-center justify-center border border-emerald-400/30">
+      <div className="flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8 bg-gradient-to-b from-blue-950/60 via-blue-950/20 to-transparent p-6 md:p-8 rounded-3xl border border-blue-500/20 shadow-2xl">
+        <div className="w-48 h-48 md:w-56 md:h-56 rounded-2xl overflow-hidden shadow-2xl shrink-0 bg-gradient-to-br from-blue-600 to-blue-900 flex items-center justify-center border border-blue-400/30">
           <Heart className="w-24 h-24 text-white fill-white shadow-lg" />
         </div>
 
         <div className="flex-1 text-center md:text-left min-w-0">
-          <span className="text-xs font-bold uppercase tracking-widest text-emerald-400 block mb-1">
+          <span className="text-xs font-bold uppercase tracking-widest text-blue-400 block mb-1">
             Auto Playlist
           </span>
           <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-2">
@@ -88,7 +88,7 @@ export default function LikedSongsPage() {
             <button
               onClick={handlePlayAll}
               disabled={songs.length === 0}
-              className="px-8 py-3 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm flex items-center gap-2.5 shadow-xl shadow-emerald-500/25 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+              className="px-8 py-3 rounded-full bg-blue-500 hover:bg-blue-400 text-black font-bold text-sm flex items-center gap-2.5 shadow-xl shadow-blue-500/25 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
             >
               {isLikedPlaying ? (
                 <>
@@ -139,7 +139,7 @@ export default function LikedSongsPage() {
             </p>
             <Link
               href="/browse"
-              className="px-5 py-2 rounded-full bg-emerald-500 text-black text-xs font-semibold inline-block"
+              className="px-5 py-2 rounded-full bg-blue-500 text-black text-xs font-semibold inline-block"
             >
               Find Songs
             </Link>

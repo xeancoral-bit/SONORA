@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -75,10 +75,10 @@ export const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
       <Modal isOpen={isOpen} onClose={onClose} title="Account Required">
         <div className="flex flex-col items-center text-center py-5 px-3">
           <div className="relative mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shadow-xl shadow-emerald-500/10">
+            <div className="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 shadow-xl shadow-blue-500/10">
               <Lock className="w-8 h-8" />
             </div>
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 text-black flex items-center justify-center font-bold text-xs shadow-md">
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-blue-500 text-black flex items-center justify-center font-bold text-xs shadow-md">
               <UserPlus className="w-3.5 h-3.5" />
             </div>
           </div>
@@ -95,7 +95,7 @@ export const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
             <Link
               href="/auth/login?redirect=/playlists"
               onClick={onClose}
-              className="flex-1 py-3 px-5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm transition-all duration-200 shadow-lg shadow-emerald-500/25 hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2"
+              className="flex-1 py-3 px-5 rounded-xl bg-blue-500 hover:bg-blue-400 text-black font-bold text-sm transition-all duration-200 shadow-lg shadow-blue-500/25 hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2"
             >
               <LogIn className="w-4 h-4" />
               Sign In or Register
@@ -126,7 +126,7 @@ export const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
             placeholder="My Playlist #1"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500 transition-colors"
+            className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500 transition-colors"
           />
         </div>
 
@@ -139,7 +139,7 @@ export const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
             placeholder="Give your playlist a memorable description..."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500 transition-colors resize-none"
+            className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500 transition-colors resize-none"
           />
         </div>
 
@@ -152,14 +152,14 @@ export const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
             placeholder="https://images.unsplash.com/..."
             value={coverImage}
             onChange={(e) => setCoverImage(e.target.value)}
-            className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500 transition-colors"
+            className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500 transition-colors"
           />
         </div>
 
         <div className="flex items-center justify-between p-3 rounded-xl bg-neutral-900/60 border border-white/5">
           <div className="flex items-center gap-3">
             {isPublic ? (
-              <Globe className="w-5 h-5 text-emerald-400" />
+              <Globe className="w-5 h-5 text-blue-400" />
             ) : (
               <Lock className="w-5 h-5 text-amber-400" />
             )}
@@ -177,7 +177,7 @@ export const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
             onClick={() => setIsPublic(!isPublic)}
             className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
               isPublic
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                ? 'bg-blue-500/10 border-blue-500/30 text-blue-400'
                 : 'bg-neutral-800 border-neutral-700 text-neutral-400'
             }`}
           >
@@ -196,7 +196,7 @@ export const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-sm transition-all shadow-lg shadow-emerald-500/25 disabled:opacity-50"
+            className="px-6 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-400 text-black font-semibold text-sm transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50"
           >
             {isSubmitting ? 'Creating...' : 'Save Playlist'}
           </button>

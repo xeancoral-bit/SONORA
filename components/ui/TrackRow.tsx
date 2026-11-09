@@ -31,7 +31,7 @@ export const TrackRow: React.FC<TrackRowProps> = ({
   onAddToCollection,
   onRemoveFromList
 }) => {
-  const { currentTrack, isPlaying, playTrack, togglePlayPause, addToQueue, unavailableTrackIds } = useAudio();
+  const { currentTrack, isPlaying, playTrack, togglePlayPause, addToQueue } = useAudio();
   const [isLiked, setIsLiked] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const isCurrent = currentTrack?.id === song.id;
@@ -71,7 +71,7 @@ export const TrackRow: React.FC<TrackRowProps> = ({
       <div className="w-8 shrink-0 flex items-center justify-center text-neutral-400">
         {isCurrent && isPlaying ? (
           <div className="flex items-center justify-center">
-            <EqualizerAnimation isPlaying={true} color="bg-emerald-400" />
+            <EqualizerAnimation isPlaying={true} color="bg-blue-400" />
           </div>
         ) : (
           <>
@@ -80,7 +80,7 @@ export const TrackRow: React.FC<TrackRowProps> = ({
             </span>
             <button
               onClick={handlePlayClick}
-              className="hidden group-hover:flex items-center justify-center text-white hover:text-emerald-400 transition-colors"
+              className="hidden group-hover:flex items-center justify-center text-white hover:text-blue-400 transition-colors"
             >
               {isCurrent && isPlaying ? (
                 <Pause className="w-4 h-4 fill-current" />
@@ -108,7 +108,7 @@ export const TrackRow: React.FC<TrackRowProps> = ({
         <div className="flex items-center gap-1.5">
           <span
             className={`font-semibold truncate leading-tight ${
-              isCurrent ? 'text-emerald-400' : 'text-white'
+              isCurrent ? 'text-blue-400' : 'text-white'
             }`}
           >
             {song.title}
@@ -119,7 +119,7 @@ export const TrackRow: React.FC<TrackRowProps> = ({
             </span>
           )}
           <span
-            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-[9px] font-bold border border-emerald-500/25 tracking-wide shrink-0"
+            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 text-[9px] font-bold border border-blue-500/25 tracking-wide shrink-0"
             title="Timed Synchronized Lyrics available"
           >
             <Mic2 className="w-2.5 h-2.5" />
@@ -160,11 +160,11 @@ export const TrackRow: React.FC<TrackRowProps> = ({
         <button
           onClick={handleLike}
           className={`p-1.5 rounded-lg transition-colors ${
-            isLiked ? 'text-emerald-400' : 'text-neutral-500 hover:text-white opacity-0 group-hover:opacity-100'
+            isLiked ? 'text-blue-400' : 'text-neutral-500 hover:text-white opacity-0 group-hover:opacity-100'
           }`}
           title="Like song"
         >
-          <Heart className={`w-4 h-4 ${isLiked ? 'fill-emerald-400' : ''}`} />
+          <Heart className={`w-4 h-4 ${isLiked ? 'fill-blue-400' : ''}`} />
         </button>
 
         <span className="text-xs text-neutral-400 font-mono w-10 text-right">
@@ -195,7 +195,7 @@ export const TrackRow: React.FC<TrackRowProps> = ({
                   }}
                   className="flex items-center gap-2.5 w-full px-3 py-2 text-left hover:bg-white/10 hover:text-white transition-colors"
                 >
-                  <Radio className="w-4 h-4 text-emerald-400" />
+                  <Radio className="w-4 h-4 text-blue-400" />
                   Add to Queue
                 </button>
 

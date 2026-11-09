@@ -1,10 +1,10 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { NotificationItem } from '@/lib/types';
 import { useToast } from '@/context/ToastContext';
 import { formatDate } from '@/lib/utils';
-import { Bell, Send, Radio, AlertTriangle, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Bell, Send, Radio } from 'lucide-react';
 
 export default function AdminNotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -82,7 +82,7 @@ export default function AdminNotificationsPage() {
 
       {/* Broadcast Form */}
       <form onSubmit={handleBroadcast} className="p-6 rounded-3xl bg-[#141414] border border-white/5 space-y-4 shadow-xl">
-        <div className="flex items-center gap-2 text-emerald-400 border-b border-white/5 pb-3">
+        <div className="flex items-center gap-2 text-blue-400 border-b border-white/5 pb-3">
           <Send className="w-5 h-5" />
           <h3 className="font-bold text-base text-white">Broadcast Announcement To All Users</h3>
         </div>
@@ -98,7 +98,7 @@ export default function AdminNotificationsPage() {
               placeholder="e.g. New Sound Experience Update"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+              className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
             />
           </div>
 
@@ -109,7 +109,7 @@ export default function AdminNotificationsPage() {
             <select
               value={type}
               onChange={(e) => setType(e.target.value as any)}
-              className="w-full bg-neutral-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+              className="w-full bg-neutral-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
             >
               <option value="system">System Announcement</option>
               <option value="release">New Single / Release</option>
@@ -129,7 +129,7 @@ export default function AdminNotificationsPage() {
             placeholder="Write clear and engaging announcement text..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 resize-none"
+            className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500 resize-none"
           />
         </div>
 
@@ -142,7 +142,7 @@ export default function AdminNotificationsPage() {
             placeholder="/browse or /albums/album-midnight-odyssey"
             value={link}
             onChange={(e) => setLink(e.target.value)}
-            className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"
+            className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-blue-500 font-mono"
           />
         </div>
 
@@ -150,7 +150,7 @@ export default function AdminNotificationsPage() {
           <button
             type="submit"
             disabled={isSending}
-            className="px-6 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/25 disabled:opacity-50"
+            className="px-6 py-2.5 rounded-full bg-blue-500 hover:bg-blue-400 text-black font-bold text-xs flex items-center gap-2 shadow-lg shadow-blue-500/25 disabled:opacity-50"
           >
             <Radio className="w-4 h-4" />
             {isSending ? 'Sending...' : 'Broadcast to All Users'}
@@ -174,14 +174,14 @@ export default function AdminNotificationsPage() {
                 className="p-4 rounded-2xl bg-[#141414] border border-white/5 flex items-start justify-between gap-4"
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-neutral-900 border border-white/5 flex items-center justify-center shrink-0 text-emerald-400 mt-0.5">
+                  <div className="w-9 h-9 rounded-xl bg-neutral-900 border border-white/5 flex items-center justify-center shrink-0 text-blue-400 mt-0.5">
                     <Bell className="w-4 h-4" />
                   </div>
                   <div>
                     <h4 className="font-bold text-sm text-white">{n.title}</h4>
                     <p className="text-xs text-neutral-400 mt-0.5">{n.message}</p>
                     {n.link && (
-                      <span className="text-[11px] text-emerald-400 font-mono block mt-1">
+                      <span className="text-[11px] text-blue-400 font-mono block mt-1">
                         Link: {n.link}
                       </span>
                     )}

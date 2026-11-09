@@ -1,4 +1,4 @@
-export type Role = 'admin' | 'user';
+﻿export type Role = 'admin' | 'user';
 
 export interface User {
   id: string;
@@ -111,6 +111,8 @@ export interface Artist {
   name: string;
   avatar: string;
   banner: string;
+  coverImage?: string;
+  headerImage?: string;
   bio: string;
   country?: string;
   genreId?: string;
@@ -133,8 +135,8 @@ export interface Genre {
   id: string;
   name: string;
   slug: string;
-  color: string; // e.g., 'from-emerald-600 to-teal-900'
-  accentColor: string; // e.g., '#10B981'
+  color: string; // e.g., 'from-blue-600 to-blue-900'
+  accentColor: string; // e.g., '#2563EB'
   coverImage?: string;
   description?: string;
   songCount?: number;

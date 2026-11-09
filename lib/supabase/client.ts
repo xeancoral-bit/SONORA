@@ -7,9 +7,8 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
     '';
 
-  if (!supabaseUrl || !supabaseKey) {
-    console.warn('Supabase URL or Key is missing from client environment variables.');
-  }
+  const safeUrl = supabaseUrl || 'https://placeholder.supabase.co';
+  const safeKey = supabaseKey || 'placeholder-anon-key';
 
-  return createBrowserClient(supabaseUrl, supabaseKey);
+  return createBrowserClient(safeUrl, safeKey);
 }

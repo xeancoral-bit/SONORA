@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Album } from '@/lib/types';
 import { AlbumFormModal } from '@/components/admin/AlbumFormModal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/context/ToastContext';
-import { formatTime } from '@/lib/utils';
-import { Disc, Plus, Edit2, Trash2, ExternalLink } from 'lucide-react';
+import { Plus, Edit2, Trash2, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminAlbumsPage() {
@@ -17,9 +16,8 @@ export default function AdminAlbumsPage() {
   const [deletingAlbum, setDeletingAlbum] = useState<Album | null>(null);
   const toast = useToast();
 
-  const fetchAlbums = async () => {
+  const fetchAlbums = useCallback(async () => {
     try {
-      setIsLoading(true);
       const res = await fetch('/api/albums');
       const data = await res.json();
       setAlbums(data.albums || []);
@@ -28,11 +26,11 @@ export default function AdminAlbumsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     fetchAlbums();
-  }, []);
+  }, [fetchAlbums]);
 
   const handleDeleteConfirm = async () => {
     if (!deletingAlbum) return;

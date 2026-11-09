@@ -1,7 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { User, Role } from '@/lib/types';
+import { useUser, useClerk } from '@clerk/nextjs';
 
 interface AuthContextType {
   user: User | null;
@@ -26,6 +27,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const clerk = useClerk();
+  const { user: clerkUser, isLoaded: isClerkLoaded } = useUser();
+  const ssoSyncAttemptedRef = useRef<string | null>(null);
 
   const refreshUser = useCallback(async () => {
     try {
@@ -52,6 +57,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     refreshUser();
   }, [refreshUser]);
+
+  useEffect(() => {
+    // If user is not yet loaded in Sonora, but is signed in via Clerk SSO
+    if (isClerkLoaded && clerkUser && !user && ssoSyncAttemptedRef.current !== clerkUser.id) {
+      ssoSyncAttemptedRef.current = clerkUser.id;
+      const email = clerkUser.primaryEmailAddress?.emailAddress;
+      if (email) {
+        fetch('/api/auth/sso-sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            name: clerkUser.fullName || clerkUser.firstName || email.split('@')[0],
+            username: clerkUser.username || email.split('@')[0],
+            avatar: clerkUser.imageUrl,
+            clerkId: clerkUser.id
+          })
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.user) {
+              setUser(data.user);
+              setIsLoading(false);
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('sonora_logged_in', 'true');
+                localStorage.setItem('sonora_user_name', data.user.name || '');
+              }
+            }
+          })
+          .catch(() => {});
+      }
+    }
+  }, [isClerkLoaded, clerkUser, user]);
 
   const login = async (emailOrUsername: string, password: string, rememberMe?: boolean) => {
     try {
@@ -125,13 +163,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch {
       // ignore
-    } finally {
-      setUser(null);
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('sonora_logged_in');
-        localStorage.removeItem('sonora_user_name');
-        window.location.href = '/auth/login';
+    }
+    try {
+      if (clerk && clerk.loaded && typeof clerk.signOut === 'function') {
+        await clerk.signOut();
       }
+    } catch {
+      // ignore
+    }
+    setUser(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('sonora_logged_in');
+      localStorage.removeItem('sonora_user_name');
+      window.location.href = '/auth/login';
     }
   };
 

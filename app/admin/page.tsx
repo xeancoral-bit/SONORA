@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -13,8 +13,7 @@ import {
   Heart,
   ListMusic,
   PlusCircle,
-  Sparkles,
-  ArrowRight
+  Sparkles
 } from 'lucide-react';
 
 export default function AdminOverviewPage() {
@@ -55,7 +54,7 @@ export default function AdminOverviewPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/admin/music/add"
-            className="px-5 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/25 transition-all hover:scale-105 active:scale-95"
+            className="px-5 py-2.5 rounded-full bg-blue-500 hover:bg-blue-400 text-black font-semibold text-xs flex items-center gap-2 shadow-lg shadow-blue-500/25 transition-all hover:scale-105 active:scale-95"
           >
             <PlusCircle className="w-4 h-4" />
             + Upload Audio Track
@@ -69,7 +68,7 @@ export default function AdminOverviewPage() {
           title="Total Songs"
           value={summary.synchronizedSongs || summary.totalSongs}
           icon={Music}
-          color="text-emerald-400"
+          color="text-blue-400"
           subtitle="Full tracks synchronized"
         />
         <AdminStatsCard
@@ -97,7 +96,7 @@ export default function AdminOverviewPage() {
           title="Total Streaming Plays"
           value={summary.totalPlays}
           icon={Headphones}
-          color="text-emerald-400"
+          color="text-blue-400"
           subtitle="+14% this month"
         />
         <AdminStatsCard
@@ -111,7 +110,7 @@ export default function AdminOverviewPage() {
           title="Public Playlists"
           value={summary.totalPlaylists}
           icon={ListMusic}
-          color="text-teal-400"
+          color="text-blue-400"
           subtitle="Community created"
         />
         <AdminStatsCard

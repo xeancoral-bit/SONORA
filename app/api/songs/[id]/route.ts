@@ -49,7 +49,7 @@ export async function PUT(
     
     // Resolve artist
     let artistId = body.artistId || song.artistId;
-    let artistName = body.artistName !== undefined ? body.artistName.trim() : song.artistName;
+    const artistName = body.artistName !== undefined ? body.artistName.trim() : song.artistName;
     
     if (artistName && artistName !== song.artistName) {
       let matchedArtist = db.getArtistById(artistId);

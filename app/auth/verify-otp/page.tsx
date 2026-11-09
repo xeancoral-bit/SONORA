@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
@@ -217,9 +217,9 @@ function OtpVerificationContent() {
   return (
     <div className="min-h-[85vh] flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background Ambient Glows */}
-      <div className="absolute -top-32 -right-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-gradient-radial from-emerald-500/5 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute -top-32 -right-32 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-gradient-radial from-blue-500/5 via-transparent to-transparent pointer-events-none" />
 
       {/* Main Glassmorphic Card */}
       <div className="relative w-full max-w-md bg-[#12141a]/95 border border-white/10 rounded-3xl p-8 sm:p-10 shadow-2xl shadow-black/80 backdrop-blur-2xl space-y-7 text-center">
@@ -239,7 +239,7 @@ function OtpVerificationContent() {
 
         {/* Development Helper Badge if in Resend Sandbox */}
         {devOtpNotice && (
-          <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center justify-between text-left">
+          <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-300 text-xs flex items-center justify-between text-left">
             <span>
               Sandbox Code: <strong className="font-mono text-sm tracking-wider text-white">{devOtpNotice}</strong>
             </span>
@@ -250,7 +250,7 @@ function OtpVerificationContent() {
                 setOtpDigits(digits);
                 verifyCode(devOtpNotice);
               }}
-              className="text-[11px] font-bold bg-emerald-500 text-black px-2 py-1 rounded-md hover:bg-emerald-400 transition-colors"
+              className="text-[11px] font-bold bg-blue-500 text-black px-2 py-1 rounded-md hover:bg-blue-400 transition-colors"
             >
               Auto-Fill
             </button>
@@ -282,7 +282,7 @@ function OtpVerificationContent() {
                 onChange={(e) => handleDigitChange(idx, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(idx, e)}
                 onPaste={handlePaste}
-                className="w-11 h-12 sm:w-12 sm:h-14 bg-[#0a0c10] border border-white/10 rounded-xl text-center text-xl font-bold font-mono text-white focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/30 transition-all shadow-inner"
+                className="w-11 h-12 sm:w-12 sm:h-14 bg-[#0a0c10] border border-white/10 rounded-xl text-center text-xl font-bold font-mono text-white focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-500/30 transition-all shadow-inner"
               />
             ))}
           </div>
@@ -290,7 +290,7 @@ function OtpVerificationContent() {
           <button
             type="submit"
             disabled={isLoading || otpDigits.some((d) => !d)}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#00d2b4] via-[#00e5a3] to-[#00f298] text-black font-extrabold text-sm tracking-wide transition-all shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:brightness-105 active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#00d2b4] via-[#00e5a3] to-[#00f298] text-black font-extrabold text-sm tracking-wide transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:brightness-105 active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
@@ -311,7 +311,7 @@ function OtpVerificationContent() {
           <p className="text-xs text-neutral-400">
             Didn&apos;t receive the code?{' '}
             {countdown > 0 ? (
-              <span className="text-emerald-400/80 font-medium cursor-not-allowed">
+              <span className="text-blue-400/80 font-medium cursor-not-allowed">
                 Resend Code ({countdown}s)
               </span>
             ) : (
@@ -319,7 +319,7 @@ function OtpVerificationContent() {
                 type="button"
                 onClick={handleResend}
                 disabled={isResending}
-                className="text-emerald-400 hover:text-emerald-300 font-bold hover:underline inline-flex items-center gap-1"
+                className="text-blue-400 hover:text-blue-300 font-bold hover:underline inline-flex items-center gap-1"
               >
                 {isResending && <RefreshCw className="w-3 h-3 animate-spin" />}
                 Resend Code
@@ -331,7 +331,7 @@ function OtpVerificationContent() {
           <div>
             <Link
               href="/auth/forgot-password"
-              className="text-xs text-neutral-400 hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5 font-medium"
+              className="text-xs text-neutral-400 hover:text-blue-400 transition-colors inline-flex items-center gap-1.5 font-medium"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Change Email / Back</span>
@@ -348,7 +348,7 @@ export default function OtpVerificationPage() {
     <Suspense
       fallback={
         <div className="min-h-[85vh] flex items-center justify-center">
-          <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+          <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
         </div>
       }
     >

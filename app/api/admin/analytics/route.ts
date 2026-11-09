@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 
@@ -13,7 +13,6 @@ export async function GET() {
   const artists = db.getArtists();
   const users = db.getUsers();
   const playlists = db.getPlaylists();
-  const liked = readLikedCount();
 
   const totalPlays = songs.reduce((acc, s) => acc + (s.playCount || 0), 0);
   const totalLikes = songs.reduce((acc, s) => acc + (s.likesCount || 0), 0);
@@ -48,7 +47,7 @@ export async function GET() {
     return {
       name: g.name,
       value: plays || genreSongs.length * 1000,
-      color: g.accentColor || '#10B981'
+      color: g.accentColor || '#2563EB'
     };
   }).filter((g) => g.value > 0);
 
@@ -90,8 +89,4 @@ export async function GET() {
       topArtists
     }
   });
-}
-
-function readLikedCount() {
-  return 42;
 }

@@ -1,6 +1,6 @@
-'use client';
+﻿'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Modal } from './Modal';
 import { Song, Playlist } from '@/lib/types';
@@ -28,15 +28,8 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
   const [isCreating, setIsCreating] = useState(false);
   const toast = useToast();
 
-  useEffect(() => {
-    if (isOpen && user) {
-      fetchPlaylists();
-    }
-  }, [isOpen, user]);
-
-  const fetchPlaylists = async () => {
+  const fetchPlaylists = useCallback(async () => {
     try {
-      setIsLoading(true);
       const res = await fetch('/api/playlists');
       const data = await res.json();
       setPlaylists(data.playlists || []);
@@ -45,7 +38,13 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    if (isOpen && user) {
+      fetchPlaylists();
+    }
+  }, [isOpen, user, fetchPlaylists]);
 
   const handleToggleSong = async (playlist: Playlist) => {
     if (!song) return;
@@ -108,10 +107,10 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
       <Modal isOpen={isOpen} onClose={onClose} title="Account Required">
         <div className="flex flex-col items-center text-center py-5 px-3">
           <div className="relative mb-4">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shadow-xl shadow-emerald-500/10">
+            <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 shadow-xl shadow-blue-500/10">
               <Lock className="w-7 h-7" />
             </div>
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 text-black flex items-center justify-center font-bold text-xs shadow-md">
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-blue-500 text-black flex items-center justify-center font-bold text-xs shadow-md">
               <UserPlus className="w-3 h-3" />
             </div>
           </div>
@@ -128,7 +127,7 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
             <Link
               href="/auth/login"
               onClick={onClose}
-              className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs text-center transition-all flex items-center justify-center gap-1.5"
+              className="flex-1 py-2.5 px-4 rounded-xl bg-blue-500 hover:bg-blue-400 text-black font-bold text-xs text-center transition-all flex items-center justify-center gap-1.5"
             >
               <LogIn className="w-3.5 h-3.5" />
               Sign In or Register
@@ -171,11 +170,11 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               autoFocus
-              className="flex-1 bg-neutral-900 border border-white/10 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+              className="flex-1 bg-neutral-900 border border-white/10 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
             />
             <button
               type="submit"
-              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs rounded-xl transition-colors"
+              className="px-4 py-2 bg-blue-500 hover:bg-blue-400 text-black font-semibold text-xs rounded-xl transition-colors"
             >
               Create
             </button>
@@ -190,7 +189,7 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
         ) : (
           <button
             onClick={() => setIsCreating(true)}
-            className="flex items-center gap-2 p-3 rounded-xl border border-dashed border-white/20 hover:border-emerald-500/50 hover:bg-emerald-500/5 text-emerald-400 text-sm font-semibold transition-colors"
+            className="flex items-center gap-2 p-3 rounded-xl border border-dashed border-white/20 hover:border-blue-500/50 hover:bg-blue-500/5 text-blue-400 text-sm font-semibold transition-colors"
           >
             <Plus className="w-4 h-4" />
             Create New Playlist
@@ -212,7 +211,7 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
                   onClick={() => handleToggleSong(playlist)}
                   className={`flex items-center justify-between p-3 rounded-xl border text-left transition-all ${
                     inPlaylist
-                      ? 'bg-emerald-500/10 border-emerald-500/30 text-white'
+                      ? 'bg-blue-500/10 border-blue-500/30 text-white'
                       : 'bg-neutral-900/60 border-white/5 hover:bg-neutral-800 text-neutral-300'
                   }`}
                 >
@@ -230,7 +229,7 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
                   <div
                     className={`w-6 h-6 rounded-full flex items-center justify-center border transition-colors ${
                       inPlaylist
-                        ? 'bg-emerald-500 border-emerald-500 text-black'
+                        ? 'bg-blue-500 border-blue-500 text-black'
                         : 'border-white/20 text-transparent'
                     }`}
                   >

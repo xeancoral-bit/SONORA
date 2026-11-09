@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -67,9 +67,9 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-[85vh] flex items-center justify-center p-4 relative overflow-hidden">
       {/* Subtle Ambient Radial Glows */}
-      <div className="absolute -top-32 -right-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-gradient-radial from-emerald-500/5 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute -top-32 -right-32 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-gradient-radial from-blue-500/5 via-transparent to-transparent pointer-events-none" />
 
       {/* Main Glassmorphic Card */}
       <div className="relative w-full max-w-md bg-[#12141a]/95 border border-white/10 rounded-3xl p-8 sm:p-10 shadow-2xl shadow-black/80 backdrop-blur-2xl space-y-7 text-center">
@@ -112,7 +112,7 @@ export default function ForgotPasswordPage() {
                   setEmail(e.target.value);
                   if (errorMsg) setErrorMsg(null);
                 }}
-                className="w-full bg-[#0a0c10] border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/40 transition-colors placeholder:text-neutral-600"
+                className="w-full bg-[#0a0c10] border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40 transition-colors placeholder:text-neutral-600"
               />
             </div>
           </div>
@@ -120,7 +120,7 @@ export default function ForgotPasswordPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#00d2b4] via-[#00e5a3] to-[#00f298] text-black font-extrabold text-sm tracking-wide transition-all shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:brightness-105 active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#00d2b4] via-[#00e5a3] to-[#00f298] text-black font-extrabold text-sm tracking-wide transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:brightness-105 active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
@@ -140,7 +140,7 @@ export default function ForgotPasswordPage() {
         <div className="pt-2">
           <Link
             href="/auth/login"
-            className="text-xs text-neutral-400 hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5 font-medium"
+            className="text-xs text-neutral-400 hover:text-blue-400 transition-colors inline-flex items-center gap-1.5 font-medium"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Sign In</span>

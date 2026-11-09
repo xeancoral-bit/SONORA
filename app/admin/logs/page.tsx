@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { AdminActivityLog } from '@/lib/types';
 import { formatDate } from '@/lib/utils';
-import { FileText, Shield, Clock, Search, Terminal } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 export default function AdminLogsPage() {
   const [logs, setLogs] = useState<AdminActivityLog[]>([]);
@@ -46,7 +46,7 @@ export default function AdminLogsPage() {
             placeholder="Search audit trail..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-neutral-900 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+            className="w-full bg-neutral-900 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
           />
         </div>
       </div>
@@ -80,7 +80,7 @@ export default function AdminLogsPage() {
               ) : (
                 filteredLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-white/[0.02] transition-colors">
-                    <td className="py-3 px-4 font-bold text-emerald-400">
+                    <td className="py-3 px-4 font-bold text-blue-400">
                       {log.action}
                     </td>
                     <td className="py-3 px-3 text-white font-sans font-semibold">

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import Link from 'next/link';
@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 
 export const MobileNav: React.FC = () => {
   const pathname = usePathname();
-  const { user, isAdmin } = useAuth();
+  const { isAdmin } = useAuth();
 
   const navItems = [
     { name: 'Home', href: '/', icon: Home },
@@ -31,7 +31,7 @@ export const MobileNav: React.FC = () => {
             key={item.name}
             href={item.href}
             className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all ${
-              active ? 'text-emerald-400 font-bold scale-105' : 'text-neutral-400 hover:text-white'
+              active ? 'text-blue-400 font-bold scale-105' : 'text-neutral-400 hover:text-white'
             }`}
           >
             <Icon className="w-5 h-5" />

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -43,7 +43,7 @@ export default function ArtistsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-emerald-400 mb-2">
+          <div className="flex items-center gap-2 text-blue-400 mb-2">
             <Users className="w-6 h-6" />
             <span className="text-xs font-bold uppercase tracking-wider">Library & Artists</span>
           </div>
@@ -61,7 +61,7 @@ export default function ArtistsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search artists or genres..."
-            className="w-full bg-[#161616] border border-white/10 rounded-full pl-10 pr-4 py-2.5 text-xs text-white placeholder:text-neutral-500 focus:outline-none focus:border-emerald-500/50 transition-all shadow-inner"
+            className="w-full bg-[#161616] border border-white/10 rounded-full pl-10 pr-4 py-2.5 text-xs text-white placeholder:text-neutral-500 focus:outline-none focus:border-blue-500/50 transition-all shadow-inner"
           />
         </div>
       </div>
@@ -89,14 +89,14 @@ export default function ArtistsPage() {
           onClick={() => setActiveTab('library')}
           className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
             activeTab === 'library'
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-black shadow-lg shadow-emerald-500/25 scale-100'
+              ? 'bg-gradient-to-r from-blue-500 to-blue-400 text-black shadow-lg shadow-blue-500/25 scale-100'
               : 'bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10'
           }`}
         >
           <Heart className={`w-3.5 h-3.5 ${activeTab === 'library' ? 'fill-black' : 'text-neutral-400'}`} />
           <span>In Library</span>
           <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-            activeTab === 'library' ? 'bg-black/20 text-black font-extrabold' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+            activeTab === 'library' ? 'bg-black/20 text-black font-extrabold' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
           }`}>
             {libraryArtists.length}
           </span>
@@ -106,12 +106,12 @@ export default function ArtistsPage() {
       {/* Content */}
       {isLoading ? (
         <div className="py-24 text-center text-sm text-neutral-400 flex flex-col items-center justify-center gap-3">
-          <div className="w-8 h-8 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
+          <div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
           <span>Loading artists...</span>
         </div>
       ) : displayedArtists.length === 0 ? (
         <div className="py-20 text-center rounded-3xl bg-[#141414] border border-white/5 p-8 max-w-lg mx-auto flex flex-col items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+          <div className="w-16 h-16 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
             {activeTab === 'library' ? <Heart className="w-8 h-8" /> : <Search className="w-8 h-8" />}
           </div>
           <div>
@@ -127,7 +127,7 @@ export default function ArtistsPage() {
           {activeTab === 'library' && (
             <button
               onClick={() => setActiveTab('all')}
-              className="mt-2 px-5 py-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-2 transition-all shadow-md shadow-emerald-500/20"
+              className="mt-2 px-5 py-2 rounded-full bg-blue-500 hover:bg-blue-400 text-black font-bold text-xs flex items-center gap-2 transition-all shadow-md shadow-blue-500/20"
             >
               <Compass className="w-4 h-4" /> Browse All Artists
             </button>

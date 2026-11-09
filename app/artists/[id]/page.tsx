@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, use, useMemo } from 'react';
 import Link from 'next/link';
@@ -33,6 +33,7 @@ export default function ArtistDetailPage({ params }: { params: Promise<{ id: str
   const artistId = resolvedParams.id;
 
   const [artist, setArtist] = useState<Artist | null>(null);
+  const [avatarError, setAvatarError] = useState(false);
   const [popularSongs, setPopularSongs] = useState<Song[]>([]);
   const [allSongs, setAllSongs] = useState<Song[]>([]);
   const [albums, setAlbums] = useState<Album[]>([]);
@@ -181,25 +182,39 @@ export default function ArtistDetailPage({ params }: { params: Promise<{ id: str
     <div className="space-y-10 max-w-7xl mx-auto pb-16">
       {/* Hero Banner with Background */}
       <div className="relative overflow-hidden rounded-3xl min-h-[320px] md:min-h-[380px] p-6 md:p-10 flex flex-col justify-end border border-white/10 shadow-2xl">
-        <img
-          src={artist.banner || artist.avatar}
-          alt={artist.name}
-          className="absolute inset-0 w-full h-full object-cover filter brightness-[0.45] scale-105"
-        />
+        {!avatarError && (artist.banner || artist.coverImage || artist.avatar) ? (
+          <img
+            src={artist.banner || artist.coverImage || artist.avatar}
+            alt={artist.name}
+            referrerPolicy="no-referrer"
+            onError={() => {}}
+            className="absolute inset-0 w-full h-full object-cover filter brightness-[0.45] scale-105"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-950 via-neutral-900 to-black" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/40 to-transparent" />
 
         <div className="relative z-10 flex flex-col md:flex-row items-center md:items-end gap-6">
-          <img
-            src={artist.avatar}
-            alt={artist.name}
-            className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-white/20 shadow-2xl shrink-0"
-          />
+          {!avatarError && artist.avatar && !artist.avatar.includes('d41d8cd98f00b204e9800998ecf8427e') ? (
+            <img
+              src={artist.avatar}
+              alt={artist.name}
+              referrerPolicy="no-referrer"
+              onError={() => setAvatarError(true)}
+              className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-white/20 shadow-2xl shrink-0"
+            />
+          ) : (
+            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-900 flex items-center justify-center text-white font-black text-4xl border-4 border-white/20 shadow-2xl shrink-0 select-none">
+              {artist.name.slice(0, 2).toUpperCase()}
+            </div>
+          )}
 
           <div className="flex-1 text-center md:text-left min-w-0">
             <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
               {artist.isVerified && (
-                <span className="flex items-center gap-1 text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
-                  <CheckCircle2 className="w-3.5 h-3.5 fill-emerald-400/20" /> Verified Artist
+                <span className="flex items-center gap-1 text-xs font-semibold text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">
+                  <CheckCircle2 className="w-3.5 h-3.5 fill-blue-400/20" /> Verified Artist
                 </span>
               )}
               {artist.country && (
@@ -214,14 +229,14 @@ export default function ArtistDetailPage({ params }: { params: Promise<{ id: str
             <p className="text-xs md:text-sm text-neutral-300 mt-2 font-medium">
               <span className="font-mono text-white font-bold">{formatNumber(artist.monthlyListeners)}</span> monthly listeners •{' '}
               <span className="font-mono text-white font-bold">{formatNumber(artist.followersCount)}</span> followers •{' '}
-              <span className="font-mono text-emerald-400 font-bold">{allSongs.length} official soundtracks</span>
+              <span className="font-mono text-blue-400 font-bold">{allSongs.length} official soundtracks</span>
             </p>
 
             {/* Actions */}
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-6">
               <button
                 onClick={handlePlayArtist}
-                className="px-8 py-3 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm flex items-center gap-2 shadow-xl shadow-emerald-500/25 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                className="px-8 py-3 rounded-full bg-blue-500 hover:bg-blue-400 text-black font-bold text-sm flex items-center gap-2 shadow-xl shadow-blue-500/25 transition-all hover:scale-105 active:scale-95 cursor-pointer"
               >
                 {isArtistPlaying ? (
                   <>
@@ -246,19 +261,19 @@ export default function ArtistDetailPage({ params }: { params: Promise<{ id: str
                 onClick={handleFollowToggle}
                 className={`group px-6 py-3 rounded-full border text-xs font-bold flex items-center gap-2.5 transition-all shadow-lg cursor-pointer ${
                   isFollowed
-                    ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 hover:border-emerald-400 shadow-emerald-500/10'
-                    : 'border-white/20 bg-black/40 backdrop-blur-md text-white hover:border-emerald-400/60 hover:text-emerald-300 hover:bg-white/10 active:scale-95'
+                    ? 'border-blue-500/50 bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 hover:border-blue-400 shadow-blue-500/10'
+                    : 'border-white/20 bg-black/40 backdrop-blur-md text-white hover:border-blue-400/60 hover:text-blue-300 hover:bg-white/10 active:scale-95'
                 }`}
                 title={isFollowed ? 'Remove from Library' : 'Add to Library'}
               >
                 {isFollowed ? (
                   <>
-                    <Heart className="w-4 h-4 fill-emerald-400 text-emerald-400 transition-transform group-hover:scale-110" />
+                    <Heart className="w-4 h-4 fill-blue-400 text-blue-400 transition-transform group-hover:scale-110" />
                     <span>In Library</span>
                   </>
                 ) : (
                   <>
-                    <Heart className="w-4 h-4 text-white/80 group-hover:text-emerald-400 transition-all group-hover:scale-110" />
+                    <Heart className="w-4 h-4 text-white/80 group-hover:text-blue-400 transition-all group-hover:scale-110" />
                     <span>Add to Library</span>
                   </>
                 )}
@@ -307,7 +322,7 @@ export default function ArtistDetailPage({ params }: { params: Promise<{ id: str
                     setTrackSearch(e.target.value);
                     setVisibleCount(BATCH_SIZE);
                   }}
-                  className="w-full pl-8 pr-3 py-1.5 bg-neutral-900 border border-white/10 rounded-full text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500"
+                  className="w-full pl-8 pr-3 py-1.5 bg-neutral-900 border border-white/10 rounded-full text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500"
                 />
               </div>
 
@@ -375,7 +390,7 @@ export default function ArtistDetailPage({ params }: { params: Promise<{ id: str
                     onClick={() => setVisibleCount((prev) => Math.min(prev + BATCH_SIZE, filteredAllSongs.length))}
                     className="px-6 py-2.5 rounded-full bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-semibold border border-white/10 transition-all hover:scale-105 active:scale-95 inline-flex items-center gap-2 cursor-pointer shadow-lg"
                   >
-                    <ChevronDown className="w-4 h-4 text-emerald-400" />
+                    <ChevronDown className="w-4 h-4 text-blue-400" />
                     Load More Tracks ({displayedAllSongs.length} of {filteredAllSongs.length})
                   </button>
                   <button

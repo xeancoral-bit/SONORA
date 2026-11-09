@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
@@ -199,7 +199,7 @@ export default function PlaylistDetailPage({ params }: { params: Promise<{ id: s
 
         <div className="flex-1 text-center md:text-left min-w-0">
           <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
-            <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">
+            <span className="text-xs font-bold uppercase tracking-widest text-blue-400">
               {playlist.isPublic ? 'Public Playlist' : 'Private Playlist'}
             </span>
           </div>
@@ -227,7 +227,7 @@ export default function PlaylistDetailPage({ params }: { params: Promise<{ id: s
             <button
               onClick={handlePlayPlaylist}
               disabled={songs.length === 0}
-              className="px-8 py-3 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm flex items-center gap-2.5 shadow-xl shadow-emerald-500/25 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+              className="px-8 py-3 rounded-full bg-blue-500 hover:bg-blue-400 text-black font-bold text-sm flex items-center gap-2.5 shadow-xl shadow-blue-500/25 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
             >
               {isPlaylistPlaying ? (
                 <>
@@ -304,7 +304,7 @@ export default function PlaylistDetailPage({ params }: { params: Promise<{ id: s
             <div className="pt-3">
               <Link
                 href="/browse"
-                className="px-5 py-2 rounded-full bg-emerald-500 text-black font-semibold text-xs inline-block"
+                className="px-5 py-2 rounded-full bg-blue-500 text-black font-semibold text-xs inline-block"
               >
                 Discover Music
               </Link>
@@ -363,7 +363,7 @@ export default function PlaylistDetailPage({ params }: { params: Promise<{ id: s
               required
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
-              className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+              className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
             />
           </div>
 
@@ -375,7 +375,7 @@ export default function PlaylistDetailPage({ params }: { params: Promise<{ id: s
               rows={2}
               value={editDescription}
               onChange={(e) => setEditDescription(e.target.value)}
-              className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 resize-none"
+              className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500 resize-none"
             />
           </div>
 
@@ -387,7 +387,7 @@ export default function PlaylistDetailPage({ params }: { params: Promise<{ id: s
               type="url"
               value={editCover}
               onChange={(e) => setEditCover(e.target.value)}
-              className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+              className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
             />
           </div>
 
@@ -398,7 +398,7 @@ export default function PlaylistDetailPage({ params }: { params: Promise<{ id: s
               onClick={() => setEditIsPublic(!editIsPublic)}
               className={`px-3 py-1 rounded-full text-xs font-semibold border ${
                 editIsPublic
-                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                  ? 'bg-blue-500/10 border-blue-500/30 text-blue-400'
                   : 'bg-neutral-800 border-neutral-700 text-neutral-400'
               }`}
             >
@@ -416,7 +416,7 @@ export default function PlaylistDetailPage({ params }: { params: Promise<{ id: s
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs"
+              className="px-5 py-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-black font-semibold text-xs"
             >
               Save Changes
             </button>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -137,7 +137,7 @@ function SearchContent() {
             }
           }}
           autoFocus
-          className="w-full bg-[#181818] border border-white/10 rounded-2xl pl-12 pr-12 py-3.5 text-base text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500/50 shadow-xl"
+          className="w-full bg-[#181818] border border-white/10 rounded-2xl pl-12 pr-12 py-3.5 text-base text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500/50 shadow-xl"
         />
         {query && (
           <button
@@ -198,7 +198,7 @@ function SearchContent() {
                   <button
                     key={i}
                     onClick={() => handleSelectRecent(term)}
-                    className="px-3.5 py-1.5 rounded-xl bg-neutral-900 border border-white/10 hover:border-emerald-500/40 text-xs text-neutral-300 hover:text-white transition-colors flex items-center gap-2"
+                    className="px-3.5 py-1.5 rounded-xl bg-neutral-900 border border-white/10 hover:border-blue-500/40 text-xs text-neutral-300 hover:text-white transition-colors flex items-center gap-2"
                   >
                     <span>{term}</span>
                   </button>
@@ -213,7 +213,7 @@ function SearchContent() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               <GenreCard genre={{ id: 'genre-pop', name: 'Pop', slug: 'pop', color: 'from-pink-500 to-rose-700', accentColor: '#EC4899', coverImage: '/genres/genre-pop.jpg', description: 'Catchy hooks, upbeat rhythms, and mainstream chart-toppers.' }} />
               <GenreCard genre={{ id: 'genre-electronic', name: 'Electronic', slug: 'electronic', color: 'from-cyan-500 to-blue-700', accentColor: '#06B6D4', coverImage: '/genres/genre-electronic.jpg', description: 'Synthesizers, driving 4/4 beats, synthwave, and club anthems.' }} />
-              <GenreCard genre={{ id: 'genre-chill', name: 'Lo-Fi & Chill', slug: 'chill', color: 'from-emerald-500 to-teal-800', accentColor: '#10B981', coverImage: '/genres/genre-lofi.jpg', description: 'Relaxing study beats, ambient textures, and peaceful vibes.' }} />
+              <GenreCard genre={{ id: 'genre-chill', name: 'Lo-Fi & Chill', slug: 'chill', color: 'from-blue-500 to-blue-800', accentColor: '#2563EB', coverImage: '/genres/genre-lofi.jpg', description: 'Relaxing study beats, ambient textures, and peaceful vibes.' }} />
               <GenreCard genre={{ id: 'genre-rnb', name: 'R&B & Soul', slug: 'rnb', color: 'from-purple-500 to-indigo-800', accentColor: '#8B5CF6', coverImage: '/genres/genre-rnb.jpg', description: 'Smooth vocals, deep basslines, and emotive melodies.' }} />
             </div>
           </div>
@@ -253,7 +253,7 @@ function SearchContent() {
                             className="w-20 h-20 rounded-full object-cover shadow-md border-2 border-white/10"
                           />
                           <div>
-                            <h4 className="font-extrabold text-xl text-white group-hover:text-emerald-400 transition-colors truncate">
+                            <h4 className="font-extrabold text-xl text-white group-hover:text-blue-400 transition-colors truncate">
                               {results.topResult.data.name}
                             </h4>
                             <span className="text-xs text-neutral-400 mt-1 block">
@@ -271,7 +271,7 @@ function SearchContent() {
                                 router.push(`/artists/${results.topResult?.data.id}`);
                               }
                             }}
-                            className="absolute right-5 bottom-5 w-12 h-12 rounded-full bg-emerald-500 text-black flex items-center justify-center shadow-lg shadow-emerald-500/30 opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all cursor-pointer"
+                            className="absolute right-5 bottom-5 w-12 h-12 rounded-full bg-blue-500 text-black flex items-center justify-center shadow-lg shadow-blue-500/30 opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all cursor-pointer"
                             title="Play artist"
                           >
                             <Play className="w-5 h-5 fill-black ml-0.5" />
@@ -288,7 +288,7 @@ function SearchContent() {
                             className="w-20 h-20 rounded-xl object-cover shadow-md border border-white/10"
                           />
                           <div>
-                            <h4 className="font-extrabold text-xl text-white group-hover:text-emerald-400 transition-colors truncate">
+                            <h4 className="font-extrabold text-xl text-white group-hover:text-blue-400 transition-colors truncate">
                               {topSong.title}
                             </h4>
                             <span className="text-xs text-neutral-400 mt-1 block">
@@ -297,7 +297,7 @@ function SearchContent() {
                           </div>
 
                           <button
-                            className="absolute right-5 bottom-5 w-12 h-12 rounded-full bg-emerald-500 text-black flex items-center justify-center shadow-lg shadow-emerald-500/30 opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all cursor-pointer"
+                            className="absolute right-5 bottom-5 w-12 h-12 rounded-full bg-blue-500 text-black flex items-center justify-center shadow-lg shadow-blue-500/30 opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all cursor-pointer"
                             title="Play song"
                           >
                             <Play className="w-5 h-5 fill-black ml-0.5" />
@@ -316,7 +316,7 @@ function SearchContent() {
                       {activeFilter === 'all' && results.songs.length > 6 && (
                         <button
                           onClick={() => setActiveFilter('songs')}
-                          className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer"
+                          className="text-xs font-semibold text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
                         >
                           See all {results.songs.length} songs →
                         </button>

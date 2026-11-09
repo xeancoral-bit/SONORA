@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -7,7 +7,6 @@ import {
   Home,
   Search,
   Compass,
-  Library,
   Disc,
   Users,
   Layers,
@@ -16,13 +15,7 @@ import {
   ListMusic,
   FolderHeart,
   Plus,
-  Settings,
-  HelpCircle,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
   ShieldAlert,
-  Sparkles,
   Menu,
   MessageSquare
 } from 'lucide-react';
@@ -33,11 +26,10 @@ import { CreatePlaylistModal } from '../ui/CreatePlaylistModal';
 
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
-  const { user, isAdmin, logout } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [collections, setCollections] = useState<UserCollection[]>([]);
-  const [followedArtists, setFollowedArtists] = useState<Artist[]>([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   useEffect(() => {
@@ -113,19 +105,19 @@ export const Sidebar: React.FC = () => {
                   href={item.href}
                   className={`group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-semibold transition-all duration-200 ${
                     active
-                      ? 'bg-gradient-to-r from-emerald-500/20 via-emerald-500/10 to-transparent text-emerald-400 font-bold shadow-sm shadow-emerald-500/10'
+                      ? 'bg-gradient-to-r from-blue-500/20 via-blue-500/10 to-transparent text-blue-400 font-bold shadow-sm shadow-blue-500/10'
                       : 'text-neutral-400 hover:text-white hover:bg-white/[0.06] hover:translate-x-1'
                   } ${collapsed ? 'justify-center px-0' : ''}`}
                   title={item.name}
                 >
                   {/* Active glowing indicator pill */}
                   {active && !collapsed && (
-                    <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)] animate-pulse" />
+                    <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-blue-400 shadow-[0_0_10px_rgba(52,211,153,0.9)] animate-pulse" />
                   )}
                   <Icon
                     className={`w-[18px] h-[18px] shrink-0 transition-all duration-200 ${
                       active
-                        ? 'text-emerald-400 scale-110 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]'
+                        ? 'text-blue-400 scale-110 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]'
                         : 'text-neutral-400 group-hover:text-white group-hover:scale-110'
                     }`}
                   />
@@ -167,21 +159,21 @@ export const Sidebar: React.FC = () => {
                   href={item.href}
                   className={`group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-200 ${
                     active
-                      ? 'bg-gradient-to-r from-emerald-500/20 via-emerald-500/10 to-transparent text-emerald-400 font-bold shadow-sm shadow-emerald-500/10'
+                      ? 'bg-gradient-to-r from-blue-500/20 via-blue-500/10 to-transparent text-blue-400 font-bold shadow-sm shadow-blue-500/10'
                       : 'text-neutral-400 hover:text-white hover:bg-white/[0.06] hover:translate-x-1'
                   } ${collapsed ? 'justify-center px-0' : ''}`}
                   title={item.name}
                 >
                   {/* Active glowing indicator pill */}
                   {active && !collapsed && (
-                    <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)] animate-pulse" />
+                    <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-blue-400 shadow-[0_0_10px_rgba(52,211,153,0.9)] animate-pulse" />
                   )}
                   <Icon
                     className={`w-4 h-4 shrink-0 transition-all duration-200 ${
                       active
-                        ? 'text-emerald-400 scale-110 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]'
+                        ? 'text-blue-400 scale-110 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]'
                         : item.accent
-                        ? 'text-emerald-400/80 group-hover:text-emerald-400 group-hover:scale-110'
+                        ? 'text-blue-400/80 group-hover:text-blue-400 group-hover:scale-110'
                         : 'text-neutral-400 group-hover:text-white group-hover:scale-110'
                     }`}
                   />
@@ -200,7 +192,7 @@ export const Sidebar: React.FC = () => {
                 </span>
                 <button
                   onClick={() => setIsCreateOpen(true)}
-                  className="text-neutral-500 hover:text-emerald-400 p-0.5 rounded transition-colors"
+                  className="text-neutral-500 hover:text-blue-400 p-0.5 rounded transition-colors"
                   title="Create playlist"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -220,7 +212,7 @@ export const Sidebar: React.FC = () => {
               <div className="flex flex-col gap-0.5">
                 <button
                   onClick={() => setIsCreateOpen(true)}
-                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-emerald-400 hover:bg-emerald-500/10 transition-colors w-full text-left"
+                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-blue-400 hover:bg-blue-500/10 transition-colors w-full text-left"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Create Playlist
@@ -233,11 +225,11 @@ export const Sidebar: React.FC = () => {
                       href={`/playlists/${pl.id}`}
                       className={`group flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-[12px] transition-all duration-150 truncate ${
                         active
-                          ? 'text-emerald-400 font-bold bg-emerald-500/10 pl-4 border-l border-emerald-400'
+                          ? 'text-blue-400 font-bold bg-blue-500/10 pl-4 border-l border-blue-400'
                           : 'text-neutral-500 hover:text-white hover:bg-white/[0.05] hover:translate-x-0.5'
                       }`}
                     >
-                      <ListMusic className={`w-3.5 h-3.5 shrink-0 ${active ? 'text-emerald-400' : 'group-hover:text-emerald-400'}`} />
+                      <ListMusic className={`w-3.5 h-3.5 shrink-0 ${active ? 'text-blue-400' : 'group-hover:text-blue-400'}`} />
                       <span className="truncate">{pl.title}</span>
                     </Link>
                   );

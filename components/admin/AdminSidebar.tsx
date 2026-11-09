@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -106,7 +106,7 @@ export const AdminSidebar: React.FC = () => {
                   active
                     ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold shadow-sm'
                     : item.highlight
-                    ? 'text-emerald-400 hover:bg-emerald-500/10 border border-emerald-500/20'
+                    ? 'text-blue-400 hover:bg-blue-500/10 border border-blue-500/20'
                     : 'text-neutral-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -122,9 +122,9 @@ export const AdminSidebar: React.FC = () => {
           <Link
             href="/"
             onClick={() => setIsOpenMobile(false)}
-            className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-neutral-900 border border-white/10 hover:border-emerald-500/40 text-xs font-semibold text-neutral-300 hover:text-white transition-colors w-full"
+            className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-neutral-900 border border-white/10 hover:border-blue-500/40 text-xs font-semibold text-neutral-300 hover:text-white transition-colors w-full"
           >
-            <ArrowLeft className="w-4 h-4 text-emerald-400" />
+            <ArrowLeft className="w-4 h-4 text-blue-400" />
             Back to User Streaming
           </Link>
         </div>

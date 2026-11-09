@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import {
@@ -33,7 +33,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ data }) => {
       return (
         <div className="p-3 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-2xl text-xs text-white">
           <p className="font-bold text-neutral-300">{label}</p>
-          <p className="font-mono text-emerald-400 font-bold mt-1">
+          <p className="font-mono text-blue-400 font-bold mt-1">
             {formatNumber(payload[0].value)} {payload[0].name || 'plays'}
           </p>
         </div>
@@ -48,7 +48,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ data }) => {
       <div className="lg:col-span-8 p-6 rounded-3xl bg-[#141414] border border-white/5 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Activity className="w-5 h-5 text-emerald-400" />
+            <Activity className="w-5 h-5 text-blue-400" />
             <h3 className="font-bold text-base text-white">Listening Activity (Last 7 Days)</h3>
           </div>
           <span className="text-xs text-neutral-400">Real-time Stream Volume</span>
@@ -59,14 +59,14 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ data }) => {
             <AreaChart data={data.listeningActivity} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorPlays" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#2563EB" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <XAxis dataKey="date" stroke="#666" fontSize={11} tickLine={false} />
               <YAxis stroke="#666" fontSize={11} tickLine={false} tickFormatter={(val) => `${val / 1000}k`} />
               <Tooltip content={customTooltip} />
-              <Area type="monotone" dataKey="plays" stroke="#10B981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPlays)" />
+              <Area type="monotone" dataKey="plays" stroke="#2563EB" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPlays)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -92,7 +92,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ data }) => {
                 dataKey="value"
               >
                 {data.popularGenres.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color || '#10B981'} stroke="#141414" strokeWidth={2} />
+                  <Cell key={`cell-${index}`} fill={entry.color || '#2563EB'} stroke="#141414" strokeWidth={2} />
                 ))}
               </Pie>
               <Tooltip content={customTooltip} />
@@ -168,14 +168,14 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ data }) => {
               className="flex items-center gap-3 p-3 rounded-2xl bg-neutral-900/70 border border-white/5 hover:border-white/10 transition-all hover:bg-neutral-900"
             >
               <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-white/10">
-                <img src={artist.avatar} alt={artist.name} className="w-full h-full object-cover" />
+                <img src={artist.avatar} alt={artist.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                 <span className="absolute top-0 left-0 bg-black/80 backdrop-blur-sm px-1.5 py-0.5 text-[10px] font-bold text-amber-400 rounded-br-lg font-mono">
                   #{idx + 1}
                 </span>
               </div>
               <div className="min-w-0 flex-1">
                 <h4 className="font-bold text-xs text-white truncate">{artist.name}</h4>
-                <p className="text-[11px] text-emerald-400 font-semibold truncate leading-tight mt-0.5">
+                <p className="text-[11px] text-blue-400 font-semibold truncate leading-tight mt-0.5">
                   {formatNumber(artist.plays)} plays
                 </p>
                 <p className="text-[10px] text-neutral-400 truncate leading-tight mt-0.5">

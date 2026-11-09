@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -71,7 +71,7 @@ export default function UserPublicProfilePage() {
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
-        <div className="w-12 h-12 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+        <div className="w-12 h-12 border-2 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
         <p className="text-xs text-neutral-400 font-mono tracking-widest uppercase">Loading member credentials...</p>
       </div>
     );
@@ -118,7 +118,7 @@ export default function UserPublicProfilePage() {
 
       {/* Official Member Card Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-neutral-900/90 via-[#121212] to-[#0A0A0A] border border-white/10 p-6 md:p-10 shadow-2xl shadow-black/80">
-        <div className="absolute -right-16 -top-16 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -right-16 -top-16 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -left-16 -bottom-16 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8">
@@ -126,16 +126,16 @@ export default function UserPublicProfilePage() {
             <img
               src={profile.avatar}
               alt={profile.name}
-              className="w-32 h-32 md:w-36 md:h-36 rounded-2xl object-cover border-2 border-emerald-500/30 shadow-2xl bg-neutral-900"
+              className="w-32 h-32 md:w-36 md:h-36 rounded-2xl object-cover border-2 border-blue-500/30 shadow-2xl bg-neutral-900"
             />
-            <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded-full bg-emerald-500 text-black text-[10px] font-black uppercase tracking-wider shadow-lg flex items-center gap-1">
+            <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded-full bg-blue-500 text-black text-[10px] font-black uppercase tracking-wider shadow-lg flex items-center gap-1">
               <Sparkles className="w-2.5 h-2.5" /> Verified
             </div>
           </div>
 
           <div className="flex-1 text-center md:text-left min-w-0">
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 flex items-center gap-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 flex items-center gap-1">
                 <Shield className="w-3 h-3" />
                 {profile.role === 'admin' ? 'Official Administrator' : 'Verified Sonora Listener'}
               </span>
@@ -171,7 +171,7 @@ export default function UserPublicProfilePage() {
             {isOwnProfile ? (
               <Link
                 href="/profile"
-                className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-lg shadow-emerald-500/20"
+                className="px-5 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-400 text-black font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-lg shadow-blue-500/20"
               >
                 Manage My Space
               </Link>
@@ -181,7 +181,7 @@ export default function UserPublicProfilePage() {
                 onClick={handleShare}
                 className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-colors"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Share2 className="w-3.5 h-3.5" />}
+                {copied ? <Check className="w-3.5 h-3.5 text-blue-400" /> : <Share2 className="w-3.5 h-3.5" />}
                 {copied ? 'Copied' : 'Share Profile'}
               </button>
             )}
@@ -192,7 +192,7 @@ export default function UserPublicProfilePage() {
       {/* Public Playlists */}
       <section className="space-y-4">
         <div className="flex items-center gap-2">
-          <Music className="w-5 h-5 text-emerald-400" />
+          <Music className="w-5 h-5 text-blue-400" />
           <h3 className="text-xl font-bold text-white">Public Playlists</h3>
         </div>
 

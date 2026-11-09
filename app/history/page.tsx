@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -60,7 +60,7 @@ export default function HistoryPage() {
     <div className="space-y-8 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-2 text-emerald-400 mb-2">
+          <div className="flex items-center gap-2 text-blue-400 mb-2">
             <Clock className="w-6 h-6" />
             <span className="text-xs font-bold uppercase tracking-wider">Activity</span>
           </div>
@@ -72,7 +72,7 @@ export default function HistoryPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => playTrack(history[0], history)}
-              className="px-5 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/25 transition-all"
+              className="px-5 py-2.5 rounded-full bg-blue-500 hover:bg-blue-400 text-black font-semibold text-xs flex items-center gap-2 shadow-lg shadow-blue-500/25 transition-all"
             >
               <Play className="w-4 h-4 fill-black ml-0.5" /> Play All
             </button>
@@ -97,7 +97,7 @@ export default function HistoryPage() {
           </p>
           <Link
             href="/browse"
-            className="px-5 py-2 rounded-full bg-emerald-500 text-black text-xs font-semibold inline-block"
+            className="px-5 py-2 rounded-full bg-blue-500 text-black text-xs font-semibold inline-block"
           >
             Start Listening
           </Link>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useCallback } from 'react';
 import { Heart } from 'lucide-react';
@@ -56,7 +56,7 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
           relative z-10 ${s.btn} rounded-full flex items-center justify-center
           transition-all duration-200 cursor-pointer select-none
           ${isLiked
-            ? 'bg-emerald-500/15 border border-emerald-500/30 hover:bg-emerald-500/25 hover:border-emerald-500/50'
+            ? 'bg-blue-500/15 border border-blue-500/30 hover:bg-blue-500/25 hover:border-blue-500/50'
             : 'bg-transparent border border-transparent hover:bg-white/8 hover:border-white/15'
           }
           ${isAnimating ? 'animate-heart-pop' : ''}
@@ -69,8 +69,8 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
           className={`
             ${s.icon} transition-all duration-200
             ${isLiked
-              ? 'fill-emerald-400 text-emerald-400 drop-shadow-[0_0_6px_rgba(16,185,129,0.8)]'
-              : 'text-neutral-400 hover:text-emerald-300'
+              ? 'fill-blue-400 text-blue-400 drop-shadow-[0_0_6px_rgba(16,185,129,0.8)]'
+              : 'text-neutral-400 hover:text-blue-300'
             }
           `}
           strokeWidth={isLiked ? 0 : 1.75}

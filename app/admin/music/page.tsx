@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -6,24 +6,19 @@ import { Song, Artist, Genre, SongStatus } from '@/lib/types';
 import { SongFormModal } from '@/components/admin/SongFormModal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/context/ToastContext';
-import { formatTime, formatNumber, formatDate } from '@/lib/utils';
-import { getPlatformMeta } from '@/lib/urlUtils';
+import { formatTime, formatNumber } from '@/lib/utils';
 import {
-  Music,
   Loader2,
   Sparkles,
   Mic2,
   PlusCircle,
   Search,
-  Filter,
   Edit2,
   Trash2,
   Archive,
   ExternalLink,
-  CheckCircle2,
   FileCode,
   Globe,
-  Link2,
   Copy,
   ChevronDown
 } from 'lucide-react';
@@ -191,7 +186,7 @@ export default function AdminMusicManagementPage() {
   const getStatusBadge = (status: SongStatus) => {
     switch (status) {
       case 'published':
-        return <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold uppercase">Published</span>;
+        return <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-bold uppercase">Published</span>;
       case 'draft':
         return <span className="px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-300 border border-neutral-700 text-[10px] font-bold uppercase">Draft</span>;
       case 'private':
@@ -220,7 +215,7 @@ export default function AdminMusicManagementPage() {
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold">
         <FileCode className="w-2.5 h-2.5" /> Uploaded
       </span>
     );
@@ -304,6 +299,20 @@ export default function AdminMusicManagementPage() {
               <option value="">All Genres</option>
               {genres.map((g) => (
                 <option key={g.id} value={g.id}>{g.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Artist Filter */}
+          <div>
+            <select
+              value={selectedArtist}
+              onChange={(e) => setSelectedArtist(e.target.value)}
+              className="w-full bg-neutral-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/50"
+            >
+              <option value="">All Artists</option>
+              {artists.slice(0, 100).map((a) => (
+                <option key={a.id} value={a.id}>{a.name}</option>
               ))}
             </select>
           </div>
@@ -393,7 +402,7 @@ export default function AdminMusicManagementPage() {
                             </span>
                             {song.syncedLyrics && song.syncedLyrics.length > 0 && (
                               <span
-                                className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-emerald-500/15 text-emerald-400 text-[8px] font-bold border border-emerald-500/25 tracking-wide shrink-0"
+                                className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-blue-500/15 text-blue-400 text-[8px] font-bold border border-blue-500/25 tracking-wide shrink-0"
                                 title="Timed Synchronized Lyrics available"
                               >
                                 <Mic2 className="w-2 h-2" />
@@ -416,7 +425,7 @@ export default function AdminMusicManagementPage() {
                       {song.albumTitle || <span className="text-neutral-600">Single</span>}
                     </td>
 
-                    <td className="py-3 px-3 text-emerald-400 font-semibold">
+                    <td className="py-3 px-3 text-blue-400 font-semibold">
                       {song.genreName}
                     </td>
 
@@ -545,7 +554,7 @@ export default function AdminMusicManagementPage() {
           <span>Showing {filteredSongs.length} of {songs.length} total tracks</span>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
               {songs.filter((s) => s.status === 'published').length} published
             </span>
             <span className="flex items-center gap-1.5">

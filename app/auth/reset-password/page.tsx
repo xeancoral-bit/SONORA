@@ -1,7 +1,6 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Check, Circle, Loader2, AlertCircle } from 'lucide-react';
 import { AuthBadge } from '@/components/auth/AuthBadge';
@@ -72,8 +71,8 @@ function ResetPasswordContent() {
 
     if (score <= 1) return { score: 1, label: 'Weak', color: 'bg-red-500' };
     if (score === 2) return { score: 2, label: 'Fair', color: 'bg-amber-500' };
-    if (score === 3) return { score: 3, label: 'Good', color: 'bg-teal-400' };
-    return { score: 4, label: 'Strong', color: 'bg-emerald-400' };
+    if (score === 3) return { score: 3, label: 'Good', color: 'bg-blue-400' };
+    return { score: 4, label: 'Strong', color: 'bg-blue-400' };
   }, [newPassword, rules]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -128,9 +127,9 @@ function ResetPasswordContent() {
   return (
     <div className="min-h-[85vh] flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background Ambient Glows */}
-      <div className="absolute -top-32 -right-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-gradient-radial from-emerald-500/5 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute -top-32 -right-32 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-gradient-radial from-blue-500/5 via-transparent to-transparent pointer-events-none" />
 
       {/* Main Glassmorphic Card */}
       <div className="relative w-full max-w-md bg-[#12141a]/95 border border-white/10 rounded-3xl p-8 sm:p-10 shadow-2xl shadow-black/80 backdrop-blur-2xl space-y-6 text-center">
@@ -169,7 +168,7 @@ function ResetPasswordContent() {
                 placeholder="Enter new password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full bg-[#0a0c10] border border-white/10 rounded-xl pl-4 pr-11 py-3 text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/40 transition-colors placeholder:text-neutral-600"
+                className="w-full bg-[#0a0c10] border border-white/10 rounded-xl pl-4 pr-11 py-3 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40 transition-colors placeholder:text-neutral-600"
               />
               <button
                 type="button"
@@ -194,7 +193,7 @@ function ResetPasswordContent() {
                 placeholder="Confirm new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full bg-[#0a0c10] border border-white/10 rounded-xl pl-4 pr-11 py-3 text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/40 transition-colors placeholder:text-neutral-600"
+                className="w-full bg-[#0a0c10] border border-white/10 rounded-xl pl-4 pr-11 py-3 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40 transition-colors placeholder:text-neutral-600"
               />
               <button
                 type="button"
@@ -214,9 +213,9 @@ function ResetPasswordContent() {
               <span
                 className={`font-semibold ${
                   strength.label === 'Strong'
-                    ? 'text-emerald-400'
+                    ? 'text-blue-400'
                     : strength.label === 'Good'
-                    ? 'text-teal-400'
+                    ? 'text-blue-400'
                     : strength.label === 'Fair'
                     ? 'text-amber-400'
                     : 'text-neutral-500'
@@ -273,14 +272,14 @@ function ResetPasswordContent() {
             disabled={!allRulesSatisfied || isLoading}
             className={`w-full py-3.5 rounded-xl font-extrabold text-sm tracking-wide transition-all flex items-center justify-center gap-2 ${
               allRulesSatisfied && !isLoading
-                ? 'bg-gradient-to-r from-[#00d2b4] via-[#00e5a3] to-[#00f298] text-black shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:brightness-105 active:scale-[0.99] cursor-pointer'
-                : 'bg-[#1b2b25] text-emerald-600/70 border border-emerald-500/10 cursor-not-allowed'
+                ? 'bg-gradient-to-r from-[#00d2b4] via-[#00e5a3] to-[#00f298] text-black shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:brightness-105 active:scale-[0.99] cursor-pointer'
+                : 'bg-[#1b2b25] text-blue-600/70 border border-blue-500/10 cursor-not-allowed'
             }`}
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
-                <span className="text-emerald-400">UPDATING PASSWORD...</span>
+                <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                <span className="text-blue-400">UPDATING PASSWORD...</span>
               </>
             ) : (
               <span>Reset Password</span>
@@ -296,8 +295,8 @@ function ChecklistItem({ satisfied, text }: { satisfied: boolean; text: string }
   return (
     <div className="flex items-center gap-2.5 text-xs select-none">
       {satisfied ? (
-        <div className="w-4 h-4 rounded-full bg-emerald-500/20 border border-emerald-400/80 flex items-center justify-center shrink-0">
-          <Check className="w-2.5 h-2.5 text-emerald-400 stroke-[3]" />
+        <div className="w-4 h-4 rounded-full bg-blue-500/20 border border-blue-400/80 flex items-center justify-center shrink-0">
+          <Check className="w-2.5 h-2.5 text-blue-400 stroke-[3]" />
         </div>
       ) : (
         <Circle className="w-4 h-4 text-neutral-600 shrink-0" strokeWidth={1.5} />
@@ -314,7 +313,7 @@ export default function ResetPasswordPage() {
     <Suspense
       fallback={
         <div className="min-h-[85vh] flex items-center justify-center">
-          <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+          <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
         </div>
       }
     >

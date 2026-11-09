@@ -1,8 +1,8 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { useToast } from '@/context/ToastContext';
-import { Settings, HardDrive, Shield, Save, CheckCircle2, Sliders } from 'lucide-react';
+import { HardDrive, Save } from 'lucide-react';
 
 export default function AdminSettingsPage() {
   const toast = useToast();
@@ -34,7 +34,7 @@ export default function AdminSettingsPage() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         {/* Storage Telemetry */}
         <div className="md:col-span-4 p-6 rounded-3xl bg-[#141414] border border-white/5 space-y-4">
-          <div className="flex items-center gap-2 text-emerald-400">
+          <div className="flex items-center gap-2 text-blue-400">
             <HardDrive className="w-5 h-5" />
             <h3 className="font-bold text-base text-white">Storage Health</h3>
           </div>
@@ -45,7 +45,7 @@ export default function AdminSettingsPage() {
               <span className="font-mono text-white">124.5 MB / 50 GB</span>
             </div>
             <div className="w-full h-2 bg-neutral-800 rounded-full overflow-hidden">
-              <div className="w-[3%] h-full bg-emerald-500 rounded-full" />
+              <div className="w-[3%] h-full bg-blue-500 rounded-full" />
             </div>
             <span className="text-[11px] text-neutral-500 block">
               Audio files and cover arts stored securely in /public/uploads
@@ -55,7 +55,7 @@ export default function AdminSettingsPage() {
           <div className="pt-4 border-t border-white/5 space-y-2 text-xs">
             <div className="flex justify-between">
               <span className="text-neutral-400">Audio Codecs</span>
-              <span className="font-mono text-emerald-400">MP3, WAV, M4A, AAC</span>
+              <span className="font-mono text-blue-400">MP3, WAV, M4A, AAC</span>
             </div>
             <div className="flex justify-between">
               <span className="text-neutral-400">Web Audio Fallback</span>
@@ -84,7 +84,7 @@ export default function AdminSettingsPage() {
                 required
                 value={siteName}
                 onChange={(e) => setSiteName(e.target.value)}
-                className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+                className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
               />
             </div>
 
@@ -97,7 +97,7 @@ export default function AdminSettingsPage() {
                 required
                 value={tagline}
                 onChange={(e) => setTagline(e.target.value)}
-                className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+                className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
@@ -113,7 +113,7 @@ export default function AdminSettingsPage() {
                 max={200}
                 value={maxUploadSize}
                 onChange={(e) => setMaxUploadSize(parseInt(e.target.value, 10))}
-                className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 font-mono"
+                className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500 font-mono"
               />
             </div>
 
@@ -124,7 +124,7 @@ export default function AdminSettingsPage() {
               <select
                 value={defaultTheme}
                 onChange={(e) => setDefaultTheme(e.target.value as any)}
-                className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
               >
                 <option value="dark">Dark Mode (Default)</option>
                 <option value="light">Light Mode</option>
@@ -144,7 +144,7 @@ export default function AdminSettingsPage() {
                 type="checkbox"
                 checked={allowRegistration}
                 onChange={(e) => setAllowRegistration(e.target.checked)}
-                className="accent-emerald-500 w-4 h-4 rounded cursor-pointer"
+                className="accent-blue-500 w-4 h-4 rounded cursor-pointer"
               />
             </div>
           </div>
@@ -153,7 +153,7 @@ export default function AdminSettingsPage() {
             <button
               type="submit"
               disabled={isSaving}
-              className="px-6 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/25 disabled:opacity-50"
+              className="px-6 py-2.5 rounded-full bg-blue-500 hover:bg-blue-400 text-black font-bold text-xs flex items-center gap-2 shadow-lg shadow-blue-500/25 disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
               {isSaving ? 'Saving...' : 'Save System Settings'}

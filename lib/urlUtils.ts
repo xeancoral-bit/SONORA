@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SONORA — YouTube & External URL Utilities
  * Handles URL parsing, validation, and metadata extraction for external media sources.
  * Does NOT download, rip, or extract audio from YouTube — only stores the URL
@@ -137,6 +137,6 @@ export function getPlatformMeta(platform: string | null | undefined) {
     case 'direct':
       return { label: 'External URL', color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' };
     default:
-      return { label: 'Uploaded', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' };
+      return { label: 'Uploaded', color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' };
   }
 }

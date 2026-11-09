@@ -1,7 +1,7 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Sliders, Sparkles, Volume2, Music, Check, RotateCcw, Compass, Radio, Disc } from 'lucide-react';
+import { X, Sliders, RotateCcw, Compass } from 'lucide-react';
 
 export interface SoundPreset {
   id: string;
@@ -138,7 +138,7 @@ export const EqualizerModal: React.FC<EqualizerModalProps> = ({ isOpen, onClose,
   const [bass, setBass] = useState<number>(0);
   const [mid, setMid] = useState<number>(0);
   const [treble, setTreble] = useState<number>(0);
-  const [surround, setSurround] = useState<boolean>(false);
+  const [_surround, setSurround] = useState<boolean>(false);
 
   useEffect(() => {
     try {
@@ -198,7 +198,7 @@ export const EqualizerModal: React.FC<EqualizerModalProps> = ({ isOpen, onClose,
       >
         {/* Glow background accent */}
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Modal Header */}
         <div className="flex items-center justify-between pb-3.5 border-b border-white/10 shrink-0">
@@ -229,7 +229,7 @@ export const EqualizerModal: React.FC<EqualizerModalProps> = ({ isOpen, onClose,
           {/* 3D Acoustic Room Simulator Carousel */}
           <div>
             <div className="flex items-center justify-between text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-2">
-              <span className="flex items-center gap-1.5 text-emerald-400">
+              <span className="flex items-center gap-1.5 text-blue-400">
                 <Compass className="w-3.5 h-3.5" />
                 3D Spatial Acoustic Environment
               </span>
@@ -246,7 +246,7 @@ export const EqualizerModal: React.FC<EqualizerModalProps> = ({ isOpen, onClose,
                     onClick={() => selectRoom(room)}
                     className={`p-2.5 rounded-2xl text-left border transition-all duration-200 flex flex-col justify-between gap-1 relative overflow-hidden group ${
                       isSelected
-                        ? 'bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border-emerald-500/60 shadow-lg shadow-emerald-500/15'
+                        ? 'bg-gradient-to-br from-blue-500/20 to-blue-500/10 border-blue-500/60 shadow-lg shadow-blue-500/15'
                         : 'bg-neutral-900/60 border-white/5 hover:border-white/15 hover:bg-neutral-900'
                     }`}
                   >
@@ -254,7 +254,7 @@ export const EqualizerModal: React.FC<EqualizerModalProps> = ({ isOpen, onClose,
                       <span className="text-lg">{room.icon}</span>
                       <span
                         className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                          isSelected ? 'bg-emerald-400 text-black font-extrabold' : 'bg-white/10 text-neutral-400'
+                          isSelected ? 'bg-blue-400 text-black font-extrabold' : 'bg-white/10 text-neutral-400'
                         }`}
                       >
                         {room.badge}
@@ -296,8 +296,8 @@ export const EqualizerModal: React.FC<EqualizerModalProps> = ({ isOpen, onClose,
                     <div
                       className={`w-full rounded-t-md transition-all duration-300 ${
                         isPlaying
-                          ? 'bg-gradient-to-t from-emerald-500 via-amber-400 to-orange-400'
-                          : 'bg-gradient-to-t from-emerald-600 to-amber-500/60'
+                          ? 'bg-gradient-to-t from-blue-500 via-amber-400 to-orange-400'
+                          : 'bg-gradient-to-t from-blue-600 to-amber-500/60'
                       }`}
                       style={{
                         height: `${heightPercent}%`,
@@ -360,7 +360,7 @@ export const EqualizerModal: React.FC<EqualizerModalProps> = ({ isOpen, onClose,
           </button>
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-extrabold text-xs transition-all shadow-md shadow-emerald-500/20 active:scale-95"
+            className="px-5 py-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-400 hover:to-blue-400 text-black font-extrabold text-xs transition-all shadow-md shadow-blue-500/20 active:scale-95"
           >
             Apply Acoustic Profile
           </button>

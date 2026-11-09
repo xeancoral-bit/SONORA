@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import Link from 'next/link';
 
 interface SonoraLogoProps {
@@ -23,19 +23,19 @@ export const SonoraLogo: React.FC<SonoraLogoProps> = ({ collapsed = false, class
   return (
     <Link href="/" className={`flex items-center gap-3 group select-none transition-transform active:scale-95 ${className}`}>
       {/* Original Geometric Soundwave Mark */}
-      <div className={`relative ${iconSizes[size]} rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-emerald-300 p-0.5 shadow-lg shadow-emerald-500/25 group-hover:shadow-emerald-500/40 transition-shadow duration-300 shrink-0`}>
+      <div className={`relative ${iconSizes[size]} rounded-xl bg-gradient-to-tr from-blue-500 via-blue-400 to-blue-300 p-0.5 shadow-lg shadow-blue-500/25 group-hover:shadow-blue-500/40 transition-shadow duration-300 shrink-0`}>
         <div className="w-full h-full bg-[#0A0A0A] rounded-[10px] flex items-center justify-center gap-0.5 overflow-hidden">
-          <span className="w-1 h-3 bg-emerald-400 rounded-full group-hover:h-4 transition-all duration-300" />
-          <span className="w-1 h-5 bg-emerald-300 rounded-full group-hover:h-3 transition-all duration-300" />
-          <span className="w-1 h-4 bg-teal-400 rounded-full group-hover:h-5 transition-all duration-300" />
-          <span className="w-1 h-2 bg-emerald-400 rounded-full group-hover:h-4 transition-all duration-300" />
+          <span className="w-1 h-3 bg-blue-400 rounded-full group-hover:h-4 transition-all duration-300" />
+          <span className="w-1 h-5 bg-blue-300 rounded-full group-hover:h-3 transition-all duration-300" />
+          <span className="w-1 h-4 bg-blue-400 rounded-full group-hover:h-5 transition-all duration-300" />
+          <span className="w-1 h-2 bg-blue-400 rounded-full group-hover:h-4 transition-all duration-300" />
         </div>
       </div>
 
       {!collapsed && (
         <div className="flex flex-col">
           <div className="flex items-center gap-1.5">
-            <span className={`${textSizes[size]} font-extrabold tracking-wider bg-gradient-to-r from-white via-neutral-100 to-emerald-400 bg-clip-text text-transparent`}>
+            <span className={`${textSizes[size]} font-extrabold tracking-wider bg-gradient-to-r from-white via-neutral-100 to-blue-400 bg-clip-text text-transparent`}>
               SONORA
             </span>
           </div>

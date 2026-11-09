@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
@@ -6,10 +6,10 @@ import { Album, Song } from '@/lib/types';
 import { TrackRow } from '@/components/ui/TrackRow';
 import { useAudio } from '@/context/AudioContext';
 import { useToast } from '@/context/ToastContext';
-import { formatTime, formatDate } from '@/lib/utils';
+import { formatTime } from '@/lib/utils';
 import { AddToPlaylistModal } from '@/components/ui/AddToPlaylistModal';
 import { AddToCollectionModal } from '@/components/ui/AddToCollectionModal';
-import { Play, Pause, Shuffle, Heart, Share2, Clock, Disc } from 'lucide-react';
+import { Play, Pause, Shuffle, Share2, Clock } from 'lucide-react';
 
 export default function AlbumDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -119,7 +119,7 @@ export default function AlbumDetailPage({ params }: { params: Promise<{ id: stri
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-6">
             <button
               onClick={handlePlayAlbum}
-              className="px-8 py-3 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm flex items-center gap-2.5 shadow-xl shadow-emerald-500/25 transition-all hover:scale-105 active:scale-95"
+              className="px-8 py-3 rounded-full bg-blue-500 hover:bg-blue-400 text-black font-bold text-sm flex items-center gap-2.5 shadow-xl shadow-blue-500/25 transition-all hover:scale-105 active:scale-95"
             >
               {isAlbumPlaying ? (
                 <>

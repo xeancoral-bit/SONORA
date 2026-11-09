@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { LucideIcon, Music } from 'lucide-react';
 import Link from 'next/link';
 
@@ -21,7 +21,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4 text-center max-w-md mx-auto">
-      <div className="w-16 h-16 rounded-2xl bg-neutral-900 border border-white/10 flex items-center justify-center text-emerald-400 mb-4 shadow-xl shadow-black/40">
+      <div className="w-16 h-16 rounded-2xl bg-neutral-900 border border-white/10 flex items-center justify-center text-blue-400 mb-4 shadow-xl shadow-black/40">
         <Icon className="w-8 h-8 opacity-80" />
       </div>
       <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
@@ -30,14 +30,14 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         actionHref ? (
           <Link
             href={actionHref}
-            className="px-6 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-sm transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg shadow-emerald-500/25"
+            className="px-6 py-2.5 rounded-full bg-blue-500 hover:bg-blue-400 text-black font-semibold text-sm transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg shadow-blue-500/25"
           >
             {actionText}
           </Link>
         ) : (
           <button
             onClick={onAction}
-            className="px-6 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-sm transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg shadow-emerald-500/25"
+            className="px-6 py-2.5 rounded-full bg-blue-500 hover:bg-blue-400 text-black font-semibold text-sm transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg shadow-blue-500/25"
           >
             {actionText}
           </button>

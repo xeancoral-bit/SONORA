@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Artist } from '@/lib/types';
@@ -6,7 +6,7 @@ import { ArtistFormModal } from '@/components/admin/ArtistFormModal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/context/ToastContext';
 import { formatNumber } from '@/lib/utils';
-import { Users, Plus, Edit2, Trash2, ExternalLink, CheckCircle2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, ExternalLink, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminArtistsPage() {
@@ -101,6 +101,7 @@ export default function AdminArtistsPage() {
                         <img
                           src={artist.avatar}
                           alt={artist.name}
+                          referrerPolicy="no-referrer"
                           className="w-10 h-10 rounded-full object-cover bg-neutral-800 shrink-0"
                         />
                         <span className="font-bold text-white text-xs block truncate">
@@ -114,8 +115,8 @@ export default function AdminArtistsPage() {
                     <td className="py-3 px-3 font-mono">{formatNumber(artist.followersCount)}</td>
                     <td className="py-3 px-3">
                       {artist.isVerified ? (
-                        <span className="inline-flex items-center gap-1 text-emerald-400">
-                          <CheckCircle2 className="w-4 h-4 fill-emerald-400/20" /> Verified
+                        <span className="inline-flex items-center gap-1 text-blue-400">
+                          <CheckCircle2 className="w-4 h-4 fill-blue-400/20" /> Verified
                         </span>
                       ) : (
                         <span className="text-neutral-500">—</span>
