@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Play, Disc } from 'lucide-react';
 import { Album } from '@/lib/types';
+import { getOptimizedCoverUrl } from '@/lib/imageUtils';
 
 interface AlbumCardProps {
   album: Album;
@@ -11,8 +12,7 @@ interface AlbumCardProps {
 
 export const AlbumCard: React.FC<AlbumCardProps> = ({ album }) => {
   const [hasError, setHasError] = useState(false);
-  const isPlaceholder = !album.coverImage || album.coverImage.includes('d41d8cd98f00b204e9800998ecf8427e');
-  const showFallback = hasError || isPlaceholder;
+  const coverUrl = getOptimizedCoverUrl(album.coverImage, album.artistName, album.title, album.title, 'album');
 
   return (
     <Link
@@ -20,10 +20,11 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({ album }) => {
       className="group relative p-3 rounded-2xl bg-[#141414] hover:bg-[#1A1A1A] border border-white/5 hover:border-blue-500/30 transition-all duration-300 hover:shadow-2xl hover:shadow-black/70 flex flex-col cursor-pointer"
     >
       <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-neutral-900 mb-3 shadow-md border border-white/5 flex items-center justify-center">
-        {!showFallback ? (
+        {!hasError ? (
           <img
-            src={album.coverImage}
+            src={coverUrl}
             alt={album.title}
+            loading="lazy"
             onError={() => setHasError(true)}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />

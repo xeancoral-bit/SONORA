@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect, use, useMemo } from 'react';
 import Link from 'next/link';
@@ -25,6 +25,7 @@ import {
   ArrowUpDown,
   ChevronDown
 } from 'lucide-react';
+import { getOptimizedArtistAvatar, handleArtistAvatarError } from '@/lib/imageUtils';
 
 const BATCH_SIZE = 40;
 
@@ -182,33 +183,23 @@ export default function ArtistDetailPage({ params }: { params: Promise<{ id: str
     <div className="space-y-10 max-w-7xl mx-auto pb-16">
       {/* Hero Banner with Background */}
       <div className="relative overflow-hidden rounded-3xl min-h-[320px] md:min-h-[380px] p-6 md:p-10 flex flex-col justify-end border border-white/10 shadow-2xl">
-        {!avatarError && (artist.banner || artist.coverImage || artist.avatar) ? (
-          <img
-            src={artist.banner || artist.coverImage || artist.avatar}
-            alt={artist.name}
-            referrerPolicy="no-referrer"
-            onError={() => {}}
-            className="absolute inset-0 w-full h-full object-cover filter brightness-[0.45] scale-105"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-950 via-neutral-900 to-black" />
-        )}
+        <img
+          src={getOptimizedArtistAvatar(artist.banner || artist.coverImage || artist.avatar, artist.name)}
+          alt={artist.name}
+          referrerPolicy="no-referrer"
+          onError={(e) => handleArtistAvatarError(e, artist.name)}
+          className="absolute inset-0 w-full h-full object-cover filter brightness-[0.45] scale-105"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/40 to-transparent" />
 
         <div className="relative z-10 flex flex-col md:flex-row items-center md:items-end gap-6">
-          {!avatarError && artist.avatar && !artist.avatar.includes('d41d8cd98f00b204e9800998ecf8427e') ? (
-            <img
-              src={artist.avatar}
-              alt={artist.name}
-              referrerPolicy="no-referrer"
-              onError={() => setAvatarError(true)}
-              className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-white/20 shadow-2xl shrink-0"
-            />
-          ) : (
-            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-900 flex items-center justify-center text-white font-black text-4xl border-4 border-white/20 shadow-2xl shrink-0 select-none">
-              {artist.name.slice(0, 2).toUpperCase()}
-            </div>
-          )}
+          <img
+            src={getOptimizedArtistAvatar(artist.avatar, artist.name)}
+            alt={artist.name}
+            referrerPolicy="no-referrer"
+            onError={(e) => handleArtistAvatarError(e, artist.name)}
+            className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-white/20 shadow-2xl shrink-0 bg-neutral-900"
+          />
 
           <div className="flex-1 text-center md:text-left min-w-0">
             <div className="flex items-center justify-center md:justify-start gap-2 mb-2">

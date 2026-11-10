@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -12,6 +12,7 @@ import { TrackRow } from '@/components/ui/TrackRow';
 import { AddToPlaylistModal } from '@/components/ui/AddToPlaylistModal';
 import { AddToCollectionModal } from '@/components/ui/AddToCollectionModal';
 import { useAudio } from '@/context/AudioContext';
+import { getOptimizedArtistAvatar, handleArtistAvatarError } from '@/lib/imageUtils';
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -244,20 +245,21 @@ function SearchContent() {
                       <h3 className="text-base font-bold text-white">Top Result</h3>
                       {results.topResult?.type === 'artist' && results.topResult.data ? (
                         <div
-                          onClick={() => router.push(`/artists/${results.topResult?.data.id}`)}
+                          onClick={() => router.push(`/artists/${results.topResult?.data?.id}`)}
                           className="group relative p-6 rounded-2xl bg-[#181818] hover:bg-[#202020] border border-white/5 hover:border-white/10 transition-all duration-300 cursor-pointer shadow-xl flex flex-col justify-between h-[230px]"
                         >
                           <img
-                            src={results.topResult.data.avatar}
-                            alt={results.topResult.data.name}
+                            src={getOptimizedArtistAvatar(results.topResult?.data?.avatar, results.topResult?.data?.name)}
+                            alt={results.topResult?.data?.name || 'Artist'}
+                            onError={(e) => handleArtistAvatarError(e, results.topResult?.data?.name)}
                             className="w-20 h-20 rounded-full object-cover shadow-md border-2 border-white/10"
                           />
                           <div>
                             <h4 className="font-extrabold text-xl text-white group-hover:text-blue-400 transition-colors truncate">
-                              {results.topResult.data.name}
+                              {results.topResult?.data?.name}
                             </h4>
                             <span className="text-xs text-neutral-400 mt-1 block">
-                              Artist • {results.topResult.data.genreName || 'Music'}
+                              Artist • {results.topResult?.data?.genreName || 'Music'}
                             </span>
                           </div>
 

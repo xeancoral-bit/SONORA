@@ -5,6 +5,7 @@ import { useAudio } from '@/context/AudioContext';
 import { X, ListMusic, Trash2, Play, Music } from 'lucide-react';
 import { formatTime } from '@/lib/utils';
 import { EqualizerAnimation } from './EqualizerAnimation';
+import { getOptimizedCoverUrl, handleImageError } from '@/lib/imageUtils';
 
 export const QueueDrawer: React.FC = () => {
   const {
@@ -56,8 +57,9 @@ export const QueueDrawer: React.FC = () => {
             <div className="flex items-center gap-3 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
               <div className="relative w-12 h-12 rounded-lg overflow-hidden shrink-0">
                 <img
-                  src={currentTrack.coverImage}
+                  src={getOptimizedCoverUrl(currentTrack.coverImage, currentTrack.artistName, currentTrack.title)}
                   alt={currentTrack.title}
+                  onError={(e) => handleImageError(e, currentTrack.artistName, currentTrack.title)}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
@@ -100,8 +102,9 @@ export const QueueDrawer: React.FC = () => {
                     className="relative w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-neutral-800 cursor-pointer"
                   >
                     <img
-                      src={track.coverImage}
+                      src={getOptimizedCoverUrl(track.coverImage, track.artistName, track.title)}
                       alt={track.title}
+                      onError={(e) => handleImageError(e, track.artistName, track.title)}
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">

@@ -28,6 +28,7 @@ import { YouTubePlayer } from '@/components/player/YouTubePlayer';
 import { Youtube } from '@/components/ui/icons';
 import { LyricsControls } from '@/components/player/LyricsControls';
 import { getSyncedLyricsForSong } from '@/lib/lyricsService';
+import { getOptimizedCoverUrl, handleImageError } from '@/lib/imageUtils';
 
 export default function SongDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -174,7 +175,12 @@ export default function SongDetailPage({ params }: { params: Promise<{ id: strin
       {/* Song Hero Header */}
       <div className="flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8 bg-gradient-to-b from-neutral-800/40 via-neutral-900/30 to-transparent p-6 md:p-8 rounded-3xl border border-white/5 shadow-2xl backdrop-blur-xl">
         <div className="relative w-48 h-48 md:w-56 md:h-56 rounded-2xl overflow-hidden shadow-2xl shrink-0 bg-neutral-900 border border-white/10">
-          <img src={song.coverImage} alt={song.title} className="w-full h-full object-cover" />
+          <img
+            src={getOptimizedCoverUrl(song.coverImage, song.artistName, song.title)}
+            alt={song.title}
+            onError={(e) => handleImageError(e, song.artistName, song.title)}
+            className="w-full h-full object-cover"
+          />
         </div>
 
         <div className="flex-1 text-center md:text-left min-w-0">

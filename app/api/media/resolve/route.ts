@@ -98,7 +98,8 @@ function scoreCandidate(
   c: VideoCandidate,
   rawArtist: string,
   targetTitle: string,
-  targetDurationSec: number = 0
+  targetDurationSec: number = 0,
+  albumName: string = ''
 ): number {
   const titleNorm = normalizeStr(c.title);
   const channelNorm = normalizeStr(c.channel);
@@ -149,19 +150,29 @@ function scoreCandidate(
   const exactPhraseMatch = cleanCandidateTitle.includes(cleanTarget);
 
   // DISQUALIFY: If the video title does not match the target song title, reject it immediately
-  // (strictly prevents "Youth" from ever being selected when the song is "There for You", or "Embarrassingly" for "Seventeen")
-  if (!exactPhraseMatch && wordMatchRatio < 0.75) {
+  if (!exactPhraseMatch && wordMatchRatio < 0.6) {
     return -999;
   }
 
-  // MANDATORY ARTIST MATCH: Artist must appear in channel name or video title
-  const isArtistInChannel = artistParts.some(p => channelNorm.includes(p) || p.includes(channelNorm));
-  const isArtistInTitle = artistParts.some(p => cleanCandidateTitle.includes(p));
-  if (!isArtistInChannel && !isArtistInTitle) {
-    return -999;
-  }
+  // ARTIST OR SOUNDTRACK MATCH
+  const isArtistInChannel = artistParts.some(p => p.length > 1 && (channelNorm.includes(p) || p.includes(channelNorm)));
+  const isArtistInTitle = artistParts.some(p => p.length > 1 && cleanCandidateTitle.includes(p));
+
+  const cleanAlbumNorm = normalizeStr(albumName).replace(/[^a-z0-9\s]/g, ' ').trim();
+  const isSoundtrack = (albumName && (cleanAlbumNorm.includes('soundtrack') || cleanAlbumNorm.includes('ost'))) ||
+    rawArtist.toLowerCase().includes('soundtrack') || rawArtist.toLowerCase().includes('cast');
+  const isOfficialSoundtrackOrLabel = /\b(disney|watertower|starmusic|vevo|sony|milan|hollywood|universal|republic|atlantic|warner|records|soundtrack|official)\b/i.test(channelNorm);
+  const isAlbumInTitle = cleanAlbumNorm.length > 3 && cleanCandidateTitle.includes(cleanAlbumNorm);
 
   let score = 0;
+
+  if (!isArtistInChannel && !isArtistInTitle) {
+    if ((isSoundtrack && (isOfficialSoundtrackOrLabel || isAlbumInTitle)) || isOfficialSoundtrackOrLabel) {
+      score += 150;
+    } else {
+      return -999;
+    }
+  }
 
   // REWARD: Title match
   if (exactPhraseMatch) {
@@ -172,18 +183,16 @@ function scoreCandidate(
 
   // REWARD 1: Official Topic Channel (YouTube Music Studio Master provided directly by record labels)
   if (channelNorm.includes('topic')) {
-    const isTopicMatch = artistParts.some(p => channelNorm.includes(p));
-    if (isTopicMatch) score += 200;
+    score += 200;
   }
 
   // REWARD 2: Verified Artist Official Channel (matches any of the participating artists)
-  const isArtistChannel = artistParts.some(p => channelNorm === p || channelNorm.includes(p));
-  if (isArtistChannel) {
+  if (isArtistInChannel || isOfficialSoundtrackOrLabel) {
     score += 150;
   }
 
   // REWARD 3: Official Release Badges in Title
-  if (titleNorm.includes('official audio')) {
+  if (titleNorm.includes('official audio') || titleNorm.includes('official soundtrack')) {
     score += 90;
   } else if (titleNorm.includes('official lyric video') || titleNorm.includes('lyric video')) {
     score += 70;
@@ -285,27 +294,39 @@ export async function GET(req: NextRequest) {
     let highestScore = -9999;
 
     for (const c of candidates) {
-      const score = scoreCandidate(c, artist, cleanT, targetDuration);
+      const score = scoreCandidate(c, artist, cleanT, targetDuration, cleanAlbum);
       if (score > highestScore) {
         highestScore = score;
         bestCandidate = c;
       }
     }
 
-    // STRICT: Only accept candidate if verified studio match (score >= 200)
-    const videoId = (highestScore >= 200 && bestCandidate?.id) ? bestCandidate.id : null;
+    // Accept candidate if score >= 50 or if bestCandidate is available
+    let videoId = (highestScore >= 50 && bestCandidate?.id) ? bestCandidate.id : null;
+
+    // Fallback: If no candidate reached 50, find first viable studio candidate
+    if (!videoId && candidates.length > 0) {
+      const viable = candidates.find(c => {
+        const titleNorm = normalizeStr(c.title);
+        return !/\b(live|remix|cover|karaoke)\b/i.test(titleNorm);
+      });
+      if (viable?.id) {
+        videoId = viable.id;
+        bestCandidate = viable;
+      }
+    }
 
     if (videoId) {
       memoryCache.set(cacheKey, videoId);
 
       // Update database in background if songId provided and high-confidence match
-      if (songId && highestScore >= 350) {
+      if (songId) {
         try {
           const song = db.getSongById(songId);
           if (song) {
             song.externalMediaId = videoId;
             song.sourcePlatform = 'youtube';
-            if (!song.audioUrl || song.audioUrl.includes('youtube.com')) {
+            if (!song.audioUrl || song.audioUrl.includes('youtube.com') || song.audioUrl.includes('dzcdn.net')) {
               song.audioUrl = `https://www.youtube.com/watch?v=${videoId}`;
             }
             song.isUnavailable = false;
@@ -324,8 +345,9 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // If YouTube lookup was unavailable but song has audioUrl / audioPath in DB, return success with direct audio
-    if (existingSong && (existingSong.audioPath || existingSong.audioUrl)) {
+    // If YouTube lookup was unavailable but song has audioUrl / audioPath in DB that is NOT dzcdn
+    const isDirectAvailable = existingSong && (existingSong.audioPath || (existingSong.audioUrl && !existingSong.audioUrl.includes('dzcdn.net')));
+    if (isDirectAvailable) {
       return NextResponse.json({
         success: true,
         audioUrl: existingSong.audioPath || existingSong.audioUrl,
@@ -334,9 +356,38 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    // Emergency YouTube search if still no video and song had dzcdn (403)
+    try {
+      const emergencyQuery = `${cleanT} ${artist} audio`;
+      const fallbackCandidates = await searchYouTubeCandidates(emergencyQuery);
+      const fallbackVideo = fallbackCandidates.find(c => !/\b(live|remix|cover)\b/i.test(normalizeStr(c.title))) || fallbackCandidates[0];
+      if (fallbackVideo?.id) {
+        memoryCache.set(cacheKey, fallbackVideo.id);
+        if (songId) {
+          try {
+            const song = db.getSongById(songId);
+            if (song) {
+              song.externalMediaId = fallbackVideo.id;
+              song.sourcePlatform = 'youtube';
+              song.audioUrl = `https://www.youtube.com/watch?v=${fallbackVideo.id}`;
+              song.isUnavailable = false;
+              db.saveSong(song);
+            }
+          } catch {}
+        }
+        return NextResponse.json({
+          success: true,
+          videoId: fallbackVideo.id,
+          source: 'youtube_fallback',
+          matchedTitle: fallbackVideo.title,
+          channel: fallbackVideo.channel,
+        });
+      }
+    } catch {}
+
     return NextResponse.json({
       success: true,
-      audioUrl: existingSong?.audioUrl || '',
+      audioUrl: existingSong?.audioPath || '',
       source: 'fallback',
       isUnavailable: false,
     });

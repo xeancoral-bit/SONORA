@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   let playlists = db.getPlaylists();
 
   if (userId) {
-    playlists = playlists.filter((p) => p.userId === userId || (p.isPublic && user?.id !== userId));
+    playlists = playlists.filter((p) => p.userId === userId);
   } else if (!user) {
     playlists = playlists.filter((p) => p.isPublic);
   } else {

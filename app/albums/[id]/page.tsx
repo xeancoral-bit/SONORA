@@ -10,6 +10,7 @@ import { formatTime } from '@/lib/utils';
 import { AddToPlaylistModal } from '@/components/ui/AddToPlaylistModal';
 import { AddToCollectionModal } from '@/components/ui/AddToCollectionModal';
 import { Play, Pause, Shuffle, Share2, Clock } from 'lucide-react';
+import { getOptimizedCoverUrl, handleImageError } from '@/lib/imageUtils';
 
 export default function AlbumDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -76,7 +77,12 @@ export default function AlbumDetailPage({ params }: { params: Promise<{ id: stri
       {/* Album Header Banner */}
       <div className="flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8 bg-gradient-to-b from-neutral-800/40 to-transparent p-6 md:p-8 rounded-3xl border border-white/5 shadow-2xl">
         <div className="relative w-48 h-48 md:w-56 md:h-56 rounded-2xl overflow-hidden shadow-2xl shrink-0 bg-neutral-900 border border-white/10">
-          <img src={album.coverImage} alt={album.title} className="w-full h-full object-cover" />
+          <img
+            src={getOptimizedCoverUrl(album.coverImage, album.artistName, album.title, 'album')}
+            alt={album.title}
+            onError={(e) => handleImageError(e, album.artistName, album.title, 'album')}
+            className="w-full h-full object-cover"
+          />
         </div>
 
         <div className="flex-1 text-center md:text-left min-w-0">

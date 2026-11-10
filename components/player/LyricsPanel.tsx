@@ -6,6 +6,7 @@ import { X, Mic2, Loader2, Music } from 'lucide-react';
 import { LyricsControls } from './LyricsControls';
 import { formatTime } from '@/lib/utils';
 import { useSyncedLyrics } from '@/hooks/useSyncedLyrics';
+import { getOptimizedCoverUrl, handleImageError } from '@/lib/imageUtils';
 
 export const LyricsPanel: React.FC = () => {
   const {
@@ -120,8 +121,9 @@ export const LyricsPanel: React.FC = () => {
       {/* Song Mini Info Card */}
       <div className="flex items-center gap-3 py-3.5 border-b border-white/5">
         <img
-          src={currentTrack.coverImage}
+          src={getOptimizedCoverUrl(currentTrack.coverImage, currentTrack.artistName, currentTrack.title)}
           alt={currentTrack.title}
+          onError={(e) => handleImageError(e, currentTrack.artistName, currentTrack.title)}
           className="w-12 h-12 rounded-xl object-cover shadow-lg border border-white/10"
         />
         <div className="min-w-0 flex-1">

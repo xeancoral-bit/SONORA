@@ -610,7 +610,7 @@ export const db = {
   // Playlists
   getPlaylists: () => readDb().playlists,
   getPlaylistById: (id: string) => readDb().playlists.find((p) => p.id === id),
-  getUserPlaylists: (userId: string) => readDb().playlists.filter((p) => p.userId === userId || p.isPublic),
+  getUserPlaylists: (userId: string) => readDb().playlists.filter((p) => p.userId === userId),
   savePlaylist: (playlist: Playlist) => {
     const data = readDb();
     const index = data.playlists.findIndex((p) => p.id === playlist.id);

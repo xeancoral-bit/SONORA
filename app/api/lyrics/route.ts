@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { getSyncedLyricsForSong, parseLrc } from '@/lib/lyricsService';
+import { getSyncedLyricsForSong, parseLrc, autoGenerateSyncedLyrics } from '@/lib/lyricsService';
 import { SyncedLyricLine } from '@/lib/types';
 
 function isOriginalStudioMatch(item: any, targetTitle: string): boolean {
@@ -260,8 +260,7 @@ export async function GET(request: NextRequest) {
           resolvedPlainLyrics = lrcMatch.plainLyrics || lrcMatch.syncedLyrics.replace(/\[\d{1,2}:\d{2}(?:[.:]\d{1,3})?\]/g, '').trim();
         } else if (lrcMatch.plainLyrics) {
           resolvedPlainLyrics = lrcMatch.plainLyrics;
-          // Plain lyrics: do not fabricate fake timestamps, keep parsedLines empty so full plain lyrics are displayed
-          parsedLines = [];
+          parsedLines = autoGenerateSyncedLyrics(lrcMatch.plainLyrics, songDuration);
         } else if (lrcMatch.instrumental) {
           parsedLines = [
             { time: 0, text: '♪ Instrumental Intro ♪' },

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Play, Pause, Heart, Mic2, MoreHorizontal, Plus, ListPlus, Radio, Disc, User, Info, Trash2 } from 'lucide-react';
 import { Song } from '@/lib/types';
+import { getOptimizedCoverUrl, handleImageError } from '@/lib/imageUtils';
 import { useAudio } from '@/context/AudioContext';
 import { formatTime, formatNumber } from '@/lib/utils';
 import { EqualizerAnimation } from '../player/EqualizerAnimation';
@@ -96,8 +97,10 @@ export const TrackRow: React.FC<TrackRowProps> = ({
       {showCover && (
         <div className="relative w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-neutral-800">
           <img
-            src={song.coverImage}
+            src={getOptimizedCoverUrl(song.coverImage, song.artistName, song.title, song.albumTitle, 'song')}
             alt={song.title}
+            loading="lazy"
+            onError={(e) => handleImageError(e, song.artistName, song.title, song.albumTitle, 'song')}
             className="w-full h-full object-cover"
           />
         </div>

@@ -4,6 +4,7 @@ import { Play, Pause } from 'lucide-react';
 import { Song } from '@/lib/types';
 import { useAudio } from '@/context/AudioContext';
 import { EqualizerAnimation } from '@/components/player/EqualizerAnimation';
+import { getOptimizedCoverUrl, handleImageError } from '@/lib/imageUtils';
 
 interface SongCardProps {
   song: Song;
@@ -36,8 +37,10 @@ export const SongCard: React.FC<SongCardProps> = ({
       {/* Artwork with floating play button */}
       <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-neutral-900 mb-3 shadow-md border border-white/5">
         <img
-          src={song.coverImage}
+          src={getOptimizedCoverUrl(song.coverImage, song.artistName, song.title, song.albumTitle, 'song')}
           alt={song.title}
+          loading="lazy"
+          onError={(e) => handleImageError(e, song.artistName, song.title, song.albumTitle, 'song')}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

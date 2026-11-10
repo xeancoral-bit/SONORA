@@ -28,6 +28,7 @@ import { LikeButton } from '@/components/ui/LikeButton';
 import { EqualizerAnimation } from './EqualizerAnimation';
 import { EqualizerModal } from './EqualizerModal';
 import { useAlbumColor } from '@/hooks/useAlbumColor';
+import { getOptimizedCoverUrl, handleImageError } from '@/lib/imageUtils';
 
 export const PersistentPlayer: React.FC = () => {
   const {
@@ -79,8 +80,9 @@ export const PersistentPlayer: React.FC = () => {
               className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-neutral-800 shadow-md cursor-pointer group border border-white/10"
             >
               <img
-                src={currentTrack.coverImage}
+                src={getOptimizedCoverUrl(currentTrack.coverImage, currentTrack.artistName, currentTrack.title, currentTrack.albumTitle, 'song')}
                 alt={currentTrack.title}
+                onError={(e) => handleImageError(e, currentTrack.artistName, currentTrack.title, currentTrack.albumTitle, 'song')}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform"
               />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">

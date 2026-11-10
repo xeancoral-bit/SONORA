@@ -145,6 +145,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
 
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const currentTimeRef = useRef<number>(0);
   const playLoggedRef = useRef<boolean>(false);
   const synthTimerRef = useRef<any>(null);
     const handleTrackEndedRef = useRef<() => void>(() => {});
@@ -282,14 +283,30 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       const trackAudioTime = () => {
         if (audioRef.current && !audioRef.current.paused) {
           const cur = audioRef.current.currentTime;
-          setCurrentTime((prev) => (Math.abs(prev - cur) >= 0.03 ? cur : prev));
+          const changed = Math.abs(currentTimeRef.current - cur) >= 0.03;
+          if (changed) {
+            currentTimeRef.current = cur;
+            setCurrentTime(cur);
+            setCurrentLyricIndex((prev) => {
+              const nextIdx = findActiveLyricIndex(activeSyncedLyricsRef.current, cur);
+              return prev !== nextIdx ? nextIdx : prev;
+            });
+          }
           rafId = requestAnimationFrame(trackAudioTime);
         }
       };
 
       audio.addEventListener('timeupdate', () => {
         const cur = audio.currentTime;
-        setCurrentTime((prev) => (Math.abs(prev - cur) >= 0.03 ? cur : prev));
+        const changed = Math.abs(currentTimeRef.current - cur) >= 0.03;
+        if (changed) {
+          currentTimeRef.current = cur;
+          setCurrentTime(cur);
+          setCurrentLyricIndex((prev) => {
+            const nextIdx = findActiveLyricIndex(activeSyncedLyricsRef.current, cur);
+            return prev !== nextIdx ? nextIdx : prev;
+          });
+        }
         if (audio.duration && !isNaN(audio.duration)) {
           const cur = currentTrackRef.current;
           if (cur && cur.duration > 45 && audio.duration <= 35) {
@@ -578,19 +595,16 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   }, [lyricId, lyricsLanguage, lyricsRefreshCounter, currentTrack?.title, currentTrack?.artistName]);
 
   // Update current lyric index based on real-time audio playback.
-  // Use the ref (not the state) so activeSyncedLyrics is NOT a dependency —
-  // this breaks the setState → useEffect → setState infinite loop.
-  useEffect(() => {
-    const nextIdx = findActiveLyricIndex(activeSyncedLyricsRef.current, currentTime);
-    setCurrentLyricIndex((prev) => (prev !== nextIdx ? nextIdx : prev));
-  }, [currentTime]);
+  // Lyric index is now tracked directly inside the playback poll/timeupdate callbacks
+  // (context/AudioContext.tsx:283, :290, :609) using refs, so currentTime state is NOT a
+  // dependency of any effect — this breaks the setState → useEffect → setState infinite loop.
 
   function getYouTubeId(track: Song): string | null {
     if (track.externalMediaId) return track.externalMediaId;
     if (track.sourcePlatform === 'youtube') {
       return extractYouTubeId(track.audioUrl || track.sourceUrl || '') || null;
     }
-    if (track.audioUrl && !track.audioUrl.includes('apple.com') && !track.audioUrl.includes('mzstatic.com')) {
+    if (track.audioUrl && !track.audioUrl.includes('apple.com') && !track.audioUrl.includes('mzstatic.com') && !track.audioUrl.includes('dzcdn.net')) {
       return extractYouTubeId(track.audioUrl) || null;
     }
     return null;
@@ -606,7 +620,15 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
             const cur = ytPlayerRef.current.getCurrentTime();
             const dur = ytPlayerRef.current.getDuration();
             if (typeof cur === 'number' && !isNaN(cur)) {
-              setCurrentTime((prev) => (Math.abs(prev - cur) >= 0.04 ? cur : prev));
+              const changed = Math.abs(currentTimeRef.current - cur) >= 0.04;
+              if (changed) {
+                currentTimeRef.current = cur;
+                setCurrentTime(cur);
+                setCurrentLyricIndex((prev) => {
+                  const nextIdx = findActiveLyricIndex(activeSyncedLyricsRef.current, cur);
+                  return prev !== nextIdx ? nextIdx : prev;
+                });
+              }
             }
             if (typeof dur === 'number' && !isNaN(dur) && dur > 0) {
               setDuration((prev) => (Math.abs(prev - dur) >= 1 ? dur : prev));
@@ -630,6 +652,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     playLoggedRef.current = false;
     setCurrentTrack(track);
     setCurrentTime(0);
+    currentTimeRef.current = 0;
     setActiveSyncedLyrics([]);
     setCurrentLyricIndex(0);
     setDuration(track.duration || 180);
@@ -675,7 +698,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       rawAudioSource.length > 0 &&
       !rawAudioSource.includes('youtube.com') &&
       !rawAudioSource.includes('youtu.be') &&
-      !rawAudioSource.includes('soundcloud.com');
+      !rawAudioSource.includes('soundcloud.com') &&
+      !rawAudioSource.includes('dzcdn.net');
 
     if (isDirectAudioSource && audioRef.current) {
       if (ytPlayerRef.current && ytReadyRef.current && typeof ytPlayerRef.current.stopVideo === 'function') {
@@ -792,6 +816,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const seek = (seconds: number) => {
     const clamped = Math.max(0, Math.min(duration || 1000, seconds));
     setCurrentTime(clamped);
+    currentTimeRef.current = clamped;
     if (activeSyncedLyrics && activeSyncedLyrics.length > 0) {
       setCurrentLyricIndex(findActiveLyricIndex(activeSyncedLyrics, clamped));
     }
@@ -948,6 +973,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     stopSynth();
     setCurrentTrack(null);
     setCurrentTime(0);
+    currentTimeRef.current = 0;
+    setCurrentLyricIndex(0);
     setIsFullScreen(false);
     setIsLyricsOpen(false);
     setIsQueueOpen(false);

@@ -27,6 +27,7 @@ import { LikeButton } from '@/components/ui/LikeButton';
 import { LyricsControls } from './LyricsControls';
 import { useSyncedLyrics } from '@/hooks/useSyncedLyrics';
 import { useAlbumColor } from '@/hooks/useAlbumColor';
+import { getOptimizedCoverUrl, handleImageError } from '@/lib/imageUtils';
 
 export const FullScreenPlayer: React.FC = () => {
   const {
@@ -140,7 +141,7 @@ export const FullScreenPlayer: React.FC = () => {
       {/* Dynamic Ambient Blur Backdrop */}
       <div
         className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-35 scale-125 pointer-events-none transition-all duration-1000 animate-ambient-pulse"
-        style={{ backgroundImage: `url(${currentTrack.coverImage})` }}
+        style={{ backgroundImage: `url(${getOptimizedCoverUrl(currentTrack.coverImage, currentTrack.artistName, currentTrack.title)})` }}
       />
       {/* Dynamic Ambient Color Mesh Glow based on Album Cover Art */}
       <div
@@ -304,8 +305,9 @@ export const FullScreenPlayer: React.FC = () => {
             {/* Album cover clipped to circle */}
             <div className="absolute inset-[10%] rounded-full overflow-hidden shadow-inner">
               <img
-                src={currentTrack.coverImage}
+                src={getOptimizedCoverUrl(currentTrack.coverImage, currentTrack.artistName, currentTrack.title)}
                 alt={currentTrack.title}
+                onError={(e) => handleImageError(e, currentTrack.artistName, currentTrack.title)}
                 className="w-full h-full object-cover"
                 style={{ borderRadius: '50%' }}
               />
@@ -380,8 +382,9 @@ export const FullScreenPlayer: React.FC = () => {
             {/* Album cover clipped to circle */}
             <div className="absolute inset-[10%] rounded-full overflow-hidden shadow-inner">
               <img
-                src={currentTrack.coverImage}
+                src={getOptimizedCoverUrl(currentTrack.coverImage, currentTrack.artistName, currentTrack.title)}
                 alt={currentTrack.title}
+                onError={(e) => handleImageError(e, currentTrack.artistName, currentTrack.title)}
                 className="w-full h-full object-cover"
                 style={{ borderRadius: '50%' }}
               />
@@ -672,8 +675,9 @@ export const FullScreenPlayer: React.FC = () => {
                     className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer border border-white/5"
                   >
                     <img
-                      src={track.coverImage}
+                      src={getOptimizedCoverUrl(track.coverImage, track.artistName, track.title)}
                       alt={track.title}
+                      onError={(e) => handleImageError(e, track.artistName, track.title)}
                       className="w-12 h-12 rounded-xl object-cover"
                     />
                     <div className="flex-1 min-w-0">

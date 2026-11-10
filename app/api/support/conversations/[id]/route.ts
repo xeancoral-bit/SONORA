@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { SupportMessage, ConversationStatus } from '@/lib/types';
-import { generateSupportAiResponse } from '@/lib/supportAiService';
+import { generateSupportAiResponseWithLLM, AiMessage } from '@/lib/supportAiService';
 
 export async function GET(
   request: NextRequest,
@@ -109,8 +109,22 @@ export async function POST(
     } else {
       // User sent follow-up
       if (!adminStatus.isOnline) {
+        // Build conversation history (excluding the message just sent) for AI context.
+        const priorMessages = db.getMessagesForConversation(conversation.id).filter((m) => m.id !== newMsg.id);
+        const conversationHistory: AiMessage[] = priorMessages.map((m) => ({
+          senderType: m.senderType,
+          message: m.message,
+          createdAt: m.createdAt
+        }));
+
         // AI answers while admin is offline
-        const aiResponse = generateSupportAiResponse(message, conversation.category, user.name);
+        const aiResponse = await generateSupportAiResponseWithLLM(
+          message,
+          conversation.category,
+          user.name,
+          conversationHistory,
+          user.id
+        );
 
         aiMessage = {
           id: `msg-ai-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,

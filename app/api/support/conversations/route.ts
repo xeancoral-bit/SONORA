@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { SupportCategory, SupportMessage } from '@/lib/types';
-import { generateSupportAiResponse } from '@/lib/supportAiService';
+import { generateSupportAiResponseWithLLM, AiMessage } from '@/lib/supportAiService';
 
 function formatCategoryName(cat?: SupportCategory): string {
   switch (cat) {
@@ -130,9 +130,23 @@ export async function POST(request: NextRequest) {
     const adminStatus = db.getAdminOnlineStatus();
     let aiMessage: SupportMessage | null = null;
 
+    // Build conversation history (excluding the message just sent) for AI context.
+    const priorMessages = db.getMessagesForConversation(conversation.id).filter((m) => m.id !== userMsg.id);
+    const conversationHistory: AiMessage[] = priorMessages.map((m) => ({
+      senderType: m.senderType,
+      message: m.message,
+      createdAt: m.createdAt
+    }));
+
     // If administrator is offline, generate automated AI Support Assistant reply
     if (!adminStatus.isOnline) {
-      const aiResponse = generateSupportAiResponse(message, validCategory, user.name);
+      const aiResponse = await generateSupportAiResponseWithLLM(
+        message,
+        validCategory,
+        user.name,
+        conversationHistory,
+        user.id
+      );
 
       aiMessage = {
         id: `msg-ai-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,

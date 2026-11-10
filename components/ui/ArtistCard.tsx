@@ -1,35 +1,45 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { CheckCircle2, Play, Heart, Music } from 'lucide-react';
 import { Artist } from '@/lib/types';
 import { formatNumber } from '@/lib/utils';
+import { getOptimizedArtistAvatar, handleArtistAvatarError } from '@/lib/imageUtils';
 
 interface ArtistCardProps {
   artist: Artist & { isFollowed?: boolean };
 }
 
 export const ArtistCard: React.FC<ArtistCardProps> = ({ artist }) => {
-  const [imgSrc, setImgSrc] = useState<string>(
-    artist.avatar || artist.coverImage || artist.banner || ''
+  const initialUrl = getOptimizedArtistAvatar(
+    artist.avatar || artist.coverImage || artist.banner,
+    artist.name
   );
-  const [hasError, setHasError] = useState(false);
+  const [imgSrc, setImgSrc] = useState<string>(initialUrl);
+  const [imgFailed, setImgFailed] = useState<boolean>(false);
 
-  const handleImageError = () => {
-    // If the primary avatar fails, try fallback to banner or coverImage before showing initials
-    if (imgSrc === artist.avatar && (artist.banner || artist.coverImage) && (artist.banner !== artist.avatar || artist.coverImage !== artist.avatar)) {
-      setImgSrc(artist.banner || artist.coverImage || '');
+  React.useEffect(() => {
+    setImgSrc(
+      getOptimizedArtistAvatar(
+        artist.avatar || artist.coverImage || artist.banner,
+        artist.name
+      )
+    );
+    setImgFailed(false);
+  }, [artist.avatar, artist.coverImage, artist.banner, artist.name]);
+
+  const onImgError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    const target = e.currentTarget;
+    if (!target.dataset.triedFallback) {
+      handleArtistAvatarError(e, artist.name);
     } else {
-      setHasError(true);
+      setImgFailed(true);
     }
   };
 
-  const isPlaceholder = !imgSrc || imgSrc.includes('d41d8cd98f00b204e9800998ecf8427e');
-  const showFallback = hasError || isPlaceholder;
-
   // Generate initials for avatar fallback (e.g. "Victory Worship" -> "VW", "Dan + Shay" -> "DS")
-  const initials = artist.name
+  const initials = (artist.name || '')
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
@@ -42,12 +52,13 @@ export const ArtistCard: React.FC<ArtistCardProps> = ({ artist }) => {
       className="group relative p-3 rounded-2xl bg-[#141414] hover:bg-[#1C1C1C] border border-white/5 hover:border-white/10 transition-all duration-300 hover:shadow-2xl hover:shadow-black/60 flex flex-col items-center text-center cursor-pointer"
     >
       <div className="relative aspect-square w-full rounded-full overflow-hidden bg-neutral-900 mb-3 shadow-lg p-1 border border-white/10 flex items-center justify-center">
-        {!showFallback ? (
+        {!imgFailed ? (
           <img
             src={imgSrc}
             alt={artist.name}
             referrerPolicy="no-referrer"
-            onError={handleImageError}
+            onError={onImgError}
+            loading="lazy"
             className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
