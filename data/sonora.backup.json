@@ -55823,7 +55823,7 @@
       "audioUrl": "https://www.youtube.com/watch?v=i8_w_m6HLJ0",
       "coverImage": "https://cdn-images.dzcdn.net/images/cover/bfabb6f70db5842a2c42d0d431ab65ef/1000x1000-000000-80-0-0.jpg",
       "releaseDate": "2024-01-01",
-      "playCount": 497389,
+      "playCount": 497390,
       "likesCount": 59117,
       "status": "published",
       "isFeatured": false,
@@ -57445,7 +57445,7 @@
       "genreId": "genre-pop",
       "genreName": "Pop",
       "duration": 244,
-      "audioUrl": "https://cdnt-preview.dzcdn.net/api/1/1/8/8/f/0/88f8d24810775cc4562a9c0099d25d4c.mp3?hdnea=exp=1793902632~acl=/api/1/1/8/8/f/0/88f8d24810775cc4562a9c0099d25d4c.mp3*~data=user_id=0,application_id=42~hmac=fe990291f217491879824ce811523d5de34f6877e3ef7f51b0c9e3aff62d133f",
+      "audioUrl": "https://www.youtube.com/watch?v=-cfD21UA9F4",
       "coverImage": "https://cdn-images.dzcdn.net/images/cover/e6f3afd8a5c3d8ea797f458694166e47/1000x1000-000000-80-0-0.jpg",
       "releaseDate": "2024-01-01",
       "playCount": 490955,
@@ -57454,9 +57454,334 @@
       "isFeatured": false,
       "trackNumber": 9,
       "explicit": false,
-      "sourcePlatform": "direct",
+      "sourcePlatform": "youtube",
       "createdAt": "2026-11-05T18:02:12.420Z",
-      "updatedAt": "2026-11-05T18:02:12.420Z"
+      "updatedAt": "2026-11-10T10:44:14.402Z",
+      "syncedLyrics": [
+        {
+          "time": 0.45,
+          "text": "I wanna be your end game"
+        },
+        {
+          "time": 3.12,
+          "text": "I wanna be your first string"
+        },
+        {
+          "time": 6.41,
+          "text": "I wanna be your A-Team (Whoa, whoa, whoa)"
+        },
+        {
+          "time": 9.53,
+          "text": "I wanna be your end game, end game"
+        },
+        {
+          "time": 12.89,
+          "text": "Big reputation, big reputation"
+        },
+        {
+          "time": 16.17,
+          "text": "Ooh, you and me, we got big reputations, ah"
+        },
+        {
+          "time": 20.65,
+          "text": "And you heard about me, ooh"
+        },
+        {
+          "time": 23.54,
+          "text": "I got some big enemies (Yeah)"
+        },
+        {
+          "time": 25.41,
+          "text": "Big reputation, big reputation"
+        },
+        {
+          "time": 28.25,
+          "text": "Ooh, you and me would be a big conversation, ah (Git, git)"
+        },
+        {
+          "time": 32.61,
+          "text": "And I heard about you, ooh (Yeah)"
+        },
+        {
+          "time": 35.68,
+          "text": "You like the bad ones, too"
+        },
+        {
+          "time": 36.96,
+          "text": "You so dope, don't overdose, I'm so stoked, I need a toast"
+        },
+        {
+          "time": 40.08,
+          "text": "We do the most, I'm in the Ghost like I'm whippin' a boat"
+        },
+        {
+          "time": 43.14,
+          "text": "I got a reputation, girl that don't precede me (Yeah)"
+        },
+        {
+          "time": 46.18,
+          "text": "I'm one call away whenever you need me (Yeah)"
+        },
+        {
+          "time": 49.12,
+          "text": "I'm in a G5 (Yeah), come to the A-Side (Yeah)"
+        },
+        {
+          "time": 52.15,
+          "text": "I got a bad boy persona, that's what they like (What they like)"
+        },
+        {
+          "time": 55.06,
+          "text": "You love it, I love it too 'cause you're my type (You're my type)"
+        },
+        {
+          "time": 58.11,
+          "text": "You hold me down and I protect you with my life"
+        },
+        {
+          "time": 61.15,
+          "text": "I don't wanna touch you, I don't wanna be"
+        },
+        {
+          "time": 63.85,
+          "text": "Just another ex-love you don't wanna see"
+        },
+        {
+          "time": 66.73,
+          "text": "I don't wanna miss you (I don't wanna miss you)"
+        },
+        {
+          "time": 69.78,
+          "text": "Like the other girls do"
+        },
+        {
+          "time": 72.64,
+          "text": "I don't wanna hurt you, I just wanna be"
+        },
+        {
+          "time": 75.99,
+          "text": "Drinking on a beach with you all over me"
+        },
+        {
+          "time": 78.82,
+          "text": "I know what they all say (I know what they all say)"
+        },
+        {
+          "time": 82.04,
+          "text": "But I ain't tryna play"
+        },
+        {
+          "time": 85.08,
+          "text": "I wanna be your end game (End game)"
+        },
+        {
+          "time": 87.85,
+          "text": "I wanna be your first string (First string)"
+        },
+        {
+          "time": 90.73,
+          "text": "I wanna be your A-Team (A-Team)"
+        },
+        {
+          "time": 94.03,
+          "text": "I wanna be your end game, end game"
+        },
+        {
+          "time": 97.08,
+          "text": "Knew her when I was young, reconnected when we were little bit older"
+        },
+        {
+          "time": 100.65,
+          "text": "Both sprung, I got issues and chips on both of my shoulders"
+        },
+        {
+          "time": 103.55,
+          "text": "Reputation precedes me, in rumors, I'm knee-deep"
+        },
+        {
+          "time": 106.77,
+          "text": "The truth is, it's easier to ignore it, believe me"
+        },
+        {
+          "time": 109.62,
+          "text": "Even when we'd argue, we'd not do it for long"
+        },
+        {
+          "time": 112.81,
+          "text": "And you understand the good and bad end up in the song"
+        },
+        {
+          "time": 115.41,
+          "text": "For all your beautiful traits, and the way you do it with ease"
+        },
+        {
+          "time": 118.54,
+          "text": "For all my flaws, paranoia, and insecurities"
+        },
+        {
+          "time": 121.66,
+          "text": "I've made mistakes and made some choices, that's hard to deny"
+        },
+        {
+          "time": 124.82,
+          "text": "After the storm, something was born on the 4th of July"
+        },
+        {
+          "time": 127.52,
+          "text": "I've passed days without fun, this end game is the one"
+        },
+        {
+          "time": 130.93,
+          "text": "With four words on the tip of my tongue, I'll never say it"
+        },
+        {
+          "time": 133.51,
+          "text": "I don't wanna touch you, I don't wanna be"
+        },
+        {
+          "time": 136.07,
+          "text": "Just another ex-love you don't wanna see"
+        },
+        {
+          "time": 139.43,
+          "text": "I don't wanna miss you (I don't wanna miss you)"
+        },
+        {
+          "time": 142.33,
+          "text": "Like the other girls do"
+        },
+        {
+          "time": 145.03,
+          "text": "I don't wanna hurt you, I just wanna be"
+        },
+        {
+          "time": 148.19,
+          "text": "Drinking on a beach with you all over me"
+        },
+        {
+          "time": 151.25,
+          "text": "I know what they all say, yeah"
+        },
+        {
+          "time": 154.29,
+          "text": "But I ain't tryna play"
+        },
+        {
+          "time": 157.14,
+          "text": "I wanna be your end game (End game)"
+        },
+        {
+          "time": 160.19,
+          "text": "I wanna be your first string (Wanna be your first string)"
+        },
+        {
+          "time": 163.37,
+          "text": "I wanna be your A-Team (A-Team)"
+        },
+        {
+          "time": 166.48,
+          "text": "I wanna be your end game, end game"
+        },
+        {
+          "time": 169.88,
+          "text": "Big reputation, big reputation"
+        },
+        {
+          "time": 173,
+          "text": "Ooh, you and me, we got big reputations, ah"
+        },
+        {
+          "time": 177.83,
+          "text": "And you heard about me, ooh"
+        },
+        {
+          "time": 180.27,
+          "text": "I got some big enemies"
+        },
+        {
+          "time": 182.16,
+          "text": "Hey, big reputation, big reputation"
+        },
+        {
+          "time": 185.16,
+          "text": "Ooh, you and me would be a big conversation, ah"
+        },
+        {
+          "time": 189.71,
+          "text": "And I heard about you, ooh"
+        },
+        {
+          "time": 192.34,
+          "text": "You like the bad ones, too"
+        },
+        {
+          "time": 194.12,
+          "text": "I hit you like bang, we tried to forget it, but we just couldn't"
+        },
+        {
+          "time": 197.17,
+          "text": "And I bury hatchets, but I keep maps of where I put 'em"
+        },
+        {
+          "time": 200.21,
+          "text": "Reputation precedes me, they told you I'm crazy"
+        },
+        {
+          "time": 203.35,
+          "text": "I swear I don't love the drama, it loves me"
+        },
+        {
+          "time": 206.18,
+          "text": "And I can't let you go, your hand prints on my soul"
+        },
+        {
+          "time": 209.03,
+          "text": "It's like your eyes are liquor, it's like your body is gold"
+        },
+        {
+          "time": 212.09,
+          "text": "You've been calling my bluff on all my usual tricks"
+        },
+        {
+          "time": 215.35,
+          "text": "So here's the truth from my red lips"
+        },
+        {
+          "time": 217.16,
+          "text": "I wanna be your end game (End game)"
+        },
+        {
+          "time": 220.71,
+          "text": "I wanna be your first string (Me and you, first string)"
+        },
+        {
+          "time": 224.18,
+          "text": "I wanna be your A-Team (Be your A-Team now, A-Team)"
+        },
+        {
+          "time": 226.97,
+          "text": "I wanna be your end game, end game"
+        },
+        {
+          "time": 230.09,
+          "text": "I wanna be your end game (Oh, I do)"
+        },
+        {
+          "time": 232.61,
+          "text": "I wanna be your first string (First string)"
+        },
+        {
+          "time": 235.8,
+          "text": "I wanna be your A-Team (A-Team)"
+        },
+        {
+          "time": 238.82,
+          "text": "I wanna be your end game, end game"
+        }
+      ],
+      "lyrics": "I wanna be your end game\nI wanna be your first string\nI wanna be your A-Team (Whoa, whoa, whoa)\nI wanna be your end game, end game\nBig reputation, big reputation\nOoh, you and me, we got big reputations, ah\nAnd you heard about me, ooh\nI got some big enemies (Yeah)\nBig reputation, big reputation\nOoh, you and me would be a big conversation, ah (Git, git)\nAnd I heard about you, ooh (Yeah)\nYou like the bad ones, too\nYou so dope, don't overdose, I'm so stoked, I need a toast\nWe do the most, I'm in the Ghost like I'm whippin' a boat\nI got a reputation, girl that don't precede me (Yeah)\nI'm one call away whenever you need me (Yeah)\nI'm in a G5 (Yeah), come to the A-Side (Yeah)\nI got a bad boy persona, that's what they like (What they like)\nYou love it, I love it too 'cause you're my type (You're my type)\nYou hold me down and I protect you with my life\nI don't wanna touch you, I don't wanna be\nJust another ex-love you don't wanna see\nI don't wanna miss you (I don't wanna miss you)\nLike the other girls do\nI don't wanna hurt you, I just wanna be\nDrinking on a beach with you all over me\nI know what they all say (I know what they all say)\nBut I ain't tryna play\nI wanna be your end game (End game)\nI wanna be your first string (First string)\nI wanna be your A-Team (A-Team)\nI wanna be your end game, end game\nKnew her when I was young, reconnected when we were little bit older\nBoth sprung, I got issues and chips on both of my shoulders\nReputation precedes me, in rumors, I'm knee-deep\nThe truth is, it's easier to ignore it, believe me\nEven when we'd argue, we'd not do it for long\nAnd you understand the good and bad end up in the song\nFor all your beautiful traits, and the way you do it with ease\nFor all my flaws, paranoia, and insecurities\nI've made mistakes and made some choices, that's hard to deny\nAfter the storm, something was born on the 4th of July\nI've passed days without fun, this end game is the one\nWith four words on the tip of my tongue, I'll never say it\nI don't wanna touch you, I don't wanna be\nJust another ex-love you don't wanna see\nI don't wanna miss you (I don't wanna miss you)\nLike the other girls do\nI don't wanna hurt you, I just wanna be\nDrinking on a beach with you all over me\nI know what they all say, yeah\nBut I ain't tryna play\nI wanna be your end game (End game)\nI wanna be your first string (Wanna be your first string)\nI wanna be your A-Team (A-Team)\nI wanna be your end game, end game\nBig reputation, big reputation\nOoh, you and me, we got big reputations, ah\nAnd you heard about me, ooh\nI got some big enemies\nHey, big reputation, big reputation\nOoh, you and me would be a big conversation, ah\nAnd I heard about you, ooh\nYou like the bad ones, too\nI hit you like bang, we tried to forget it, but we just couldn't\nAnd I bury hatchets, but I keep maps of where I put 'em\nReputation precedes me, they told you I'm crazy\nI swear I don't love the drama, it loves me\nAnd I can't let you go, your hand prints on my soul\nIt's like your eyes are liquor, it's like your body is gold\nYou've been calling my bluff on all my usual tricks\nSo here's the truth from my red lips\nI wanna be your end game (End game)\nI wanna be your first string (Me and you, first string)\nI wanna be your A-Team (Be your A-Team now, A-Team)\nI wanna be your end game, end game\nI wanna be your end game (Oh, I do)\nI wanna be your first string (First string)\nI wanna be your A-Team (A-Team)\nI wanna be your end game, end game",
+      "externalMediaId": "-cfD21UA9F4",
+      "isUnavailable": false
     },
     {
       "id": "song-dz-1053765302",
@@ -1801146,6 +1801471,12 @@
   ],
   "history": [
     {
+      "id": "hist-1794307449202-v701",
+      "userId": "user_3LkSFIGUIlbZBfYFysSmtfOulA7",
+      "songId": "song-dz-2757496031",
+      "playedAt": "2026-11-10T10:44:09.202Z"
+    },
+    {
       "id": "hist-1794307231807-uzl5",
       "userId": "user_3LkSFIGUIlbZBfYFysSmtfOulA7",
       "songId": "song-dz-2757496031",
@@ -1801468,6 +1801799,16 @@
   ],
   "notifications": [
     {
+      "id": "notif-1794311684232-jy7l",
+      "userId": "admin",
+      "title": "New Support Message",
+      "message": "Xean Coral sent a message regarding Feedback & Suggestion 💡",
+      "type": "admin_alert",
+      "link": "/admin/messages",
+      "isRead": false,
+      "createdAt": "2026-11-10T11:54:44.233Z"
+    },
+    {
       "id": "notif-1793971999742-2jkf",
       "userId": "admin",
       "title": "New Support Message",
@@ -1801586,14 +1801927,14 @@
       "userName": "Xean Coral",
       "userAvatar": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18zTGtTRklmWWdVajFmckw0OERaZmhkbVBDVEYifQ",
       "userEmail": "xeancoral31@gmail.com",
-      "category": "general",
-      "status": "new",
+      "category": "feedback",
+      "status": "unread",
       "unreadByUserCount": 0,
-      "unreadByAdminCount": 0,
-      "latestMessage": "",
-      "latestMessageAt": "2026-11-06T20:55:03.173Z",
+      "unreadByAdminCount": 1,
+      "latestMessage": "Hi! I have a suggestion for improving SONORA:",
+      "latestMessageAt": "2026-11-10T11:54:38.152Z",
       "createdAt": "2026-11-06T20:55:03.173Z",
-      "updatedAt": "2026-11-06T20:55:03.173Z"
+      "updatedAt": "2026-11-10T11:54:56.781Z"
     },
     {
       "id": "conv-1793970615705-y18oi",
@@ -1801623,6 +1801964,18 @@
       "category": "general",
       "isRead": false,
       "createdAt": "2026-11-06T13:33:17.651Z"
+    },
+    {
+      "id": "msg-1794311678152-ynj4a",
+      "conversationId": "conv-1793998503173-on816",
+      "senderId": "user_3LkSFIGUIlbZBfYFysSmtfOulA7",
+      "senderName": "Xean Coral",
+      "senderRole": "user",
+      "senderType": "user",
+      "message": "Hi! I have a suggestion for improving SONORA:",
+      "category": "feedback",
+      "isRead": false,
+      "createdAt": "2026-11-10T11:54:38.152Z"
     }
   ],
   "supportRequests": [],

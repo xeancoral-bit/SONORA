@@ -6,8 +6,12 @@ import { synthEngine } from '@/lib/audioSynth';
 import { extractYouTubeId } from '@/lib/urlUtils';
 import { parseLrc } from '@/lib/lyricsService';
 import { findActiveLyricIndex } from '@/hooks/useSyncedLyrics';
+import { recordTrackPlay } from '@/lib/streakService';
 
 export type RepeatMode = 'off' | 'one' | 'all';
+
+// Module-level client cache for instant 0ms playback on repeat or pre-fetched tracks
+const resolvedMediaCache = new Map<string, { videoId?: string; audioUrl?: string }>();
 
 interface AudioContextType {
   currentTrack: Song | null;
@@ -328,6 +332,20 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         }
       });
 
+      audio.addEventListener('error', () => {
+        const cur = currentTrackRef.current;
+        if (cur) {
+          const ytId = getYouTubeId(cur);
+          if (ytId && ytReadyRef.current && ytPlayerRef.current) {
+            try {
+              ytPlayerRef.current.loadVideoById({ videoId: ytId, startSeconds: 0 });
+              ytPlayerRef.current.playVideo();
+              setIsPlaying(true);
+            } catch {}
+          }
+        }
+      });
+
       audio.addEventListener('ended', () => {
         if (rafId) {
           cancelAnimationFrame(rafId);
@@ -438,6 +456,9 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     if (isPlaying && currentTrack && currentTime > 5 && !playLoggedRef.current) {
       playLoggedRef.current = true;
       fetch(`/api/songs/${currentTrack.id}/play`, { method: 'POST' }).catch(() => {});
+      try {
+        recordTrackPlay();
+      } catch {}
     }
   }, [isPlaying, currentTrack, currentTime]);
 
@@ -661,6 +682,18 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       setQueue(newQueue.filter((s) => s.id !== track.id));
     }
 
+    // 0. Check client-side resolved cache for instant 0ms playback
+    const cached = resolvedMediaCache.get(track.id);
+    if (cached) {
+      if (cached.videoId) {
+        track.externalMediaId = cached.videoId;
+        track.sourcePlatform = 'youtube';
+      }
+      if (cached.audioUrl && (!track.audioUrl || track.audioUrl.includes('dzcdn.net'))) {
+        track.audioUrl = cached.audioUrl;
+      }
+    }
+
     // 1. If track already has an authorized YouTube stream, play immediately from start to finish
     const ytId = getYouTubeId(track);
     if (ytId) {
@@ -692,7 +725,6 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     }
 
     // 2. Immediate audio playback via direct audio stream (HTML5 Audio)
-    // Guard: only use HTML5 Audio for real direct audio files — never for YouTube/SoundCloud URLs
     const rawAudioSource = track.audioPath || track.audioUrl || '';
     const isDirectAudioSource =
       rawAudioSource.length > 0 &&
@@ -711,14 +743,15 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       }).catch((e) => {
         console.warn('HTML5 Audio playback initiated:', e);
       });
-    } else if (!isDirectAudioSource && audioRef.current) {
-      // No playable direct source — clear previous audio and wait for YouTube resolve
-      audioRef.current.pause();
-      audioRef.current.src = '';
-      setIsPlaying(true); // show playing state optimistically while YT resolves
+    } else {
+      // Immediate melodic preview so user NEVER waits in silence (<10ms)
+      if (synthEngine) {
+        synthEngine.play(track.synthPreset || 'chill');
+      }
+      setIsPlaying(true);
     }
 
-    // 3. Resolve official authorized studio recording in background to connect full-length YouTube master
+    // 3. Fast Parallel Resolve in background
     setIsResolving(true);
     const resolveParams = new URLSearchParams({
       artist: track.artistName,
@@ -733,36 +766,50 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       .then((res) => res.json())
       .then((data) => {
         setIsResolving(false);
-        if (data.success && data.videoId) {
-          track.externalMediaId = data.videoId;
-          track.sourcePlatform = 'youtube';
-          track.isUnavailable = false;
+        if (data.success) {
+          resolvedMediaCache.set(track.id, { videoId: data.videoId, audioUrl: data.audioUrl });
 
-          // If track has transitioned to YouTube, load full recording seamlessly
           if (currentTrackRef.current?.id === track.id) {
-            if (ytReadyRef.current && ytPlayerRef.current && typeof ytPlayerRef.current.loadVideoById === 'function') {
-              try {
-                // If HTML5 audio was playing, pause it and hand off to YouTube player
-                const currentPos = audioRef.current ? Math.floor(audioRef.current.currentTime) : 0;
-                if (audioRef.current) {
-                  audioRef.current.pause();
-                  audioRef.current.src = '';
+            stopSynth();
+
+            if (data.videoId) {
+              track.externalMediaId = data.videoId;
+              track.sourcePlatform = 'youtube';
+              track.isUnavailable = false;
+
+              if (ytReadyRef.current && ytPlayerRef.current && typeof ytPlayerRef.current.loadVideoById === 'function') {
+                try {
+                  const currentPos = audioRef.current ? Math.floor(audioRef.current.currentTime) : 0;
+                  if (audioRef.current) {
+                    audioRef.current.pause();
+                    audioRef.current.src = '';
+                  }
+                  ytPlayerRef.current.loadVideoById({
+                    videoId: data.videoId,
+                    startSeconds: currentPos,
+                  });
+                  ytPlayerRef.current.setVolume((isMuted ? 0 : volume) * 100);
+                  ytPlayerRef.current.playVideo();
+                  setIsPlaying(true);
+                  startYouTubePolling();
+                } catch (e) {
+                  console.warn('YouTube handoff:', e);
                 }
-                ytPlayerRef.current.loadVideoById({
-                  videoId: data.videoId,
-                  startSeconds: currentPos,
-                });
-                ytPlayerRef.current.setVolume((isMuted ? 0 : volume) * 100);
-                ytPlayerRef.current.playVideo();
+              } else {
+                pendingYtVideoIdRef.current = data.videoId;
                 setIsPlaying(true);
                 startYouTubePolling();
-              } catch (e) {
-                console.warn('YouTube handoff:', e);
               }
-            } else {
-              pendingYtVideoIdRef.current = data.videoId;
-              setIsPlaying(true);
-              startYouTubePolling();
+            } else if (data.audioUrl) {
+              track.audioUrl = data.audioUrl;
+              track.sourcePlatform = 'direct';
+              track.isUnavailable = false;
+              if (audioRef.current) {
+                audioRef.current.src = data.audioUrl;
+                audioRef.current.play().then(() => {
+                  setIsPlaying(true);
+                }).catch(() => {});
+              }
             }
           }
         }
@@ -772,6 +819,42 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         setIsResolving(false);
       });
   }, [volume, isMuted, unavailableTrackIds]);
+
+  // Pre-resolve next track in queue ahead of time so clicking Next is instant 0ms!
+  useEffect(() => {
+    if (!queue || queue.length === 0) return;
+    const nextSong = queue[0];
+    if (!nextSong) return;
+
+    const nextYtId = getYouTubeId(nextSong);
+    const hasPlayableAudio = nextSong.audioUrl && !nextSong.audioUrl.includes('dzcdn.net');
+    if (nextYtId || hasPlayableAudio || resolvedMediaCache.has(nextSong.id)) return;
+
+    const resolveParams = new URLSearchParams({
+      artist: nextSong.artistName,
+      title: nextSong.title,
+      songId: nextSong.id,
+      album: nextSong.albumTitle || '',
+      isrc: nextSong.isrc || '',
+      duration: String(nextSong.duration || 0),
+    });
+
+    fetch(`/api/media/resolve?${resolveParams.toString()}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          if (data.videoId) {
+            nextSong.externalMediaId = data.videoId;
+            nextSong.sourcePlatform = 'youtube';
+          }
+          if (data.audioUrl) {
+            nextSong.audioUrl = data.audioUrl;
+          }
+          resolvedMediaCache.set(nextSong.id, { videoId: data.videoId, audioUrl: data.audioUrl });
+        }
+      })
+      .catch(() => {});
+  }, [queue, currentTrack]);
 
   const togglePlayPause = () => {
     if (!currentTrack) return;

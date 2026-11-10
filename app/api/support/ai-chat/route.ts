@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
     const body = await request.json();
-    const { message, history } = body;
+    const { message, history, playerState } = body;
 
     if (!message || typeof message !== 'string' || !message.trim()) {
       return NextResponse.json({ error: 'Message cannot be empty.' }, { status: 400 });
@@ -15,13 +15,15 @@ export async function POST(request: NextRequest) {
     const userName = user?.name || user?.username || 'Music Explorer';
     const cleanHistory = Array.isArray(history) ? history : [];
 
-    const result = await getAriaResponse(message.trim(), cleanHistory, userName);
+    const result = await getAriaResponse(message.trim(), cleanHistory, userName, playerState);
 
     return NextResponse.json({
       success: true,
       reply: result.reply,
       suggestedFollowUps: result.suggestedFollowUps,
       suggestAdminHandoff: result.suggestAdminHandoff,
+      action: result.action,
+      clarification: result.clarification,
       timestamp: new Date().toISOString()
     });
   } catch (error: any) {
@@ -52,4 +54,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-

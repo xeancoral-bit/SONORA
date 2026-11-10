@@ -11,11 +11,14 @@ import {
   Settings,
   LogOut,
   LayoutDashboard,
-  MessageSquare
+  MessageSquare,
+  Flame
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { NotificationItem } from '@/lib/types';
 import { useToast } from '@/context/ToastContext';
+import { getListeningStats } from '@/lib/streakService';
+import { ListeningStreakModal } from '@/components/gamification/ListeningStreakModal';
 
 export const Header: React.FC = () => {
   const pathname = usePathname();
@@ -24,7 +27,24 @@ export const Header: React.FC = () => {
   const [unreadMessages, setUnreadMessages] = useState<number>(0);
   const [showNotifs, setShowNotifs] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showStreakModal, setShowStreakModal] = useState(false);
+  const [streakCount, setStreakCount] = useState<number>(1);
   const toast = useToast();
+
+  useEffect(() => {
+    // Initial streak load
+    const current = getListeningStats();
+    setStreakCount(current.currentStreak);
+
+    // Real-time listener for streak updates
+    const handleUpdate = (e: any) => {
+      if (e.detail?.currentStreak !== undefined) {
+        setStreakCount(e.detail.currentStreak);
+      }
+    };
+    window.addEventListener('sonora_streak_updated', handleUpdate);
+    return () => window.removeEventListener('sonora_streak_updated', handleUpdate);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -81,7 +101,19 @@ export const Header: React.FC = () => {
       <div className="flex-1" />
 
       {/* Right: Notifications & Profile Menu / Auth Buttons */}
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+        {/* Daily Listening Streak Pill */}
+        <button
+          onClick={() => setShowStreakModal(true)}
+          className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 to-orange-500/10 hover:from-amber-500/25 hover:to-orange-500/20 border border-amber-500/30 text-amber-400 transition-all cursor-pointer group shadow-sm shadow-amber-500/10"
+          title="Daily Listening Streak & Vinyl Club"
+        >
+          <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 group-hover:scale-110 transition-transform animate-pulse" />
+          <span className="text-xs font-bold font-mono text-amber-300">
+            {streakCount} {streakCount === 1 ? 'Day' : 'Days'}
+          </span>
+        </button>
+
         {/* Support Messages Link */}
         {user && (
           <Link
@@ -316,6 +348,12 @@ export const Header: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Listening Streak & Vinyl Badges Modal */}
+      <ListeningStreakModal
+        isOpen={showStreakModal}
+        onClose={() => setShowStreakModal(false)}
+      />
     </header>
   );
 };

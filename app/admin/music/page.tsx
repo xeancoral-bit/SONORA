@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -20,7 +20,8 @@ import {
   FileCode,
   Globe,
   Copy,
-  ChevronDown
+  ChevronDown,
+  RefreshCw
 } from 'lucide-react';
 import { Youtube } from '@/components/ui/icons';
 
@@ -43,8 +44,27 @@ export default function AdminMusicManagementPage() {
   const [deletingSong, setDeletingSong] = useState<Song | null>(null);
   const [activeActionMenu, setActiveActionMenu] = useState<string | null>(null);
   const [isEnriching, setIsEnriching] = useState(false);
+  const [isSyncingDrops, setIsSyncingDrops] = useState(false);
 
   const toast = useToast();
+
+  const handleSyncLatestDrops = async () => {
+    try {
+      setIsSyncingDrops(true);
+      const res = await fetch('/api/music/sync-latest', { method: 'POST' });
+      const data = await res.json();
+      if (data.success && data.addedCount > 0) {
+        toast.success(`🎉 ${data.addedCount} new songs uploaded directly into Sonora!`);
+        fetchSongs();
+      } else {
+        toast.info(data.message || 'All artists are already up to date.');
+      }
+    } catch {
+      toast.error('Failed to sync latest drops');
+    } finally {
+      setIsSyncingDrops(false);
+    }
+  };
 
   const fetchSongs = async () => {
     try {
@@ -85,6 +105,15 @@ export default function AdminMusicManagementPage() {
     const handle = () => setActiveActionMenu(null);
     window.addEventListener('click', handle);
     return () => window.removeEventListener('click', handle);
+  }, []);
+
+  // Listen for background auto-uploaded songs and refresh admin table
+  useEffect(() => {
+    const handleNewSongs = () => {
+      fetchSongs();
+    };
+    window.addEventListener('sonora:newsongs', handleNewSongs);
+    return () => window.removeEventListener('sonora:newsongs', handleNewSongs);
   }, []);
 
     const handleAutoEnrich = async () => {
@@ -248,6 +277,20 @@ export default function AdminMusicManagementPage() {
               <Sparkles className="w-4 h-4 text-amber-400" />
             )}
             {isEnriching ? 'Enriching...' : '✨ Auto-Enrich Lyrics'}
+          </button>
+
+          <button
+            onClick={handleSyncLatestDrops}
+            disabled={isSyncingDrops}
+            className="px-4 py-2.5 rounded-full bg-neutral-900 hover:bg-neutral-800 border border-emerald-500/30 text-emerald-300 font-semibold text-xs flex items-center gap-2 shadow-md transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+            title="Scan top artists and auto-import newly released songs"
+          >
+            {isSyncingDrops ? (
+              <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+            ) : (
+              <RefreshCw className="w-4 h-4 text-emerald-400" />
+            )}
+            {isSyncingDrops ? 'Scanning Drops...' : '⚡ Sync Latest Drops'}
           </button>
 
           <Link

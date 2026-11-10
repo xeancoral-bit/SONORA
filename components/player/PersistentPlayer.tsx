@@ -1,6 +1,6 @@
-﻿'use client';
+'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useAudio } from '@/context/AudioContext';
 import {
@@ -18,7 +18,9 @@ import {
   Maximize2,
   ChevronUp,
   X,
-  Sliders
+  Sliders,
+  CloudRain,
+  Moon
 } from 'lucide-react';
 import { formatTime } from '@/lib/utils';
 import { FullScreenPlayer } from './FullScreenPlayer';
@@ -27,7 +29,10 @@ import { QueueDrawer } from './QueueDrawer';
 import { LikeButton } from '@/components/ui/LikeButton';
 import { EqualizerAnimation } from './EqualizerAnimation';
 import { EqualizerModal } from './EqualizerModal';
+import { AmbientSoundscapeModal } from './AmbientSoundscapeModal';
+import { SleepTimerModal } from './SleepTimerModal';
 import { useAlbumColor } from '@/hooks/useAlbumColor';
+import { ambientEngine } from '@/lib/ambientAudio';
 import { getOptimizedCoverUrl, handleImageError } from '@/lib/imageUtils';
 
 export const PersistentPlayer: React.FC = () => {
@@ -59,6 +64,74 @@ export const PersistentPlayer: React.FC = () => {
   } = useAudio();
 
   const [isEqOpen, setIsEqOpen] = useState(false);
+  const [isAmbientOpen, setIsAmbientOpen] = useState(false);
+  const [isSleepOpen, setIsSleepOpen] = useState(false);
+  const [isAmbientActive, setIsAmbientActive] = useState(false);
+
+  const [sleepSecondsLeft, setSleepSecondsLeft] = useState<number | null>(null);
+  const [sleepFade, setSleepFade] = useState(true);
+  const initialVolumeRef = useRef<number>(volume);
+  const isEndOfTrackTimerRef = useRef<boolean>(false);
+
+  // Sync ambient active indicator
+  useEffect(() => {
+    const checkState = () => {
+      setIsAmbientActive(ambientEngine.getState().enabled);
+    };
+    checkState();
+    const interval = setInterval(checkState, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Handle setting sleep timer
+  const handleSetSleepTimer = (target: number | 'end_of_track', enableFade: boolean) => {
+    setSleepFade(enableFade);
+    initialVolumeRef.current = volume;
+    if (target === 'end_of_track') {
+      isEndOfTrackTimerRef.current = true;
+      const remaining = Math.max(1, Math.round(duration - currentTime));
+      setSleepSecondsLeft(remaining);
+    } else {
+      isEndOfTrackTimerRef.current = false;
+      setSleepSecondsLeft(target * 60);
+    }
+  };
+
+  const handleCancelSleepTimer = () => {
+    setSleepSecondsLeft(null);
+    isEndOfTrackTimerRef.current = false;
+    if (initialVolumeRef.current) {
+      setVolume(initialVolumeRef.current);
+    }
+  };
+
+  // Sleep countdown effect
+  useEffect(() => {
+    if (sleepSecondsLeft === null) return;
+
+    if (sleepSecondsLeft <= 0) {
+      if (isPlaying) togglePlayPause();
+      if (initialVolumeRef.current) {
+        setVolume(initialVolumeRef.current);
+      }
+      setSleepSecondsLeft(null);
+      isEndOfTrackTimerRef.current = false;
+      return;
+    }
+
+    // Exponential fade in the last 120 seconds
+    if (sleepFade && sleepSecondsLeft <= 120 && sleepSecondsLeft > 0) {
+      const ratio = sleepSecondsLeft / 120;
+      setVolume(Math.max(0.02, initialVolumeRef.current * ratio));
+    }
+
+    const timer = setInterval(() => {
+      setSleepSecondsLeft((prev) => (prev !== null ? prev - 1 : null));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [sleepSecondsLeft, isPlaying, sleepFade, togglePlayPause, setVolume]);
+
   const { glowStyle } = useAlbumColor(currentTrack?.coverImage);
 
   if (!currentTrack) return null;
@@ -205,7 +278,43 @@ export const PersistentPlayer: React.FC = () => {
           </div>
 
           {/* RIGHT: Auxiliary Tools (Lyrics, Queue, Volume, Fullscreen) */}
-          <div className="flex items-center justify-end gap-2 md:gap-3 md:w-1/4">
+          <div className="flex items-center justify-end gap-1.5 md:gap-2.5 md:w-1/3">
+            {/* Ambient Soundscapes Blend */}
+            <button
+              onClick={() => setIsAmbientOpen(true)}
+              className={`p-2 rounded-lg transition-colors hidden md:block relative ${
+                isAmbientActive
+                  ? 'text-cyan-400 bg-cyan-500/15 shadow-sm shadow-cyan-500/20 border border-cyan-500/30'
+                  : 'text-neutral-400 hover:text-cyan-400 hover:bg-white/5'
+              }`}
+              title="Ambient Soundscapes (Rain, Cafe, Campfire, Waves)"
+            >
+              <CloudRain className="w-4 h-4" />
+              {isAmbientActive && (
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+              )}
+            </button>
+
+            {/* Sleep Timer */}
+            <button
+              onClick={() => setIsSleepOpen(true)}
+              className={`p-2 rounded-lg transition-colors hidden md:block relative ${
+                sleepSecondsLeft !== null
+                  ? 'text-indigo-400 bg-indigo-500/15 shadow-sm shadow-indigo-500/20 border border-indigo-500/30'
+                  : 'text-neutral-400 hover:text-indigo-400 hover:bg-white/5'
+              }`}
+              title={
+                sleepSecondsLeft !== null
+                  ? `Sleep timer active: ${Math.ceil(sleepSecondsLeft / 60)}m left`
+                  : 'Sleep Timer'
+              }
+            >
+              <Moon className="w-4 h-4" />
+              {sleepSecondsLeft !== null && (
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-indigo-400 animate-ping" />
+              )}
+            </button>
+
             <button
               onClick={() => setIsLyricsOpen(!isLyricsOpen)}
               className={`p-2 rounded-lg transition-colors hidden md:block ${
@@ -292,6 +401,14 @@ export const PersistentPlayer: React.FC = () => {
       <LyricsPanel />
       <QueueDrawer />
       <EqualizerModal isOpen={isEqOpen} onClose={() => setIsEqOpen(false)} isPlaying={isPlaying} />
+      <AmbientSoundscapeModal isOpen={isAmbientOpen} onClose={() => setIsAmbientOpen(false)} />
+      <SleepTimerModal
+        isOpen={isSleepOpen}
+        onClose={() => setIsSleepOpen(false)}
+        activeSecondsLeft={sleepSecondsLeft}
+        onSetTimer={handleSetSleepTimer}
+        onCancelTimer={handleCancelSleepTimer}
+      />
     </>
   );
 };

@@ -5,6 +5,7 @@ import { dark } from '@clerk/themes';
 import { AuthProvider } from '@/context/AuthContext';
 import { AudioProvider } from '@/context/AudioContext';
 import { ToastProvider } from '@/context/ToastContext';
+import { AutoMusicSync } from '@/components/common/AutoMusicSync';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { MobileNav } from '@/components/layout/MobileNav';
@@ -56,6 +57,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             <ToastProvider>
+              <AutoMusicSync />
               <AudioProvider>
                 {/* Spotify-Style Shell: sidebar + main panels with adaptive black canvas gaps */}
                 <div className="flex h-screen w-screen overflow-hidden p-1 sm:p-2 gap-1 sm:gap-2">

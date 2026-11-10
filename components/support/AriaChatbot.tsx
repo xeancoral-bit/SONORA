@@ -4,26 +4,28 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Sparkles,
   Send,
-  RefreshCw,
   Trash2,
   Copy,
   Check,
   Music,
   Sliders,
   Volume2,
-  HelpCircle,
-  AlertTriangle,
-  ArrowRight,
-  ShieldCheck,
+  Play,
+  Pause,
+  SkipForward,
+  RotateCcw,
   Bot,
-  ExternalLink,
-  CornerDownLeft,
   Headphones,
-  Compass,
-  MessageSquare
+  ArrowRight,
+  Disc,
+  Mic2
 } from 'lucide-react';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
+import { useAudio } from '@/context/AudioContext';
+import { AriaAction, AriaClarification, ClarificationOption } from '@/lib/ariaAiBrain';
+import { Song } from '@/lib/types';
 
 export interface ChatMessage {
   id: string;
@@ -32,6 +34,8 @@ export interface ChatMessage {
   timestamp: string;
   suggestedFollowUps?: string[];
   suggestAdminHandoff?: boolean;
+  action?: AriaAction;
+  clarification?: AriaClarification;
 }
 
 interface AriaChatbotProps {
@@ -41,42 +45,56 @@ interface AriaChatbotProps {
 
 const STARTER_PROMPTS = [
   {
+    category: 'Play Track',
+    icon: Play,
+    color: 'text-blue-400 border-blue-500/20 bg-blue-500/10',
+    title: 'Play Music',
+    description: 'Play a song directly with Aria',
+    prompt: 'Play Kanata'
+  },
+  {
     category: 'Music & Artists',
     icon: Music,
-    color: 'text-blue-400 border-blue-500/20 bg-blue-500/10',
+    color: 'text-cyan-400 border-cyan-500/20 bg-cyan-500/10',
     title: 'Explore Artists',
     description: 'Discography, albums & songs',
-    prompt: 'What albums and top songs do BINI and The Black Eyed Peas have in SONORA?'
+    prompt: 'What albums and top songs do BINI and Lola Amour have on SONORA?'
   },
   {
-    category: 'Lyrics & Display',
+    category: 'Recommendations',
     icon: Sparkles,
-    color: 'text-cyan-400 border-cyan-500/20 bg-cyan-500/20',
-    title: 'Lyrics & Translations',
-    description: 'Font size, languages & sync',
-    prompt: 'How do I switch lyric translations and adjust font size in SONORA?'
+    color: 'text-indigo-400 border-indigo-500/20 bg-indigo-500/10',
+    title: 'Top Recommendations',
+    description: 'Curated songs from the database',
+    prompt: 'Recommend me some top trending songs'
   },
   {
-    category: 'Playback & Audio',
+    category: 'Playback Controls',
     icon: Sliders,
     color: 'text-amber-400 border-amber-500/20 bg-amber-500/10',
-    title: 'Equalizer & Sound',
-    description: 'Bass boost, EQ presets & quality',
-    prompt: 'How do I use the 10-band Equalizer and bass boost?'
-  },
-  {
-    category: 'Troubleshooting',
-    icon: AlertTriangle,
-    color: 'text-rose-400 border-rose-500/20 bg-rose-500/10',
-    title: 'Fix Playback Issues',
-    description: 'Buffering or silent audio',
-    prompt: 'My music is not playing or is buffering, how can I troubleshoot it?'
+    title: 'Playback Commands',
+    description: 'Pause, skip, volume & lyrics',
+    prompt: 'What song is playing right now?'
   }
 ];
 
 export default function AriaChatbot({ onSwitchToAdmin, initialPrompt }: AriaChatbotProps) {
   const { user } = useAuth();
   const toast = useToast();
+  const {
+    currentTrack,
+    isPlaying,
+    playTrack,
+    togglePlayPause,
+    nextTrack,
+    previousTrack,
+    setVolume,
+    queue,
+    volume,
+    isMuted,
+    setIsLyricsOpen,
+    history: audioHistory
+  } = useAudio();
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
@@ -128,23 +146,53 @@ export default function AriaChatbot({ onSwitchToAdmin, initialPrompt }: AriaChat
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInputText('');
     setIsTyping(true);
 
     try {
       // Build history payload for contextual continuity
-      const historyPayload = messages.slice(-8).map(m => ({
+      const historyPayload = messages.slice(-8).map((m) => ({
         role: m.role,
-        content: m.content
+        content: m.content,
+        clarification: m.clarification,
+        action: m.action
       }));
+
+      // Build live player state payload
+      const playerStatePayload = {
+        currentTrack: currentTrack
+          ? {
+              id: currentTrack.id,
+              title: currentTrack.title,
+              artistName: currentTrack.artistName,
+              albumTitle: currentTrack.albumTitle,
+              duration: currentTrack.duration
+            }
+          : null,
+        isPlaying,
+        volume,
+        isMuted,
+        queueLength: queue.length,
+        hasNextTrack: queue.length > 0,
+        nextTrack: queue[0] ? { id: queue[0].id, title: queue[0].title, artistName: queue[0].artistName } : null,
+        hasPreviousTrack: audioHistory.length > 0,
+        previousTrack: audioHistory[audioHistory.length - 1]
+          ? {
+              id: audioHistory[audioHistory.length - 1].id,
+              title: audioHistory[audioHistory.length - 1].title,
+              artistName: audioHistory[audioHistory.length - 1].artistName
+            }
+          : null
+      };
 
       const res = await fetch('/api/support/ai-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: query,
-          history: historyPayload
+          history: historyPayload,
+          playerState: playerStatePayload
         })
       });
 
@@ -154,16 +202,56 @@ export default function AriaChatbot({ onSwitchToAdmin, initialPrompt }: AriaChat
 
       const data = await res.json();
 
+      // =====================================================================
+      // EXECUTE ACTUAL MUSIC PLAYER ACTIONS (Requirement 3 & 5)
+      // =====================================================================
+      if (data.action) {
+        const act: AriaAction = data.action;
+
+        if (act.type === 'play' && act.track) {
+          playTrack(act.track, act.tracks && act.tracks.length > 0 ? act.tracks : [act.track]);
+          toast.success(`Playing "${act.track.title}" by ${act.track.artistName} 🎵`);
+        } else if (act.type === 'pause') {
+          if (isPlaying) {
+            togglePlayPause();
+            toast.info('Playback paused ⏸️');
+          }
+        } else if (act.type === 'resume') {
+          if (!isPlaying && currentTrack) {
+            togglePlayPause();
+            toast.success('Playback resumed 🎵');
+          }
+        } else if (act.type === 'next') {
+          if (queue.length > 0) {
+            nextTrack();
+            toast.success('Skipped to next track ⏭️');
+          }
+        } else if (act.type === 'previous') {
+          if (audioHistory.length > 0) {
+            previousTrack();
+            toast.success('Returned to previous track ⏮️');
+          }
+        } else if (act.type === 'volume' && typeof act.volumeLevel === 'number') {
+          setVolume(act.volumeLevel);
+          toast.info(`Volume set to ${Math.round(act.volumeLevel * 100)}% 🔊`);
+        } else if (act.type === 'open_lyrics') {
+          setIsLyricsOpen(true);
+          toast.info('Opened synchronized lyrics view 🎤');
+        }
+      }
+
       const assistantMessage: ChatMessage = {
         id: `aria-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
         role: 'assistant',
         content: data.reply || "I've processed your inquiry. Let me know if you need more details!",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         suggestedFollowUps: data.suggestedFollowUps || [],
-        suggestAdminHandoff: data.suggestAdminHandoff || false
+        suggestAdminHandoff: data.suggestAdminHandoff || false,
+        action: data.action,
+        clarification: data.clarification
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (err: any) {
       toast.error(err.message || 'Error communicating with Aria.');
       const errorMessage: ChatMessage = {
@@ -173,7 +261,7 @@ export default function AriaChatbot({ onSwitchToAdmin, initialPrompt }: AriaChat
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         suggestedFollowUps: ['How do I fix playback issues?', 'Contact Administrator']
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsTyping(false);
     }
@@ -208,6 +296,10 @@ export default function AriaChatbot({ onSwitchToAdmin, initialPrompt }: AriaChat
     toast.success('Response copied to clipboard!');
   };
 
+  const handleSelectClarificationOption = (opt: ClarificationOption) => {
+    handleSendMessage(`The version by ${opt.artistName}`);
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full bg-[#0d0d0f] rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative">
       {/* ── ARIA TOP NAVIGATION HEADER ── */}
@@ -238,7 +330,7 @@ export default function AriaChatbot({ onSwitchToAdmin, initialPrompt }: AriaChat
             <p className="text-[11px] text-neutral-400 flex items-center gap-1.5">
               <span>SONORA Intelligent Navigator</span>
               <span className="w-1 h-1 rounded-full bg-neutral-600"></span>
-              <span className="text-cyan-400 font-medium">Real-Time Knowledge</span>
+              <span className="text-cyan-400 font-medium">Real-Time Knowledge & Audio Engine</span>
             </p>
           </div>
         </div>
@@ -248,7 +340,7 @@ export default function AriaChatbot({ onSwitchToAdmin, initialPrompt }: AriaChat
           {messages.length > 0 && (
             <button
               onClick={handleClearChat}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/5 hover:border-white/10 transition-colors"
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/5 hover:border-white/10 transition-colors cursor-pointer"
               title="Clear conversation"
             >
               <Trash2 className="w-4 h-4" />
@@ -258,9 +350,9 @@ export default function AriaChatbot({ onSwitchToAdmin, initialPrompt }: AriaChat
           {onSwitchToAdmin && (
             <button
               onClick={onSwitchToAdmin}
-              className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 text-xs font-semibold flex items-center gap-1.5 transition-all"
+              className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
             >
-              <MessageSquare className="w-3.5 h-3.5 text-blue-400" />
+              <Bot className="w-3.5 h-3.5 text-blue-400" />
               <span className="hidden sm:inline">Human Admin</span>
             </button>
           )}
@@ -286,7 +378,7 @@ export default function AriaChatbot({ onSwitchToAdmin, initialPrompt }: AriaChat
               Meet <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-cyan-300 bg-clip-text text-transparent">Aria</span>
             </h1>
             <p className="text-xs sm:text-sm text-neutral-300 mt-2 max-w-lg mx-auto leading-relaxed">
-              Your personal SONORA AI Music Maestro. I can navigate our 50,000+ tracks, explain synced lyric translations, guide audio equalizer tuning, and troubleshoot any playback hurdles.
+              Your personal SONORA AI Music Maestro. Connected live to our 50,000+ tracks, artists, and playback player. Ask me to play any track, control playback, or explore music discographies.
             </p>
 
             {/* Quick Starters Grid */}
@@ -317,12 +409,12 @@ export default function AriaChatbot({ onSwitchToAdmin, initialPrompt }: AriaChat
 
             <div className="mt-8 pt-5 border-t border-white/5 flex items-center justify-center gap-2 text-xs text-neutral-400">
               <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Fluent in English, Tagalog, and Bisaya/Cebuano</span>
+              <span>Full Music Player Controls & Multilingual Support (English, Bisaya, Tagalog)</span>
             </div>
           </div>
         ) : (
           /* MESSAGE THREAD */
-          messages.map(msg => {
+          messages.map((msg) => {
             const isUser = msg.role === 'user';
 
             return (
@@ -340,7 +432,7 @@ export default function AriaChatbot({ onSwitchToAdmin, initialPrompt }: AriaChat
 
                 {/* Message Card */}
                 <div
-                  className={`relative max-w-[88%] sm:max-w-[78%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed transition-all shadow-xl ${
+                  className={`relative max-w-[92%] sm:max-w-[80%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed transition-all shadow-xl ${
                     isUser
                       ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-tr-none border border-blue-400/30'
                       : 'bg-[#15151c]/95 backdrop-blur-md text-neutral-200 rounded-tl-none border border-white/10 border-l-2 border-l-cyan-400'
@@ -376,17 +468,109 @@ export default function AriaChatbot({ onSwitchToAdmin, initialPrompt }: AriaChat
                     })}
                   </div>
 
+                  {/* ── INTERACTIVE PLAYBACK CARD (Embedded Track Action) ── */}
+                  {!isUser && msg.action?.type === 'play' && msg.action.track && (
+                    <div className="mt-3.5 p-3 rounded-xl bg-black/40 border border-cyan-500/30 flex items-center justify-between gap-3 shadow-inner">
+                      <div className="flex items-center gap-3 min-w-0">
+                        {msg.action.track.coverImage ? (
+                          <div className="relative w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-white/10">
+                            <Image
+                              src={msg.action.track.coverImage}
+                              alt={msg.action.track.title}
+                              fill
+                              sizes="48px"
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0 border border-white/10">
+                            <Disc className="w-6 h-6 text-blue-400" />
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 uppercase tracking-wider flex items-center gap-1">
+                              {currentTrack?.id === msg.action.track.id && isPlaying ? (
+                                <>
+                                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                                  <span>Now Playing</span>
+                                </>
+                              ) : (
+                                <span>Track Selected</span>
+                              )}
+                            </span>
+                          </div>
+                          <h4 className="text-xs font-bold text-white truncate mt-0.5">
+                            {msg.action.track.title}
+                          </h4>
+                          <p className="text-[11px] text-neutral-400 truncate">
+                            {msg.action.track.artistName} {msg.action.track.albumTitle ? `• ${msg.action.track.albumTitle}` : ''}
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          if (currentTrack?.id === msg.action?.track?.id) {
+                            togglePlayPause();
+                          } else if (msg.action?.track) {
+                            playTrack(msg.action.track);
+                          }
+                        }}
+                        className="p-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold shadow-lg shadow-cyan-500/25 active:scale-95 transition-all cursor-pointer shrink-0"
+                        title="Toggle playback"
+                      >
+                        {currentTrack?.id === msg.action.track.id && isPlaying ? (
+                          <Pause className="w-4 h-4 fill-current" />
+                        ) : (
+                          <Play className="w-4 h-4 fill-current ml-0.5" />
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* ── CLARIFICATION OPTIONS (Requirement 4) ── */}
+                  {!isUser && msg.clarification?.options && msg.clarification.options.length > 0 && (
+                    <div className="mt-3.5 space-y-2">
+                      <p className="text-[11px] font-bold text-cyan-300 uppercase tracking-wide">
+                        Choose a version to play:
+                      </p>
+                      <div className="grid grid-cols-1 gap-1.5">
+                        {msg.clarification.options.map((opt) => (
+                          <button
+                            key={opt.trackId}
+                            onClick={() => handleSelectClarificationOption(opt)}
+                            className="p-2.5 rounded-xl bg-white/5 hover:bg-cyan-500/15 border border-white/10 hover:border-cyan-500/40 text-left transition-all flex items-center justify-between group cursor-pointer"
+                          >
+                            <div className="min-w-0 pr-2">
+                              <span className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors block truncate">
+                                {opt.artistName}
+                              </span>
+                              <span className="text-[10px] text-neutral-400 block truncate">
+                                Album: {opt.albumTitle || 'Official Release'}
+                              </span>
+                            </div>
+                            <span className="px-2 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 text-[10px] font-bold flex items-center gap-1 shrink-0">
+                              <Play className="w-3 h-3 fill-current" />
+                              Play Version
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Assistant Footer Actions */}
                   {!isUser && (
                     <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-neutral-400">
                       <div className="flex items-center gap-1.5 text-[10px] text-neutral-400">
                         <Bot className="w-3 h-3 text-cyan-400" />
-                        <span>SONORA AI Engine</span>
+                        <span>SONORA Intelligent Engine</span>
                       </div>
 
                       <button
                         onClick={() => handleCopyText(msg.id, msg.content)}
-                        className="p-1 rounded-md hover:bg-white/10 text-neutral-400 hover:text-white transition-colors flex items-center gap-1 text-[11px]"
+                        className="p-1 rounded-md hover:bg-white/10 text-neutral-400 hover:text-white transition-colors flex items-center gap-1 text-[11px] cursor-pointer"
                         title="Copy answer"
                       >
                         {copiedId === msg.id ? (
@@ -403,22 +587,6 @@ export default function AriaChatbot({ onSwitchToAdmin, initialPrompt }: AriaChat
                       </button>
                     </div>
                   )}
-
-                  {/* Admin Handoff Suggestion Banner */}
-                  {!isUser && msg.suggestAdminHandoff && onSwitchToAdmin && (
-                    <div className="mt-3 p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-xs text-blue-300">
-                        <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0" />
-                        <span>Would you like to connect with a human administrator?</span>
-                      </div>
-                      <button
-                        onClick={onSwitchToAdmin}
-                        className="px-2.5 py-1 rounded-lg bg-blue-500 hover:bg-blue-400 text-black font-bold text-xs shrink-0 transition-colors"
-                      >
-                        Talk to Admin
-                      </button>
-                    </div>
-                  )}
                 </div>
 
                 {/* Suggested Follow-ups */}
@@ -428,7 +596,7 @@ export default function AriaChatbot({ onSwitchToAdmin, initialPrompt }: AriaChat
                       <button
                         key={fIdx}
                         onClick={() => handleSendMessage(followUp)}
-                        className="px-2.5 py-1 rounded-full bg-[#181820] hover:bg-blue-500/20 border border-white/5 hover:border-blue-500/40 text-[11px] text-neutral-300 hover:text-blue-300 transition-all flex items-center gap-1 active:scale-95 text-left"
+                        className="px-2.5 py-1 rounded-full bg-[#181820] hover:bg-blue-500/20 border border-white/5 hover:border-blue-500/40 text-[11px] text-neutral-300 hover:text-blue-300 transition-all flex items-center gap-1 active:scale-95 text-left cursor-pointer"
                       >
                         <span>{followUp}</span>
                         <ArrowRight className="w-2.5 h-2.5 opacity-60" />
@@ -453,7 +621,7 @@ export default function AriaChatbot({ onSwitchToAdmin, initialPrompt }: AriaChat
                 <span className="w-2 h-2 rounded-full bg-blue-400 animate-bounce delay-150"></span>
                 <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce delay-300"></span>
               </div>
-              <span className="text-xs text-neutral-400 ml-1">Aria is harmonizing response...</span>
+              <span className="text-xs text-neutral-400 ml-1">Aria is navigating the catalog...</span>
             </div>
           </div>
         )}
@@ -461,24 +629,27 @@ export default function AriaChatbot({ onSwitchToAdmin, initialPrompt }: AriaChat
         <div ref={messagesEndRef} />
       </div>
 
-      {/* ── ARIA INPUT BAR & QUICK PILLS ── */}
+      {/* ── ARIA INPUT BAR & PLAYBACK QUICK CONTROLS ── */}
       <div className="p-3 sm:p-4 bg-[#111116]/95 backdrop-blur-xl border-t border-white/10 shrink-0 space-y-2">
-        {/* Quick Topics Pill Bar */}
+        {/* Quick Commands & Prompts Bar */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
-          <span className="text-[10px] uppercase font-bold text-neutral-400 shrink-0">Quick Ask:</span>
+          <span className="text-[10px] uppercase font-bold text-neutral-400 shrink-0">Quick Commands:</span>
           {[
-            '🎵 BINI Albums',
-            '📝 Translations',
-            '🎚️ Equalizer',
-            '⚠️ Playback Help',
-            '➕ Request Track'
-          ].map((tag, tIdx) => (
+            { label: '🎵 Play Kanata', action: 'Play Kanata' },
+            { label: '🎵 Play BINI', action: 'Play BINI' },
+            { label: '🎵 Play Lola Amour', action: 'Play Lola Amour' },
+            { label: isPlaying ? '⏸️ Pause' : '▶️ Resume', action: isPlaying ? 'Pause' : 'Resume' },
+            { label: '⏭️ Skip', action: 'Skip' },
+            { label: '🎧 Now Playing', action: 'What song is playing right now?' },
+            { label: '🎤 Lyrics', action: 'Show lyrics' },
+            { label: '✨ Recommend', action: 'Recommend me some top songs' }
+          ].map((item, tIdx) => (
             <button
               key={tIdx}
-              onClick={() => handleSendMessage(`How does ${tag.replace(/^.+?\s/, '')} work in SONORA?`)}
-              className="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] text-neutral-300 hover:text-white border border-white/5 whitespace-nowrap transition-colors"
+              onClick={() => handleSendMessage(item.action)}
+              className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-cyan-500/20 text-[11px] text-neutral-300 hover:text-cyan-300 border border-white/5 hover:border-cyan-500/30 whitespace-nowrap transition-colors cursor-pointer"
             >
-              {tag}
+              {item.label}
             </button>
           ))}
         </div>
@@ -489,9 +660,9 @@ export default function AriaChatbot({ onSwitchToAdmin, initialPrompt }: AriaChat
             ref={textareaRef}
             rows={1}
             value={inputText}
-            onChange={e => setInputText(e.target.value)}
+            onChange={(e) => setInputText(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask Aria about any artist, album, lyrics, or playback issue... (English, Tagalog, Bisaya)"
+            placeholder="Ask Aria to play a song, pause, skip, clarify tracks, or explore music... (English, Bisaya, Tagalog)"
             className="flex-1 bg-transparent border-0 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none resize-none max-h-24 py-1.5 px-2"
           />
 
@@ -511,7 +682,7 @@ export default function AriaChatbot({ onSwitchToAdmin, initialPrompt }: AriaChat
 
         <div className="flex items-center justify-between text-[10px] text-neutral-400 px-1">
           <span>Press <strong>Enter</strong> to send, <strong>Shift + Enter</strong> for new line</span>
-          <span>SONORA AI Engine v2.5</span>
+          <span>SONORA AI Engine v3.0 • Real-Time Playback</span>
         </div>
       </div>
     </div>
@@ -532,4 +703,3 @@ function renderFormattedText(text: string) {
     return part;
   });
 }
-

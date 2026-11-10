@@ -1,6 +1,7 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Sliders, RotateCcw, Compass } from 'lucide-react';
 
 export interface SoundPreset {
@@ -139,6 +140,11 @@ export const EqualizerModal: React.FC<EqualizerModalProps> = ({ isOpen, onClose,
   const [mid, setMid] = useState<number>(0);
   const [treble, setTreble] = useState<number>(0);
   const [_surround, setSurround] = useState<boolean>(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     try {
@@ -186,14 +192,19 @@ export const EqualizerModal: React.FC<EqualizerModalProps> = ({ isOpen, onClose,
     selectRoom(ACOUSTIC_ROOMS[0]);
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const currentRoom = ACOUSTIC_ROOMS.find((r) => r.id === activeRoomId) || ACOUSTIC_ROOMS[0];
 
-  return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div
-        className="relative w-full max-w-xl bg-[#141414] border border-white/10 rounded-3xl shadow-2xl overflow-hidden p-5 sm:p-6 text-white max-h-[92vh] flex flex-col justify-between"
+        className="relative w-full max-w-xl bg-[#141414] border border-white/10 rounded-3xl shadow-2xl overflow-hidden p-5 sm:p-6 text-white max-h-[92vh] flex flex-col justify-between my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Glow background accent */}
@@ -366,6 +377,7 @@ export const EqualizerModal: React.FC<EqualizerModalProps> = ({ isOpen, onClose,
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

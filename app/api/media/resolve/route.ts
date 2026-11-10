@@ -220,7 +220,7 @@ async function searchYouTubeCandidates(searchQuery: string): Promise<VideoCandid
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept-Language': 'en-US,en;q=0.9',
       },
-      signal: AbortSignal.timeout(8500),
+      signal: AbortSignal.timeout(3500),
     });
     if (res.ok) {
       const html = await res.text();
@@ -228,6 +228,26 @@ async function searchYouTubeCandidates(searchQuery: string): Promise<VideoCandid
     }
   } catch {}
   return [];
+}
+
+async function searchItunesPreview(artist: string, title: string): Promise<{ audioUrl: string; duration?: number } | null> {
+  try {
+    const cleanT = title.replace(/\s*\(feat\.[^)]+\)/gi, '').replace(/\s*ft\.[^,)]+/gi, '').trim();
+    const q = `${artist} ${cleanT}`;
+    const url = `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&entity=song&limit=3`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(2800) });
+    if (!res.ok) return null;
+    const json = await res.json();
+    if (!json.results || json.results.length === 0) return null;
+    const item = json.results.find((r: any) => r.previewUrl) || json.results[0];
+    if (item?.previewUrl) {
+      return {
+        audioUrl: item.previewUrl,
+        duration: Math.round((item.trackTimeMillis || 180000) / 1000),
+      };
+    }
+  } catch {}
+  return null;
 }
 
 export async function GET(req: NextRequest) {
@@ -246,17 +266,52 @@ export async function GET(req: NextRequest) {
     }
 
     const cacheKey = `${artist.toLowerCase()}:::${title.toLowerCase()}`;
+
+    // 1. In-memory cache check (instant 0ms)
     if (memoryCache.has(cacheKey)) {
       return NextResponse.json({
         success: true,
         videoId: memoryCache.get(cacheKey),
-        source: 'cache',
+        source: 'memory_cache',
+      });
+    }
+
+    // 2. Database immediate check (instant 1ms)
+    const existingSong = songId ? db.getSongById(songId) : null;
+    if (existingSong?.externalMediaId) {
+      memoryCache.set(cacheKey, existingSong.externalMediaId);
+      return NextResponse.json({
+        success: true,
+        videoId: existingSong.externalMediaId,
+        audioUrl: existingSong.audioUrl && !existingSong.audioUrl.includes('dzcdn.net') ? existingSong.audioUrl : undefined,
+        source: 'database_media_id',
+      });
+    }
+
+    if (existingSong?.audioUrl && (existingSong.audioUrl.includes('youtube.com') || existingSong.audioUrl.includes('youtu.be'))) {
+      const match = existingSong.audioUrl.match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+      if (match?.[1]) {
+        existingSong.externalMediaId = match[1];
+        try { db.saveSong(existingSong); } catch {}
+        memoryCache.set(cacheKey, match[1]);
+        return NextResponse.json({
+          success: true,
+          videoId: match[1],
+          source: 'database_url_match',
+        });
+      }
+    }
+
+    if (existingSong?.audioUrl && !existingSong.audioUrl.includes('dzcdn.net') && !existingSong.audioUrl.includes('youtube')) {
+      return NextResponse.json({
+        success: true,
+        audioUrl: existingSong.audioUrl,
+        source: 'database_direct_audio',
       });
     }
 
     // Target duration from song metadata
     let targetDuration = durationParam;
-    const existingSong = songId ? db.getSongById(songId) : null;
     if (existingSong && existingSong.duration && !targetDuration) {
       targetDuration = existingSong.duration;
     }
@@ -270,24 +325,21 @@ export async function GET(req: NextRequest) {
 
     const cleanAlbum = album ? album.replace(/\s*\(.*?\)/g, '').trim() : '';
 
-    // Try primary official studio recording search queries (strictly including artist)
-    const queriesToTry = [
-      `${artist} ${cleanT} Topic`,
-      `${artist} ${cleanT} official audio`,
-      `${artist} ${cleanT} official studio audio`,
-      `${cleanT} by ${artist} official`,
-    ];
-    if (cleanAlbum && (cleanAlbum.toLowerCase().includes('soundtrack') || cleanAlbum.toLowerCase().includes('ost'))) {
-      queriesToTry.unshift(`${artist} ${cleanT} ${cleanAlbum} official soundtrack`);
-    } else if (isrc) {
-      queriesToTry.unshift(`${artist} ${cleanT} ${isrc}`);
-    }
+    // 3. Parallel Fast Resolution: YouTube + iTunes Stream (resolves in ~200-800ms)
+    const [ytResult, itunesResult] = await Promise.allSettled([
+      (async () => {
+        const primaryQuery = `${artist} - ${cleanT} official audio`;
+        let candidates = await searchYouTubeCandidates(primaryQuery);
+        if (candidates.length === 0) {
+          candidates = await searchYouTubeCandidates(`${artist} - ${cleanT}`);
+        }
+        return candidates;
+      })(),
+      searchItunesPreview(artist, cleanT)
+    ]);
 
-    let candidates: VideoCandidate[] = [];
-    for (const q of queriesToTry) {
-      candidates = await searchYouTubeCandidates(q);
-      if (candidates.length > 0) break;
-    }
+    const candidates = ytResult.status === 'fulfilled' ? ytResult.value : [];
+    const itunesData = itunesResult.status === 'fulfilled' ? itunesResult.value : null;
 
     // Score candidates to guarantee original studio version
     let bestCandidate: VideoCandidate | null = null;
@@ -301,10 +353,9 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Accept candidate if score >= 50 or if bestCandidate is available
+    // Accept candidate if score >= 50 or if viable studio candidate available
     let videoId = (highestScore >= 50 && bestCandidate?.id) ? bestCandidate.id : null;
 
-    // Fallback: If no candidate reached 50, find first viable studio candidate
     if (!videoId && candidates.length > 0) {
       const viable = candidates.find(c => {
         const titleNorm = normalizeStr(c.title);
@@ -319,14 +370,16 @@ export async function GET(req: NextRequest) {
     if (videoId) {
       memoryCache.set(cacheKey, videoId);
 
-      // Update database in background if songId provided and high-confidence match
+      // Update database in background
       if (songId) {
         try {
           const song = db.getSongById(songId);
           if (song) {
             song.externalMediaId = videoId;
             song.sourcePlatform = 'youtube';
-            if (!song.audioUrl || song.audioUrl.includes('youtube.com') || song.audioUrl.includes('dzcdn.net')) {
+            if (itunesData?.audioUrl) {
+              song.audioUrl = itunesData.audioUrl;
+            } else if (!song.audioUrl || song.audioUrl.includes('youtube.com') || song.audioUrl.includes('dzcdn.net')) {
               song.audioUrl = `https://www.youtube.com/watch?v=${videoId}`;
             }
             song.isUnavailable = false;
@@ -338,6 +391,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({
         success: true,
         videoId,
+        audioUrl: itunesData?.audioUrl,
         source: 'youtube',
         verifiedStudioRecording: highestScore > 0,
         matchedTitle: bestCandidate?.title,
@@ -345,7 +399,29 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // If YouTube lookup was unavailable but song has audioUrl / audioPath in DB that is NOT dzcdn
+    // If YouTube had no direct match but iTunes direct audio stream was found:
+    if (itunesData?.audioUrl) {
+      if (songId) {
+        try {
+          const song = db.getSongById(songId);
+          if (song) {
+            song.audioUrl = itunesData.audioUrl;
+            song.sourcePlatform = 'direct';
+            song.isUnavailable = false;
+            db.saveSong(song);
+          }
+        } catch {}
+      }
+
+      return NextResponse.json({
+        success: true,
+        audioUrl: itunesData.audioUrl,
+        source: 'itunes_direct',
+        duration: itunesData.duration,
+      });
+    }
+
+    // Fallback if existing direct audio path exists
     const isDirectAvailable = existingSong && (existingSong.audioPath || (existingSong.audioUrl && !existingSong.audioUrl.includes('dzcdn.net')));
     if (isDirectAvailable) {
       return NextResponse.json({
@@ -355,35 +431,6 @@ export async function GET(req: NextRequest) {
         isUnavailable: false,
       });
     }
-
-    // Emergency YouTube search if still no video and song had dzcdn (403)
-    try {
-      const emergencyQuery = `${cleanT} ${artist} audio`;
-      const fallbackCandidates = await searchYouTubeCandidates(emergencyQuery);
-      const fallbackVideo = fallbackCandidates.find(c => !/\b(live|remix|cover)\b/i.test(normalizeStr(c.title))) || fallbackCandidates[0];
-      if (fallbackVideo?.id) {
-        memoryCache.set(cacheKey, fallbackVideo.id);
-        if (songId) {
-          try {
-            const song = db.getSongById(songId);
-            if (song) {
-              song.externalMediaId = fallbackVideo.id;
-              song.sourcePlatform = 'youtube';
-              song.audioUrl = `https://www.youtube.com/watch?v=${fallbackVideo.id}`;
-              song.isUnavailable = false;
-              db.saveSong(song);
-            }
-          } catch {}
-        }
-        return NextResponse.json({
-          success: true,
-          videoId: fallbackVideo.id,
-          source: 'youtube_fallback',
-          matchedTitle: fallbackVideo.title,
-          channel: fallbackVideo.channel,
-        });
-      }
-    } catch {}
 
     return NextResponse.json({
       success: true,

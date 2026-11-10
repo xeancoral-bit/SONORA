@@ -19,9 +19,11 @@ import {
   ChevronDown,
   Loader2,
   Music,
-  Sliders
+  Sliders,
+  CloudRain
 } from 'lucide-react';
 import { EqualizerModal } from './EqualizerModal';
+import { AmbientSoundscapeModal } from './AmbientSoundscapeModal';
 import { formatTime } from '@/lib/utils';
 import { LikeButton } from '@/components/ui/LikeButton';
 import { LyricsControls } from './LyricsControls';
@@ -73,6 +75,7 @@ export const FullScreenPlayer: React.FC = () => {
   } = useSyncedLyrics(activeSyncedLyrics, currentTime);
 
   const [isEqOpen, setIsEqOpen] = useState(false);
+  const [isAmbientOpen, setIsAmbientOpen] = useState(false);
   const [isKaraokeMode, setIsKaraokeMode] = useState(false);
   const { dominantRgb } = useAlbumColor(currentTrack?.coverImage);
   const [activeTab, setActiveTab] = useState<'lyrics' | 'queue' | 'disk'>('lyrics');
@@ -225,6 +228,15 @@ export const FullScreenPlayer: React.FC = () => {
                   Queue ({queue.length})
                 </button>
               </div>
+
+              {/* Ambient Soundscapes */}
+              <button
+                onClick={() => setIsAmbientOpen(true)}
+                className="p-1.5 sm:p-2 rounded-full bg-white/10 hover:bg-white/20 text-neutral-300 hover:text-cyan-400 backdrop-blur-md border border-white/10 transition-colors"
+                title="Ambient Soundscapes (Rain, Cafe, Campfire)"
+              >
+                <CloudRain className="w-4 h-4" />
+              </button>
 
               {/* Sonora Sound Studio EQ */}
               <button
@@ -802,6 +814,7 @@ export const FullScreenPlayer: React.FC = () => {
         </div>
       </div>
       <EqualizerModal isOpen={isEqOpen} onClose={() => setIsEqOpen(false)} isPlaying={isPlaying} />
+      <AmbientSoundscapeModal isOpen={isAmbientOpen} onClose={() => setIsAmbientOpen(false)} />
     </div>
   );
 };

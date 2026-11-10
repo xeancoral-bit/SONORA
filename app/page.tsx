@@ -12,6 +12,8 @@ import { ArtistCard } from '@/components/ui/ArtistCard';
 import { GenreCard } from '@/components/ui/GenreCard';
 import { AddToPlaylistModal } from '@/components/ui/AddToPlaylistModal';
 import { AddToCollectionModal } from '@/components/ui/AddToCollectionModal';
+import { useToast } from '@/context/ToastContext';
+import confetti from 'canvas-confetti';
 import {
   Sparkles,
   TrendingUp,
@@ -22,7 +24,9 @@ import {
   Compass,
   ChevronRight,
   Play,
-  Heart
+  Heart,
+  Loader2,
+  RefreshCw
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -37,6 +41,29 @@ export default function HomePage() {
 
   const [selectedSongForPlaylist, setSelectedSongForPlaylist] = useState<Song | null>(null);
   const [selectedSongForCollection, setSelectedSongForCollection] = useState<Song | null>(null);
+  const [isCheckingReleases, setIsCheckingReleases] = useState(false);
+  const toast = useToast();
+
+  const handleCheckLatestReleases = async () => {
+    try {
+      setIsCheckingReleases(true);
+      const res = await fetch('/api/music/sync-latest', { method: 'POST' });
+      const data = await res.json();
+      if (data.success && data.addedCount > 0) {
+        setSongs((prev) => [...data.songs, ...prev]);
+        toast.success(`🎉 ${data.addedCount} new tracks from top artists uploaded!`);
+        try {
+          confetti({ particleCount: 75, spread: 60, origin: { y: 0.6 } });
+        } catch {}
+      } else {
+        toast.info(data.message || 'All artists are already up to date with their latest tracks!');
+      }
+    } catch {
+      toast.error('Could not check for latest releases at this moment.');
+    } finally {
+      setIsCheckingReleases(false);
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -83,6 +110,27 @@ export default function HomePage() {
 
     return () => {
       isMounted = false;
+    };
+  }, []);
+
+  // Listen for background auto-uploaded songs and update live without refresh
+  useEffect(() => {
+    const handleNewSongs = (e: Event) => {
+      const customEvent = e as CustomEvent<{ songs: Song[] }>;
+      const incoming = customEvent?.detail?.songs;
+      if (Array.isArray(incoming) && incoming.length > 0) {
+        setSongs((prev) => {
+          const existingIds = new Set(prev.map((s) => s.id));
+          const fresh = incoming.filter((s) => !existingIds.has(s.id));
+          if (fresh.length === 0) return prev;
+          return [...fresh, ...prev];
+        });
+      }
+    };
+
+    window.addEventListener('sonora:newsongs', handleNewSongs);
+    return () => {
+      window.removeEventListener('sonora:newsongs', handleNewSongs);
     };
   }, []);
 
@@ -268,6 +316,20 @@ export default function HomePage() {
             <Sparkles className="w-5 h-5 text-emerald-400" />
             <h2 className="text-xl font-bold text-white">New Releases</h2>
           </div>
+
+          <button
+            onClick={handleCheckLatestReleases}
+            disabled={isCheckingReleases}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold transition-all cursor-pointer disabled:opacity-50"
+            title="Scan artists for new singles & album drops"
+          >
+            {isCheckingReleases ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <RefreshCw className="w-3.5 h-3.5" />
+            )}
+            {isCheckingReleases ? 'Scanning Releases...' : 'Sync Latest Drops'}
+          </button>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
