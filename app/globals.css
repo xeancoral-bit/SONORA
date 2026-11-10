@@ -334,3 +334,10 @@ input[type="range"]:hover::-moz-range-thumb {
   box-shadow: 0 0 6px #2563EB;
 }
 
+/* Suppress floating Next.js dev indicators and overlays */
+nextjs-portal,
+[data-nextjs-toast],
+[data-nextjs-dev-overlay] {
+  display: none !important;
+}
+
