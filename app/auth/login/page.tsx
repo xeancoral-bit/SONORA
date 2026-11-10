@@ -1,15 +1,17 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { SonoraLogo } from '@/components/layout/SonoraLogo';
-import { Lock, Mail, ChevronRight, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Lock, Mail, ChevronRight, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
 import { useSignIn, useClerk } from '@clerk/nextjs';
 import { SocialAuthModal } from '@/components/auth/SocialAuthModal';
 
 export default function LoginPage() {
+  const router = useRouter();
   const { login } = useAuth();
   const toast = useToast();
 
@@ -88,6 +90,14 @@ export default function LoginPage() {
     setActiveSocialModal(provider);
   };
 
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanIdentifier = email.trim();
@@ -111,6 +121,19 @@ export default function LoginPage() {
 
   return (
     <div className="w-full max-w-[460px] mx-auto bg-[#121214] border border-white/[0.08] rounded-2xl sm:rounded-3xl p-5 xs:p-6 sm:p-8 md:p-9 shadow-2xl shadow-black/90 space-y-4 sm:space-y-5 transition-all">
+      {/* Top Back Navigation */}
+      <div className="flex items-center justify-between pb-1 -mt-1 sm:-mt-2">
+        <button
+          type="button"
+          onClick={handleBack}
+          aria-label="Go back"
+          className="inline-flex items-center gap-2 px-2.5 py-1.5 -ml-2 rounded-xl text-xs font-medium text-neutral-400 hover:text-white hover:bg-white/[0.06] transition-all group active:scale-95 cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 text-neutral-400 group-hover:text-white group-hover:-translate-x-0.5 transition-transform" />
+          <span>Back</span>
+        </button>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col items-center text-center">
         <SonoraLogo size="lg" />

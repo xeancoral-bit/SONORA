@@ -60,7 +60,7 @@ export default function RootLayout({
               <AutoMusicSync />
               <AudioProvider>
                 {/* Spotify-Style Shell: sidebar + main panels with adaptive black canvas gaps */}
-                <div className="flex h-screen w-screen overflow-hidden p-1 sm:p-2 gap-1 sm:gap-2">
+                <div className="flex h-screen w-full max-w-full overflow-hidden p-1 sm:p-2 gap-1 sm:gap-2">
                   {/* Desktop/Tablet Sidebar – fixed-width, rounded panel */}
                   <Sidebar />
 

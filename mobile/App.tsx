@@ -15,6 +15,8 @@ import { StatusBar } from 'expo-status-bar';
 import Constants from 'expo-constants';
 import { WebView } from 'react-native-webview';
 
+const SafeWebView = WebView as any;
+
 export default function App() {
   // Determine default server address:
   // Expo Constants provides hostUri (e.g., '192.168.1.18:8081') when launched via Metro / QR code
@@ -64,7 +66,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="light" backgroundColor="#000000" />
+      <StatusBar style="light" />
 
       {/* ── TOP MINIMAL STATUS & QUICK CONTROLS BAR ── */}
       {isHeaderVisible ? (
@@ -119,18 +121,18 @@ export default function App() {
 
       {/* ── MAIN HYBRID WEBVIEW (LIVE MUSIC SYSTEM) ── */}
       <View style={styles.webviewWrapper}>
-        <WebView
+        <SafeWebView
           ref={webViewRef}
           source={{ uri: currentUrl }}
           style={styles.webview}
-          onNavigationStateChange={(nav) => setCanGoBack(nav.canGoBack)}
+          onNavigationStateChange={(nav: any) => setCanGoBack(nav.canGoBack)}
           onLoadStart={() => setIsLoading(true)}
           onLoadEnd={() => setIsLoading(false)}
           onError={() => {
             setIsLoading(false);
             setHasError(true);
           }}
-          onHttpError={(syntheticEvent) => {
+          onHttpError={(syntheticEvent: any) => {
             const { nativeEvent } = syntheticEvent;
             if (nativeEvent.statusCode >= 500) {
               setHasError(true);
@@ -348,7 +350,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...(StyleSheet.absoluteFill as object),
     backgroundColor: '#0a0a0e',
     alignItems: 'center',
     justifyContent: 'center',
@@ -361,7 +363,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   errorOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...(StyleSheet.absoluteFill as object),
     backgroundColor: '#0a0a0f',
     alignItems: 'center',
     justifyContent: 'center',

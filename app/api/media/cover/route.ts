@@ -204,6 +204,25 @@ export async function GET(request: NextRequest) {
             .replace('60x60bb.jpg', '1000x1000bb.jpg');
 
           memoryCache.set(cacheKey, highResArtwork);
+
+          // Persist to local database to self-heal
+          try {
+            if (title) {
+              const localSong = db.getSongs().find(s => s.title.toLowerCase() === title.toLowerCase());
+              if (localSong) {
+                localSong.coverImage = highResArtwork;
+                db.saveSong(localSong);
+              }
+            }
+            if (album) {
+              const localAlbum = db.getAlbums().find(a => a.title.toLowerCase() === album.toLowerCase());
+              if (localAlbum) {
+                localAlbum.coverImage = highResArtwork;
+                db.saveAlbum(localAlbum);
+              }
+            }
+          } catch {}
+
           return NextResponse.redirect(highResArtwork, {
             status: 302,
             headers: {

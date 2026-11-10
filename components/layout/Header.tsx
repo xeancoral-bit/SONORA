@@ -19,6 +19,7 @@ import { NotificationItem } from '@/lib/types';
 import { useToast } from '@/context/ToastContext';
 import { getListeningStats } from '@/lib/streakService';
 import { ListeningStreakModal } from '@/components/gamification/ListeningStreakModal';
+import { SonoraLogo } from './SonoraLogo';
 
 export const Header: React.FC = () => {
   const pathname = usePathname();
@@ -96,20 +97,24 @@ export const Header: React.FC = () => {
   }
 
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between px-6 py-3 bg-[#121212]/95 backdrop-blur-xl border-b border-white/5 gap-4">
-      {/* Left Spacer */}
-      <div className="flex-1" />
+    <header className="sticky top-0 z-20 flex items-center justify-between px-2.5 xs:px-3 sm:px-6 py-2 sm:py-3 bg-[#121212]/95 backdrop-blur-xl border-b border-white/5 gap-2 sm:gap-4 w-full max-w-full overflow-hidden">
+      {/* Left: Mobile Brand Mark / Desktop Spacer */}
+      <div className="flex items-center min-w-0 shrink-0">
+        <div className="md:hidden flex items-center">
+          <SonoraLogo collapsed size="sm" />
+        </div>
+      </div>
 
       {/* Right: Notifications & Profile Menu / Auth Buttons */}
-      <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+      <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 shrink-0 ml-auto">
         {/* Daily Listening Streak Pill */}
         <button
           onClick={() => setShowStreakModal(true)}
-          className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 to-orange-500/10 hover:from-amber-500/25 hover:to-orange-500/20 border border-amber-500/30 text-amber-400 transition-all cursor-pointer group shadow-sm shadow-amber-500/10"
+          className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 to-orange-500/10 hover:from-amber-500/25 hover:to-orange-500/20 border border-amber-500/30 text-amber-400 transition-all cursor-pointer group shadow-sm shadow-amber-500/10 shrink-0"
           title="Daily Listening Streak & Vinyl Club"
         >
-          <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 group-hover:scale-110 transition-transform animate-pulse" />
-          <span className="text-xs font-bold font-mono text-amber-300">
+          <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 group-hover:scale-110 transition-transform animate-pulse shrink-0" />
+          <span className="text-[11px] sm:text-xs font-bold font-mono text-amber-300 whitespace-nowrap">
             {streakCount} {streakCount === 1 ? 'Day' : 'Days'}
           </span>
         </button>
@@ -118,10 +123,10 @@ export const Header: React.FC = () => {
         {user && (
           <Link
             href={isAdmin ? '/admin/messages' : '/messages'}
-            className="relative w-9 h-9 rounded-full bg-[#1e1e1e] hover:bg-[#2a2a2a] border border-white/5 flex items-center justify-center text-neutral-300 hover:text-white transition-colors"
+            className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#1e1e1e] hover:bg-[#2a2a2a] border border-white/5 flex items-center justify-center text-neutral-300 hover:text-white transition-colors shrink-0"
             title={isAdmin ? 'Support Messages (Admin Console)' : 'Messages & Support'}
           >
-            <MessageSquare className="w-4 h-4" />
+            <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             {unreadMessages > 0 && (
               <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-blue-500 text-[10px] font-bold text-black flex items-center justify-center shadow-lg shadow-blue-500/50">
                 {unreadMessages > 9 ? '9+' : unreadMessages}
@@ -131,16 +136,16 @@ export const Header: React.FC = () => {
         )}
 
         {/* Notifications Dropdown */}
-        <div className="relative">
+        <div className="relative shrink-0">
           <button
             onClick={() => {
               setShowNotifs((prev) => !prev);
               setShowProfileMenu(false);
             }}
-            className="relative w-9 h-9 rounded-full bg-[#1e1e1e] hover:bg-[#2a2a2a] border border-white/5 flex items-center justify-center text-neutral-300 hover:text-white transition-colors"
+            className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#1e1e1e] hover:bg-[#2a2a2a] border border-white/5 flex items-center justify-center text-neutral-300 hover:text-white transition-colors shrink-0"
             title="Notifications"
           >
-            <Bell className="w-4 h-4" />
+            <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-500 text-[10px] font-bold text-black flex items-center justify-center shadow-lg shadow-blue-500/50">
                 {unreadCount}
@@ -151,7 +156,7 @@ export const Header: React.FC = () => {
           {showNotifs && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowNotifs(false)} />
-              <div className="absolute right-0 top-11 z-50 w-80 bg-[#1e1e1e] border border-white/10 rounded-2xl shadow-2xl p-3 animate-in fade-in zoom-in-95 duration-150">
+              <div className="absolute right-0 top-11 z-50 w-80 max-w-[calc(100vw-24px)] bg-[#1e1e1e] border border-white/10 rounded-2xl shadow-2xl p-3 animate-in fade-in zoom-in-95 duration-150">
                 <div className="flex items-center justify-between pb-2 border-b border-white/5 px-2">
                   <h4 className="font-bold text-sm text-white">Notifications</h4>
                   <span className="text-[11px] text-neutral-400">{unreadCount} unread</span>
@@ -225,7 +230,7 @@ export const Header: React.FC = () => {
                   className="fixed inset-0 z-40"
                   onClick={() => setShowProfileMenu(false)}
                 />
-                <div className="absolute right-0 top-11 z-50 w-64 bg-[#282828] border border-white/10 rounded-2xl shadow-2xl p-2 animate-in fade-in zoom-in-95 duration-150 select-none">
+                <div className="absolute right-0 top-11 z-50 w-64 max-w-[calc(100vw-24px)] bg-[#282828] border border-white/10 rounded-2xl shadow-2xl p-2 animate-in fade-in zoom-in-95 duration-150 select-none">
                   {/* User Profile Card */}
                   <div className="p-3 bg-[#1e1e1e] rounded-xl border border-white/5 mb-2">
                     <div className="flex items-center gap-3">
@@ -332,16 +337,16 @@ export const Header: React.FC = () => {
             )}
           </div>
         ) : (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 shrink-0">
             <Link
               href="/auth/register"
-              className="text-xs font-bold text-neutral-400 hover:text-white transition-colors px-3 py-2"
+              className="text-[11px] sm:text-xs font-bold text-neutral-400 hover:text-white transition-colors px-1.5 sm:px-3 py-1 sm:py-2 whitespace-nowrap"
             >
               Sign up
             </Link>
             <Link
               href="/auth/login"
-              className="px-6 py-2 rounded-full bg-white text-black font-bold text-xs hover:scale-105 active:scale-95 transition-all shadow-md"
+              className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full bg-white text-black font-bold text-[11px] sm:text-xs hover:scale-105 active:scale-95 transition-all shadow-md whitespace-nowrap shrink-0"
             >
               Log in
             </Link>
