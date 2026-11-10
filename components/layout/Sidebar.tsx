@@ -17,16 +17,19 @@ import {
   Plus,
   ShieldAlert,
   Menu,
-  MessageSquare
+  MessageSquare,
+  Download
 } from 'lucide-react';
 import { SonoraLogo } from './SonoraLogo';
 import { useAuth } from '@/context/AuthContext';
+import { usePWAInstall } from '@/context/PWAInstallContext';
 import { Playlist, UserCollection, Artist } from '@/lib/types';
 import { CreatePlaylistModal } from '../ui/CreatePlaylistModal';
 
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
   const { user, isAdmin } = useAuth();
+  const { openInstallModal } = usePWAInstall();
   const [collapsed, setCollapsed] = useState(false);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [collections, setCollections] = useState<UserCollection[]>([]);
@@ -262,6 +265,36 @@ export const Sidebar: React.FC = () => {
                 );
               })}
             </div>
+          )}
+        </div>
+
+        {/* Download App Action */}
+        <div className={`mt-auto p-2 border-t border-white/5 ${collapsed ? 'flex justify-center' : ''}`}>
+          {collapsed ? (
+            <button
+              onClick={openInstallModal}
+              className="w-10 h-10 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 hover:text-white flex items-center justify-center transition-all cursor-pointer"
+              title="Download SONORA App"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              onClick={openInstallModal}
+              className="w-full flex items-center gap-2.5 p-2 rounded-xl bg-gradient-to-r from-blue-600/15 via-blue-500/10 to-transparent border border-blue-500/20 hover:border-blue-500/40 text-blue-400 hover:text-blue-300 transition-all group cursor-pointer text-left"
+            >
+              <div className="w-7 h-7 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <Download className="w-3.5 h-3.5 text-blue-400" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[12px] font-bold text-white truncate leading-tight">
+                  Download App
+                </span>
+                <span className="text-[10px] text-neutral-400 truncate leading-tight">
+                  Phone &amp; Desktop
+                </span>
+              </div>
+            </button>
           )}
         </div>
       </aside>

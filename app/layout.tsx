@@ -1,20 +1,40 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { ClerkProvider } from '@clerk/nextjs';
 import { dark } from '@clerk/themes';
 import { AuthProvider } from '@/context/AuthContext';
 import { AudioProvider } from '@/context/AudioContext';
 import { ToastProvider } from '@/context/ToastContext';
+import { PWAInstallProvider } from '@/context/PWAInstallContext';
 import { AutoMusicSync } from '@/components/common/AutoMusicSync';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { PersistentPlayer } from '@/components/player/PersistentPlayer';
 import { ConsoleFilter } from '@/components/common/ConsoleFilter';
+import { InstallAppModal } from '@/components/ui/InstallAppModal';
+
+export const viewport: Viewport = {
+  themeColor: '#0a0a0c',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false
+};
 
 export const metadata: Metadata = {
   title: 'SONORA — Your Music. Your Moment.',
-  description: 'A modern, responsive, full-stack music streaming and content management platform.'
+  description: 'A modern, responsive, full-stack music streaming and content management platform.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'SONORA'
+  },
+  icons: {
+    icon: '/favicon.png',
+    apple: '/icons/apple-touch-icon.png'
+  }
 };
 
 export default function RootLayout({
@@ -57,28 +77,33 @@ export default function RootLayout({
         >
           <AuthProvider>
             <ToastProvider>
-              <AutoMusicSync />
-              <AudioProvider>
-                {/* Spotify-Style Shell: sidebar + main panels with adaptive black canvas gaps */}
-                <div className="flex h-screen w-full max-w-full overflow-hidden p-1 sm:p-2 gap-1 sm:gap-2">
-                  {/* Desktop/Tablet Sidebar – fixed-width, rounded panel */}
-                  <Sidebar />
+              <PWAInstallProvider>
+                <AutoMusicSync />
+                <AudioProvider>
+                  {/* Spotify-Style Shell: sidebar + main panels with adaptive black canvas gaps */}
+                  <div className="flex h-screen w-full max-w-full overflow-hidden p-1 sm:p-2 gap-1 sm:gap-2">
+                    {/* Desktop/Tablet Sidebar – fixed-width, rounded panel */}
+                    <Sidebar />
 
-                  {/* Main Content Area – rounded panel, fills remaining space */}
-                  <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#121212] rounded-lg sm:rounded-xl">
-                    <Header />
-                    <main className="flex-1 overflow-y-auto pb-36 md:pb-24 px-3 sm:px-6 md:px-8 py-4 sm:py-6">
-                      {children}
-                    </main>
+                    {/* Main Content Area – rounded panel, fills remaining space */}
+                    <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#121212] rounded-lg sm:rounded-xl">
+                      <Header />
+                      <main className="flex-1 overflow-y-auto pb-36 md:pb-24 px-3 sm:px-6 md:px-8 py-4 sm:py-6">
+                        {children}
+                      </main>
+                    </div>
                   </div>
-                </div>
 
-                {/* Persistent Bottom Music Player – sits above everything */}
-                <PersistentPlayer />
+                  {/* Persistent Bottom Music Player – sits above everything */}
+                  <PersistentPlayer />
 
-                {/* Mobile Navigation */}
-                <MobileNav />
-              </AudioProvider>
+                  {/* Mobile Navigation */}
+                  <MobileNav />
+
+                  {/* Download / Install App Modal */}
+                  <InstallAppModal />
+                </AudioProvider>
+              </PWAInstallProvider>
             </ToastProvider>
           </AuthProvider>
         </ClerkProvider>

@@ -12,7 +12,9 @@ import {
   LogOut,
   LayoutDashboard,
   MessageSquare,
-  Flame
+  Flame,
+  Download,
+  Smartphone
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { NotificationItem } from '@/lib/types';
@@ -20,10 +22,12 @@ import { useToast } from '@/context/ToastContext';
 import { getListeningStats } from '@/lib/streakService';
 import { ListeningStreakModal } from '@/components/gamification/ListeningStreakModal';
 import { SonoraLogo } from './SonoraLogo';
+import { usePWAInstall } from '@/context/PWAInstallContext';
 
 export const Header: React.FC = () => {
   const pathname = usePathname();
   const { user, isAdmin, switchRole, logout } = useAuth();
+  const { openInstallModal, isInstalled } = usePWAInstall();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadMessages, setUnreadMessages] = useState<number>(0);
   const [showNotifs, setShowNotifs] = useState(false);
@@ -107,6 +111,26 @@ export const Header: React.FC = () => {
 
       {/* Right: Notifications & Profile Menu / Auth Buttons */}
       <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 shrink-0 ml-auto">
+        {/* Download App Button */}
+        <button
+          onClick={openInstallModal}
+          className={`flex items-center gap-1 sm:gap-1.5 px-2 xs:px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full transition-all cursor-pointer group shadow-sm shrink-0 ${
+            isInstalled
+              ? 'bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400'
+              : 'bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 text-blue-400 hover:text-blue-300 shadow-blue-500/10'
+          }`}
+          title={isInstalled ? 'SONORA App Installed' : 'Download / Install SONORA App'}
+        >
+          {isInstalled ? (
+            <Smartphone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+          ) : (
+            <Download className="w-3.5 h-3.5 text-blue-400 group-hover:scale-110 transition-transform shrink-0" />
+          )}
+          <span className="text-[11px] sm:text-xs font-bold whitespace-nowrap">
+            <span className="hidden xs:inline">{isInstalled ? 'Installed' : 'Download'} </span>App
+          </span>
+        </button>
+
         {/* Daily Listening Streak Pill */}
         <button
           onClick={() => setShowStreakModal(true)}
