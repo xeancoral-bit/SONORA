@@ -438,4 +438,4 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-Built with ❤️ by the **SONORA Team** — *Your Music. Your Moment.*
+Built with ❤️ by the **SONORA** — *Your Music. Your Moment.*
