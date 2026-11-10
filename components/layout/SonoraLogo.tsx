@@ -22,13 +22,13 @@ export const SonoraLogo: React.FC<SonoraLogoProps> = ({ collapsed = false, class
 
   return (
     <Link href="/" className={`flex items-center gap-3 group select-none transition-transform active:scale-95 ${className}`}>
-      {/* Original Geometric Soundwave Mark */}
-      <div className={`relative ${iconSizes[size]} rounded-xl bg-gradient-to-tr from-blue-500 via-blue-400 to-blue-300 p-0.5 shadow-lg shadow-blue-500/25 group-hover:shadow-blue-500/40 transition-shadow duration-300 shrink-0`}>
-        <div className="w-full h-full bg-[#0A0A0A] rounded-[10px] flex items-center justify-center gap-0.5 overflow-hidden">
-          <span className="w-1 h-3 bg-blue-400 rounded-full group-hover:h-4 transition-all duration-300" />
-          <span className="w-1 h-5 bg-blue-300 rounded-full group-hover:h-3 transition-all duration-300" />
+      {/* Circular Soundwave Logo Mark */}
+      <div className={`relative ${iconSizes[size]} rounded-full bg-gradient-to-tr from-blue-600 via-blue-500 to-cyan-400 p-[2px] shadow-lg shadow-blue-500/25 group-hover:shadow-blue-500/40 transition-shadow duration-300 shrink-0`}>
+        <div className="w-full h-full bg-[#08080a] rounded-full flex items-center justify-center gap-0.5 overflow-hidden">
+          <span className="w-1 h-3.5 bg-blue-400 rounded-full group-hover:h-4 transition-all duration-300" />
+          <span className="w-1 h-5 bg-blue-200 rounded-full group-hover:h-6 transition-all duration-300" />
           <span className="w-1 h-4 bg-blue-400 rounded-full group-hover:h-5 transition-all duration-300" />
-          <span className="w-1 h-2 bg-blue-400 rounded-full group-hover:h-4 transition-all duration-300" />
+          <span className="w-1 h-2.5 bg-blue-500 rounded-full group-hover:h-3.5 transition-all duration-300" />
         </div>
       </div>
 

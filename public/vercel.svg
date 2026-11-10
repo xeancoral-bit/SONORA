@@ -1,1 +1,40 @@
-<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa" />
+      <stop offset="100%" stop-color="#2563eb" />
+    </linearGradient>
+    <linearGradient id="bar1Grad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#60a5fa" />
+    </linearGradient>
+    <linearGradient id="bar2Grad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#60a5fa" />
+      <stop offset="100%" stop-color="#dbeafe" />
+    </linearGradient>
+    <linearGradient id="bar3Grad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#60a5fa" />
+    </linearGradient>
+    <linearGradient id="bar4Grad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#1d4ed8" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+  </defs>
+
+  <!-- Black Background circle with vibrant blue circular border ring -->
+  <circle cx="256" cy="256" r="236" fill="#08080a" stroke="url(#ringGrad)" stroke-width="28" />
+
+  <!-- 4 Equalizer Soundwave Bars -->
+  <!-- Bar 1 (Medium Left) -->
+  <rect x="132" y="170" width="44" height="172" rx="22" fill="url(#bar1Grad)" />
+
+  <!-- Bar 2 (Tall Center-Left) -->
+  <rect x="202" y="100" width="44" height="312" rx="22" fill="url(#bar2Grad)" />
+
+  <!-- Bar 3 (Medium-Tall Center-Right) -->
+  <rect x="272" y="146" width="44" height="220" rx="22" fill="url(#bar3Grad)" />
+
+  <!-- Bar 4 (Short Right) -->
+  <rect x="342" y="200" width="44" height="112" rx="22" fill="url(#bar4Grad)" />
+</svg>

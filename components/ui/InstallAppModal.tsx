@@ -73,8 +73,8 @@ export const InstallAppModal: React.FC = () => {
         {/* Header Bar */}
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-cyan-400 p-0.5 shadow-lg shadow-blue-500/30">
-              <div className="w-full h-full bg-[#0a0a0c] rounded-[14px] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-400 p-0.5 shadow-lg shadow-blue-500/30">
+              <div className="w-full h-full bg-[#0a0a0c] rounded-full flex items-center justify-center">
                 <Smartphone className="w-5 h-5 text-blue-400" />
               </div>
             </div>
@@ -157,13 +157,13 @@ export const InstallAppModal: React.FC = () => {
               ) : (
                 <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-600/15 via-blue-900/10 to-transparent border border-blue-500/20 space-y-3">
                   <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-[#0a0a0c] border border-blue-500/30 flex items-center justify-center shrink-0 shadow-lg">
+                    <div className="w-12 h-12 rounded-full bg-[#0a0a0c] border border-blue-500/30 flex items-center justify-center shrink-0 shadow-lg">
                       {/* Logo Mini Soundwave */}
                       <div className="flex items-center gap-0.5">
-                        <span className="w-1 h-3 bg-blue-400 rounded-full animate-pulse" />
-                        <span className="w-1 h-5 bg-blue-300 rounded-full animate-pulse" />
+                        <span className="w-1 h-3.5 bg-blue-400 rounded-full animate-pulse" />
+                        <span className="w-1 h-5 bg-blue-200 rounded-full animate-pulse" />
                         <span className="w-1 h-4 bg-blue-400 rounded-full animate-pulse" />
-                        <span className="w-1 h-2 bg-blue-400 rounded-full animate-pulse" />
+                        <span className="w-1 h-2.5 bg-blue-500 rounded-full animate-pulse" />
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
@@ -354,3 +354,4 @@ export const InstallAppModal: React.FC = () => {
     </div>
   );
 };
+

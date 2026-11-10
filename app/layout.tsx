@@ -32,7 +32,12 @@ export const metadata: Metadata = {
     title: 'SONORA'
   },
   icons: {
-    icon: '/favicon.png',
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon.png', type: 'image/png' },
+      { url: '/icons/icon-192x192.png', type: 'image/png', sizes: '192x192' }
+    ],
+    shortcut: '/favicon.ico',
     apple: '/icons/apple-touch-icon.png'
   }
 };
